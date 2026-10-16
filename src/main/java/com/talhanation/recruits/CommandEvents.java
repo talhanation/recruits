@@ -197,7 +197,7 @@ public class CommandEvents {
         return 10;
     }
     private static double getForwardScale(AbstractRecruitEntity recruit) {
-        if(recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) return 25;
+        if(recruit instanceof CaptainEntity captain && captain.isSteeringShip()) return 25;
         if(recruit instanceof SiegeEngineerEntity siegeEngineer && siegeEngineer.siegeController.getSiegeEntity() != null) return 20;
         return 10;
     }
@@ -256,8 +256,9 @@ public class CommandEvents {
             recruit.rotateTicks = 40;
 
             // Captain with ship: rotate the ship
-            if(recruit instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()) {
-                captain.smallShipsController.startFaceRotation(player.getYRot());
+            if(recruit instanceof CaptainEntity captain && captain.isSteeringShip()) {
+                if (captain.shipController.isActive()) captain.shipController.face(player.getYRot());
+                else captain.smallShipsController.startFaceRotation(player.getYRot());
             }
 
             // SiegeEngineer with siege weapon: rotate the siege weapon
@@ -395,7 +396,7 @@ public class CommandEvents {
             }
         }
         else if (recruit instanceof CaptainEntity captain) {
-            if (captain.smallShipsController != null && captain.smallShipsController.ship != null) {
+            if (captain.isSteeringShip()) {
                 maxRange = Math.sqrt(captain.smallShipsController.attackRange); // ~67
             }
         } else if (recruit instanceof BowmanEntity) {

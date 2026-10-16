@@ -64,7 +64,7 @@ public class FormationUtils {
         List<FormationPosition> possiblePositions = new ArrayList<>();
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
@@ -138,7 +138,7 @@ public class FormationUtils {
         Vec3 left = new Vec3(-forward.z, forward.y, forward.x);
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
@@ -210,7 +210,7 @@ public class FormationUtils {
         int numRecruits = recruits.size();
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
@@ -276,7 +276,7 @@ public class FormationUtils {
         int numRecruits = recruits.size();
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
@@ -339,7 +339,7 @@ public class FormationUtils {
         int numRecruits = recruits.size();
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
@@ -431,7 +431,7 @@ public class FormationUtils {
         double spacing = 2.5 * spacingMultiplier;
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
@@ -510,7 +510,7 @@ public class FormationUtils {
         int recruitsPerWing = recruits.size() / 2;
 
         for(AbstractRecruitEntity rec : recruits){
-            if(rec instanceof CaptainEntity captain && captain.smallShipsController.ship != null && captain.smallShipsController.ship.isCaptainDriver()){
+            if(rec instanceof CaptainEntity captain && captain.isSteeringShip()){
                 spacing *= 10;
                 break;
             }
