@@ -10,7 +10,10 @@ import com.talhanation.recruits.client.render.layer.RecruitArmorLayer;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.init.ModEntityTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.builders.CubeDeformation;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.resources.ResourceLocation;
@@ -33,6 +36,9 @@ public class ClientEvent {
     public static ModelLayerLocation RECRUIT = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit"), "recruit");
     public static ModelLayerLocation RECRUIT_OUTER_ARMOR = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit_outer_layer"), "recruit_outer_layer");
     public static ModelLayerLocation RECRUIT_INNER_ARMOR = new ModelLayerLocation(new ResourceLocation(Main.MOD_ID + "recruit_inner_layer"), "recruit_inner_layer");
+    public static final ModelLayerLocation RECRUIT_HUMAN_TEAM_LAYER = humanLayer("team");
+    public static final ModelLayerLocation RECRUIT_HUMAN_BIOME_LAYER = humanLayer("biome");
+    public static final ModelLayerLocation RECRUIT_HUMAN_COMPANION_LAYER = humanLayer("companion");
 
     @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
@@ -84,7 +90,17 @@ public class ClientEvent {
         event.registerLayerDefinition(ClientEvent.RECRUIT, RecruitVillagerModel::createLayerDefinition);
         event.registerLayerDefinition(ClientEvent.RECRUIT_OUTER_ARMOR, RecruitArmorLayer::createOuterArmorLayer);
         event.registerLayerDefinition(ClientEvent.RECRUIT_INNER_ARMOR, RecruitArmorLayer::createInnerArmorLayer);
+        event.registerLayerDefinition(RECRUIT_HUMAN_TEAM_LAYER, () -> humanLayerDefinition(0.20F));
+        event.registerLayerDefinition(RECRUIT_HUMAN_BIOME_LAYER, () -> humanLayerDefinition(0.22F));
+        event.registerLayerDefinition(RECRUIT_HUMAN_COMPANION_LAYER, () -> humanLayerDefinition(0.24F));
+    }
 
+    private static ModelLayerLocation humanLayer(String name) {
+        return new ModelLayerLocation(new ResourceLocation(Main.MOD_ID, "recruit_human_" + name), name);
+    }
+
+    private static LayerDefinition humanLayerDefinition(float deformation) {
+        return LayerDefinition.create(HumanoidModel.createMesh(new CubeDeformation(deformation), 0.0F), 64, 64);
     }
 
     @SubscribeEvent

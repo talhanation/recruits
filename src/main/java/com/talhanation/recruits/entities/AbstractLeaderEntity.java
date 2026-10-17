@@ -161,7 +161,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         this.waitingTime = nbt.getInt("waiting_time");
         this.waitForRecruitsUpkeepTime = nbt.getInt("waitForRecruitsUpkeepTime");
         this.setInfoMode(nbt.getByte("infoMode"));
-        this.ownerName = nbt.getString("ownerName");
+        this.ownerName = nbt.contains("OwnerName") ? nbt.getString("OwnerName") : nbt.getString("ownerName");
         this.setPatrolSpeed(nbt.getByte("patrolSpeed"));
         this.setEnemyAction(nbt.getByte("enemyAction"));
         if (nbt.hasUUID("routeId")) this.setRouteID(nbt.getUUID("routeId"));

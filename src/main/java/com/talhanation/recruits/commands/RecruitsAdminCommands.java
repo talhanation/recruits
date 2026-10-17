@@ -592,22 +592,11 @@ public class RecruitsAdminCommands {
                                             if(handItem.getItem() instanceof RecruitsSpawnEgg recruitsSpawnEgg){
                                                 BlockPos pos = player.getOnPos();
                                                 EntityType<?> entitytype = recruitsSpawnEgg.getType(handItem.getTag());
-                                                List<AbstractRecruitEntity> recruitEntities = new ArrayList<>();
-
                                                 for(int i = 0; i < amount; i++){
-                                                    Entity entity = entitytype.create(serverLevel);
                                                     CompoundTag entityTag = handItem.getTag();
-
-                                                    if(entity instanceof AbstractRecruitEntity recruit && entityTag != null) {
-                                                        RecruitsSpawnEgg.fillRecruit(recruit, entityTag, pos);
-                                                        recruitEntities.add((AbstractRecruitEntity)entity);
+                                                    if(entityTag != null) {
+                                                        RecruitsSpawnEgg.spawnRecruitCopy(serverLevel, entitytype, entityTag, pos);
                                                     }
-                                                }
-
-                                                //FormationUtils.squareFormation(player, recruitEntities, pos.getCenter());
-
-                                                for(Entity entity : recruitEntities){
-                                                    serverLevel.addFreshEntity(entity);
                                                 }
 
                                             }

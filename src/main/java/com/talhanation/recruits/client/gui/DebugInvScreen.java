@@ -341,7 +341,7 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
             default -> "{}";
         };
 
-        guiGraphics.pose();
+        guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.7F, 0.7F, 1F);
 
         //Titles

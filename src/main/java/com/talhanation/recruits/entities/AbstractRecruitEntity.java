@@ -509,12 +509,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsOwned(nbt.getBoolean("isOwned"));
         this.setCost(nbt.getInt("Cost"));
         this.setMountTimer(nbt.getInt("mountTimer"));
-        this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
+        if (nbt.contains("upkeepTimer")) this.setUpkeepTimer(nbt.getInt("upkeepTimer"));
+        else this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         this.setColor(nbt.getByte("Color"));
 
         this.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
         this.formationPos = (nbt.getInt("formationPos"));
         this.setShouldRest(nbt.getBoolean("ShouldRest"));
+        this.setShouldRanged(nbt.getBoolean("ShouldRanged"));
         this.isInFormation = nbt.getBoolean("isInFormation");
         this.holdFormation = nbt.getBoolean("holdFormation");
 
