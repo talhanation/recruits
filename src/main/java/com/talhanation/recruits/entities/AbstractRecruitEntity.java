@@ -117,6 +117,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean needsTeamUpdate = true;
     public boolean needsGroupUpdate = true;
     public boolean forcedUpkeep;
+    @Nullable public BlockPos depositPos;
+    @Nullable public UUID depositEntityUUID;
     public int dismount = 0;
     public int upkeepTimer = 0;
     public int mountTimer = 0;
@@ -339,6 +341,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(1, new RecruitProtectEntityGoal(this));
         this.goalSelector.addGoal(0, new RecruitEatGoal(this));
         this.goalSelector.addGoal(5, new RecruitUpkeepPosGoal(this));
+        this.goalSelector.addGoal(1, new RecruitDepositGoal(this));
         this.goalSelector.addGoal(6, new RecruitUpkeepEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitMountEntityGoal(this));
         this.goalSelector.addGoal(3, new RecruitDismountEntity(this));

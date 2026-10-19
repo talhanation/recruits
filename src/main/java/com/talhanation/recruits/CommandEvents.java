@@ -703,6 +703,18 @@ public class CommandEvents {
             recruit.clearUpkeepPos();
         }
     }
+    public static void onDepositCommand(UUID player_uuid, AbstractRecruitEntity recruit, UUID group, @Nullable UUID entity_uuid, @Nullable BlockPos blockPos) {
+        if (!recruit.isEffectedByCommand(player_uuid, group)) return;
+        if (entity_uuid != null) {
+            recruit.depositEntityUUID = entity_uuid;
+            recruit.depositPos = null;
+        }
+        else if (blockPos != null) {
+            recruit.depositPos = blockPos;
+            recruit.depositEntityUUID = null;
+        }
+    }
+
     public static void onUpkeepCommand(UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean isEntity, UUID entity_uuid, BlockPos blockPos) {
         if (recruit.isEffectedByCommand(player_uuid, group)){
             if (isEntity) {

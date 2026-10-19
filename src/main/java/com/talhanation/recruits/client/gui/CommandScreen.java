@@ -271,6 +271,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
             case 91 -> this.player.sendSystemMessage(TEXT_BACK_TO_MOUNT(group_string.toString()));
             case 92 -> this.player.sendSystemMessage(TEXT_UPKEEP(group_string.toString()));
             case 93 -> this.player.sendSystemMessage(TEXT_CLEAR_UPKEEP(group_string.toString()));
+            case 96 -> this.player.sendSystemMessage(TEXT_DEPOSIT(group_string.toString()));
 
             case 98 -> this.player.sendSystemMessage(TEXT_DISMOUNT(group_string.toString()));
             case 99 -> this.player.sendSystemMessage(TEXT_MOUNT(group_string.toString()));
@@ -328,6 +329,11 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     private static MutableComponent TEXT_CLEAR_UPKEEP(String group_string) {
         return Component.translatable("chat.recruits.command.clear_upkeep", group_string);
     }
+    private static MutableComponent TEXT_DEPOSIT(String group_string) {
+        return Component.translatable("chat.recruits.command.deposit", group_string);
+    }
+
+
     private static MutableComponent TEXT_SHIELDS_OFF(String group_string) {
         return Component.translatable("chat.recruits.command.shields_off", group_string);
     }

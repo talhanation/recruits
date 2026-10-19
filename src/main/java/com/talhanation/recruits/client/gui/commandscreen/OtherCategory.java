@@ -29,6 +29,8 @@ public class OtherCategory implements ICommandCategory {
     private static final MutableComponent TEXT_CLEAR_UPKEEP = Component.translatable("gui.recruits.command.text.clear_upkeep");
     private static final MutableComponent TEXT_BACK_TO_MOUNT = Component.translatable("gui.recruits.command.text.backToMount");
     private static final MutableComponent TEXT_UPKEEP = Component.translatable("gui.recruits.command.text.upkeep");
+    private static final MutableComponent TEXT_DEPOSIT = Component.translatable("gui.recruits.command.text.deposit");
+    private static final MutableComponent TOOLTIP_DEPOSIT = Component.translatable("gui.recruits.command.tooltip.deposit");
     private static final MutableComponent TEXT_REST = Component.translatable("gui.recruits.command.text.rest");
     private static final MutableComponent TEXT_TEAM = Component.translatable("gui.recruits.command.text.team");
     private static final MutableComponent TOOLTIP_BACK_TO_MOUNT = Component.translatable("gui.recruits.command.tooltip.backToMount");
@@ -146,6 +148,25 @@ public class OtherCategory implements ICommandCategory {
         upkeepButton.setTooltip(Tooltip.create(TOOLTIP_UPKEEP));
         upkeepButton.active = isOneGroupActive && (isUpkeepPosition(screen.rayBlockPos, player)|| isUpkeepEntity(screen.rayEntity));
         screen.addRenderableWidget(upkeepButton);
+
+        //DEPOSIT ("anti upkeep"): empty the inventory into the container the player looks at
+        RecruitsCommandButton depositButton = new RecruitsCommandButton(x, y - 50, TEXT_DEPOSIT,
+                button -> {
+                    if (!groups.isEmpty()) {
+                        for (RecruitsGroup group : groups) {
+                            if (group.isDisabled()) continue;
+                            if (screen.rayEntity != null && isUpkeepEntity(screen.rayEntity)) {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageDepositInventory(group.getUUID(), screen.rayEntity.getUUID(), null));
+                            } else if (screen.rayBlockPos != null) {
+                                Main.SIMPLE_CHANNEL.sendToServer(new MessageDepositInventory(group.getUUID(), null, screen.rayBlockPos));
+                            }
+                        }
+                        screen.sendCommandInChat(96);
+                    }
+                });
+        depositButton.setTooltip(Tooltip.create(TOOLTIP_DEPOSIT));
+        depositButton.active = isOneGroupActive && (isUpkeepPosition(screen.rayBlockPos, player) || isUpkeepEntity(screen.rayEntity));
+        screen.addRenderableWidget(depositButton);
 
         //Clear Upkeep
         RecruitsCommandButton clearUpkeepButton = new RecruitsCommandButton(x + 60, y + 50, TEXT_CLEAR_UPKEEP,
