@@ -8,6 +8,8 @@ import com.talhanation.recruits.client.gui.player.SelectPlayerScreen;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.network.MessageAssignRecruitToPlayer;
 import com.talhanation.recruits.network.MessageDisband;
+import com.talhanation.recruits.network.MessageTrainRecruit;
+import com.talhanation.recruits.util.RecruitTraining;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -32,6 +34,10 @@ public class RecruitMoreScreen extends RecruitsScreenBase {
     private static final MutableComponent ASSIGN_TO_PLAYER = Component.translatable("gui.recruits.team.assignNewOwner");
     private static final MutableComponent GROUP_SETTINGS = Component.translatable("gui.recruits.groups.settings");
     private static final MutableComponent RENAME = Component.translatable("gui.recruits.inv.rename");
+    private static final MutableComponent TOOLTIP_TRAIN_MAX_LEVEL = Component.translatable("gui.recruits.inv.tooltip.train_max_level");
+    private Button buttonTrain;
+    /** 0 = can train, 1 = not enough XP, 2 = max level; -1 = not set yet. Tooltip is only rebuilt on change. */
+    private int trainState = -1;
     public RecruitMoreScreen(Screen parent, AbstractRecruitEntity recruit, Player player) {
         super(TITLE, 195,160);
         this.player = player;
@@ -89,6 +95,18 @@ public class RecruitMoreScreen extends RecruitsScreenBase {
         );
         addRenderableWidget(giveToPlayer);
 
+        buttonTrain = new ExtendedButton(guiLeft + 32, guiTop + 85, 130, 20,
+                Component.translatable("gui.recruits.inv.text.train", RecruitTraining.getPlayerXpCost()),
+                btn -> {
+                    if(recruit != null) {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageTrainRecruit(recruit.getUUID()));
+                    }
+                }
+        );
+        addRenderableWidget(buttonTrain);
+        trainState = -1;
+        updateTrainButton();
+
         Button buttonGroupSettings = new ExtendedButton(guiLeft + 32, guiTop + 105, 130, 20, GROUP_SETTINGS,
                 btn -> {
                     minecraft.setScreen(new RecruitsGroupListScreen(player));
@@ -97,6 +115,28 @@ public class RecruitMoreScreen extends RecruitsScreenBase {
         addRenderableWidget(buttonGroupSettings);
     }
 
+
+    @Override
+    public void tick() {
+        super.tick();
+        // player XP and recruit level are synced from the server after each click
+        updateTrainButton();
+    }
+
+    private void updateTrainButton() {
+        if (buttonTrain == null || recruit == null) return;
+        int state = !RecruitTraining.canBeTrained(recruit) ? 2 : !RecruitTraining.canAfford(player) ? 1 : 0;
+        if (state == trainState) return;
+        trainState = state;
+        buttonTrain.active = state == 0;
+
+        Component tooltip = switch (state) {
+            case 2 -> TOOLTIP_TRAIN_MAX_LEVEL;
+            case 1 -> Component.translatable("gui.recruits.inv.tooltip.train_not_enough", RecruitTraining.getPlayerXpCost());
+            default -> Component.translatable("gui.recruits.inv.tooltip.train", RecruitTraining.getPlayerXpCost(), RecruitTraining.getRecruitXpGain());
+        };
+        buttonTrain.setTooltip(Tooltip.create(tooltip));
+    }
 
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {

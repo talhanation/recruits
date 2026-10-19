@@ -210,7 +210,8 @@ public class Main {
                 MessageRemoveEmbargo.class,
                 MessageToClientUpdateEmbargoes.class,
                 MessageAddEmbargoFaction.class,
-                MessageToClientWorldMapIdentity.class
+                MessageToClientWorldMapIdentity.class,
+                MessageTrainRecruit.class
         };
 
 
