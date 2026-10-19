@@ -45,6 +45,7 @@ public interface ICompanion {
         this.get().getAttributes().assignValues(recruit.getAttributes());
 
         this.get().setHunger(recruit.getHunger());
+        this.get().paymentTimer = recruit.paymentTimer;
         this.get().setVariant(recruit.getVariant());
 
         this.get().setOwnerUUID(Optional.of(recruit.getOwnerUUID()));

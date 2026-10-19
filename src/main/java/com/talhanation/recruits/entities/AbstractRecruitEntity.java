@@ -57,6 +57,7 @@ import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
@@ -117,6 +118,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean needsTeamUpdate = true;
     public boolean needsGroupUpdate = true;
     public boolean forcedUpkeep;
+    public boolean upkeepInProgress;
+    public boolean remountAfterUpkeep;
     @Nullable public BlockPos depositPos;
     @Nullable public UUID depositEntityUUID;
     public int dismount = 0;
@@ -224,6 +227,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
         if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
+        if(remountAfterUpkeep && (this.tickCount + this.getId()) % 20 == 0 && !needsToGetFood()) tryRemountAfterUpkeep();
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/50F);// 1 hp in 2.5s
         }
@@ -324,6 +328,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
         this.setRandomSpawnBonus();
         this.createNavigation(world.getLevel());
+        if (reason == MobSpawnType.SPAWN_EGG && this.getXpLevel() == 0) applySpawnValues(this);
         return spawnData;
     }
     public void setRandomSpawnBonus(){
@@ -442,6 +447,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         nbt.putBoolean("isOwned", this.getIsOwned());
         nbt.putInt("Cost", this.getCost());
         nbt.putInt("mountTimer", this.getMountTimer());
+        nbt.putBoolean("RemountAfterUpkeep", this.remountAfterUpkeep);
         nbt.putInt("upkeepTimer", this.getUpkeepTimer());
         nbt.putInt("Color", this.getColor());
         nbt.putInt("Biome", this.getBiome());
@@ -516,6 +522,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.setIsOwned(nbt.getBoolean("isOwned"));
         this.setCost(nbt.getInt("Cost"));
         this.setMountTimer(nbt.getInt("mountTimer"));
+        this.remountAfterUpkeep = nbt.getBoolean("RemountAfterUpkeep");
         this.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         this.setColor(nbt.getByte("Color"));
 
@@ -1602,6 +1609,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean isEntity = this.getUpkeepUUID() != null;
 
         return (forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
+        return (upkeepInProgress || forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
     }
 
     public boolean hasFoodInInv(){
@@ -2046,6 +2054,14 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if (this.getCommandSenderWorld().isClientSide()) return;
 
         this.needsGroupUpdate = false;
+
+        RecruitsGroup.DisbandContext pendingDisband = RecruitEvents.recruitsGroupsManager.takePendingDisband(this.getUUID());
+        if (pendingDisband != null) {
+            this.disband(null, pendingDisband.keepTeam, pendingDisband.increaseCost);
+            this.needsTeamUpdate = true;
+            return;
+        }
+
         if (this.getGroup() == null) return;
 
         UUID raw = this.getGroup();
@@ -2136,6 +2152,33 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(should) this.dismount = 0;
     }
 
+    /**
+     * Mounts a recruit leaves behind to walk to his upkeep: horses and other whitelisted mounts, siege weapons.
+     * Never ships or boats - the captain has his own harbour routine and crew would end up in the water.
+     */
+    public boolean canDismountForUpkeep(@Nullable Entity vehicle) {
+        if (vehicle == null || vehicle instanceof Boat || SmallShipsBridge.isShip(vehicle)) return false;
+        return this.canMountEntity(vehicle);
+    }
+
+    /** Gets off for the upkeep and remembers the mount (MountUUID) to get back on afterwards. */
+    public void dismountForUpkeep() {
+        Entity vehicle = this.getVehicle();
+        if (!canDismountForUpkeep(vehicle)) return;
+
+        this.setMountUUID(Optional.of(vehicle.getUUID()));
+        this.remountAfterUpkeep = true;
+        this.stopRiding();
+    }
+
+    /** After the upkeep: back on the remembered mount (RecruitMountEntityGoal walks there). */
+    public void tryRemountAfterUpkeep() {
+        if (!this.remountAfterUpkeep) return;
+        this.remountAfterUpkeep = false;
+        // a dismount order in the meantime clears the MountUUID - then he stays on foot
+        if (!this.isPassenger() && this.getMountUUID() != null) this.shouldMount(true, this.getMountUUID());
+    }
+
     public void shouldProtect(boolean should, UUID protect_uuid) {
         this.setShouldProtect(should);
         if(protect_uuid != null) this.setProtectUUID(Optional.of(protect_uuid));
@@ -2156,56 +2199,60 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void upkeepReequip(@NotNull Container container) {
         //Try to reequip
+        for (int guard = 0; guard < 128 && upkeepTakeOne(container); guard++) {
+        }
+    }
+
+    public boolean upkeepTakeOne(@NotNull Container container) {
         for(int i = 0; i < container.getContainerSize(); i++) {
             ItemStack itemstack = container.getItem(i);
-            ItemStack equipment;
+            if(itemstack.isEmpty()) continue;
+
             if(!this.canEatItemStack(itemstack) && this.wantsToPickUp(itemstack)){
                 if (this.canEquipItem(itemstack)) {
-                    equipment = itemstack.copy();
+                    ItemStack equipment = itemstack.copy();
                     equipment.setCount(1);
                     this.equipItem(equipment);
                     itemstack.shrink(1);
+                    container.setChanged();
+                    return true;
                 }
                 if(this instanceof CrossBowmanEntity crossBowmanEntity && Main.isMusketModLoaded && IWeapon.isMusketModWeapon(crossBowmanEntity.getMainHandItem()) && itemstack.getDescriptionId().contains("cartridge")){
-                    if(this.canTakeCartridge()){
-                        equipment = itemstack.copy();
-                        this.inventory.addItem(equipment);
-                        itemstack.shrink(equipment.getCount());
-                    }
+                    if(this.canTakeCartridge() && takeStackFrom(container, i)) return true;
                 }
                 else if (this instanceof IRangedRecruit && itemstack.is(ItemTags.ARROWS)){ //all that are ranged
-                    if(this.canTakeArrows()){
-                        equipment = itemstack.copy();
-                        this.inventory.addItem(equipment);
-                        itemstack.shrink(equipment.getCount());
-                    }
+                    if(this.canTakeArrows() && takeStackFrom(container, i)) return true;
                 }
             }
 
             if (this instanceof CaptainEntity && Main.isSmallShipsLoaded){
                 if(itemstack.getDescriptionId().contains("cannon_ball")){
-                    if(this.canTakeCannonBalls()){
-                        equipment = itemstack.copy();
-                        this.inventory.addItem(equipment);
-                        itemstack.shrink(equipment.getCount());
-                    }
+                    if(this.canTakeCannonBalls() && takeStackFrom(container, i)) return true;
                 }
                 else if (itemstack.is(ItemTags.PLANKS)){
-                    if(this.canTakePlanks()){
-                        equipment = itemstack.copy();
-                        this.inventory.addItem(equipment);
-                        itemstack.shrink(equipment.getCount());
-                    }
+                    if(this.canTakePlanks() && takeStackFrom(container, i)) return true;
                 }
                 else if (itemstack.is(Items.IRON_NUGGET)){
-                    if(this.canTakeIronNuggets()){
-                        equipment = itemstack.copy();
-                        this.inventory.addItem(equipment);
-                        itemstack.shrink(equipment.getCount());
-                    }
+                    if(this.canTakeIronNuggets() && takeStackFrom(container, i)) return true;
+                }
+                // thread patches the canvas at sea, wool pays the dockyard for new canvas
+                else if (itemstack.is(Items.STRING) || itemstack.is(ItemTags.WOOL)){
+                    if(this.canTakeSailMaterial(itemstack) && takeStackFrom(container, i)) return true;
                 }
             }
         }
+        return false;
+    }
+
+    /** Moves the stack in the given container slot into the inventory; only what fits is removed. */
+    private boolean takeStackFrom(Container container, int slot) {
+        ItemStack stack = container.getItem(slot);
+        ItemStack rest = this.inventory.addItem(stack.copy());
+        int moved = stack.getCount() - rest.getCount();
+        if (moved <= 0) return false;
+        stack.shrink(moved);
+        container.setChanged();
+        return true;
     }
 
     public boolean canMountEntity(Entity mount) {

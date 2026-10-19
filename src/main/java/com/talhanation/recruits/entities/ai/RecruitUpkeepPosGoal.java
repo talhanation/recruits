@@ -35,8 +35,13 @@ public class RecruitUpkeepPosGoal extends Goal {
     public int timer = 0;
     public boolean setTimer = false;
     public boolean canResetPaymentTimer = false;
+    /** Running take-out at the chest, one slot per second (see {@link UpkeepSession}). */
+    @Nullable private UpkeepSession session;
+    /** Mounted recruits ride up close, then walk; they mount again in stop(). */
+    private final UpkeepDismount dismount;
     public RecruitUpkeepPosGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
+        this.dismount = new UpkeepDismount(recruit);
     }
 
     @Override
@@ -52,6 +57,7 @@ public class RecruitUpkeepPosGoal extends Goal {
     public void start() {
         super.start();
         this.timeToRecalcPath = 0;
+        this.dismount.reset();
         message = true;
         messageNotChest = true;
         messageNeedNewChest = true;
@@ -97,6 +103,8 @@ public class RecruitUpkeepPosGoal extends Goal {
         }
 
         if (container != null && chestPos != null){
+            if (this.dismount.tick(Vec3.atCenterOf(chestPos))) this.timeToRecalcPath = 0;
+
             if (--this.timeToRecalcPath <= 0) {
                 this.timeToRecalcPath = this.adjustedTickDelay(10);
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
@@ -111,43 +119,31 @@ public class RecruitUpkeepPosGoal extends Goal {
                 this.recruit.getNavigation().stop();
                 this.recruit.getLookControl().setLookAt(chestPos.getX(), chestPos.getY() + 1, chestPos.getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                if(!setTimer){
+                if(session == null){
                     if(recruit.paymentTimer == 0){
                         recruit.checkPayment(container);
                         canResetPaymentTimer = true;
                     }
-                    this.recruit.upkeepReequip(container);
-                    timer = 30;
-                    setTimer = true;
+                    interactChest(container, true);
+                    session = new UpkeepSession(recruit, container);
+                    // keeps needsToGetFood() true until the session is done, so the first food item
+                    // does not end the goal and hold-pos/follow do not pull him away mid-way
+                    recruit.upkeepInProgress = true;
+                }
 
-                    if (isFoodInContainer(container)) {
-                        interactChest(container, true);
-                        for (int i = 0; i < 3; i++) {
-                            ItemStack foodItem = this.getFoodFromInv(container);
-                            ItemStack food;
-                            if (foodItem != null && canAddFood()){
-                                food = foodItem.copy();
-                                food.setCount(1);
-                                recruit.getInventory().addItem(food);
-                                foodItem.shrink(1);
-                            } else {
-                                if(recruit.getOwner() != null && message){
-                                    recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
-                                    message = false;
-                                }
-                                this.stop();
-                                return;
-                            }
-                        }
-                    }
-                    else {
-                        if(recruit.getOwner() != null && message){
+                UpkeepSession.Result result = session.tick();
+                if (result != UpkeepSession.Result.RUNNING) {
+                    if (recruit.getOwner() != null && message) {
+                        if (result == UpkeepSession.Result.NO_FOOD) {
                             recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
                             message = false;
+                        } else if (result == UpkeepSession.Result.NO_PLACE) {
+                            recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                            message = false;
                         }
-                        this.stop();
-                        return;
                     }
+                    this.stop();
+                    return;
                 }
             }
         }
@@ -167,11 +163,6 @@ public class RecruitUpkeepPosGoal extends Goal {
             //Main.LOGGER.debug("Chest not found"
         }
 
-
-        if(setTimer){
-            if(timer > 0) timer--;
-            if(timer == 0) stop();
-        }
     }
     @Override
     public void stop() {
@@ -180,6 +171,9 @@ public class RecruitUpkeepPosGoal extends Goal {
         recruit.forcedUpkeep = false;
         timer = 0;
         setTimer = false;
+        session = null;
+        recruit.upkeepInProgress = false;
+        recruit.tryRemountAfterUpkeep();
 
         if(recruit.paymentTimer == 0 && canResetPaymentTimer){
             canResetPaymentTimer = false;

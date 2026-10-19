@@ -26,9 +26,14 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public int timeToRecalcPath;
     private long lastCanUseCheck;
     public boolean canResetPaymentTimer = false;
+    /** Running take-out at the entity, one slot per second (see {@link UpkeepSession}). */
+    @Nullable private UpkeepSession session;
+    /** Mounted recruits ride up close, then walk; they mount again in stop(). */
+    private final UpkeepDismount dismount;
 
     public RecruitUpkeepEntityGoal(AbstractRecruitEntity recruit) {
         this.recruit = recruit;
+        this.dismount = new UpkeepDismount(recruit);
     }
 
     @Override
@@ -44,7 +49,9 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        // Not throttled: canUse() only answers every 20 ticks and returned false in between, which
+        // stopped the goal (and reset the forced upkeep) one tick after it started.
+        return recruit.needsToGetFood() && recruit.getUpkeepUUID() != null;
     }
 
     private boolean isFoodInEntity(Container container) {
@@ -61,6 +68,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
     public void start() {
         super.start();
         timeToRecalcPath = 0;
+        this.dismount.reset();
         message = true;
         messageNotInRange = true;
 
@@ -94,6 +102,8 @@ public class RecruitUpkeepEntityGoal extends Goal {
         super.tick();
         //Main.LOGGER.debug("searching upkeep entity");
         if (entity.isPresent()) {
+            if (this.dismount.tick(Vec3.atCenterOf(pos))) this.timeToRecalcPath = 0;
+
             if (--this.timeToRecalcPath <= 0) {
                 this.timeToRecalcPath = this.adjustedTickDelay(10);
                 this.recruit.getNavigation().moveTo(pos.getX(), pos.getY(), pos.getZ(), 1.15D);
@@ -111,35 +121,25 @@ public class RecruitUpkeepEntityGoal extends Goal {
                 this.recruit.getNavigation().stop();
                 this.recruit.getLookControl().setLookAt(entity.get().getX(), entity.get().getY() + 1, entity.get().getZ(), 10.0F, (float) this.recruit.getMaxHeadXRot());
 
-                if(recruit.paymentTimer == 0){
-                    recruit.checkPayment(container);
-                    canResetPaymentTimer = true;
+                if (session == null) {
+                    if(recruit.paymentTimer == 0){
+                        recruit.checkPayment(container);
+                        canResetPaymentTimer = true;
+                    }
+                    session = new UpkeepSession(recruit, container);
+                    recruit.upkeepInProgress = true;
                 }
 
-                this.recruit.upkeepReequip(container);
-
-                if (isFoodInEntity(container)) {
-                    for (int i = 0; i < 3; i++) {
-                        ItemStack foodItem = this.getFoodFromInv(container);
-                        ItemStack food;
-                        if (foodItem != null && canAddFood()) {
-                            food = foodItem.copy();
-                            food.setCount(1);
-                            recruit.getInventory().addItem(food);
-                            foodItem.shrink(1);
-                        } else {
-                            if (recruit.getOwner() != null && message) {
-                                recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
-                                message = false;
-                            }
-                        }
-                    }
-                    this.stop(); //stop taking food out of the container
-                    return;
-                } else {
+                UpkeepSession.Result result = session.tick();
+                if (result != UpkeepSession.Result.RUNNING) {
                     if (recruit.getOwner() != null && message) {
-                        recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
-                        message = false;
+                        if (result == UpkeepSession.Result.NO_FOOD) {
+                            recruit.getOwner().sendSystemMessage(TEXT_FOOD(recruit.getName().getString()));
+                            message = false;
+                        } else if (result == UpkeepSession.Result.NO_PLACE) {
+                            recruit.getOwner().sendSystemMessage(TEXT_NO_PLACE(recruit.getName().getString()));
+                            message = false;
+                        }
                     }
                     this.stop();
                     return;
@@ -173,6 +173,9 @@ public class RecruitUpkeepEntityGoal extends Goal {
         super.stop();
         recruit.setUpkeepTimer(recruit.getUpkeepCooldown());
         recruit.forcedUpkeep = false;
+        recruit.upkeepInProgress = false;
+        session = null;
+        recruit.tryRemountAfterUpkeep();
         if(recruit.paymentTimer == 0 && canResetPaymentTimer){
             canResetPaymentTimer = false;
             recruit.resetPaymentTimer();

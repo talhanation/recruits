@@ -55,6 +55,12 @@ public class RecruitMountEntityGoal extends Goal {
             }
             else recruit.setShouldMount(false);
         }
+        else if(this.recruit.getVehicle() == null) {
+            // mount not found (yet): it may still be loading in, try again for the rest of the mount timer.
+            // Before, shouldMount stayed true forever here and blocked e.g. field looting.
+            if(recruit.getMountTimer() <= 0) recruit.setShouldMount(false);
+            else if(recruit.tickCount % 20 == 0) this.findMount();
+        }
     }
 
     private void findMount(){
