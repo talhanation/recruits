@@ -55,7 +55,8 @@ public class DebugInvMenu extends ContainerBase {
 
     @Override
     public boolean stillValid(Player playerIn) {
-        return this.container.stillValid(playerIn) && this.recruit.isAlive();
+        return this.container.stillValid(playerIn) && this.recruit.isAlive()
+                && playerIn.isCreative() && playerIn.distanceToSqr(this.recruit) <= 16.0D * 16.0D;
     }
 
     @Override

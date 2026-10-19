@@ -54,6 +54,14 @@ public class RecruitInventoryMenu extends ContainerBase {
     }
 
     @Override
+    public boolean stillValid(Player player) {
+        if (recruit == null || !recruit.isAlive()) return false;
+        boolean owner = recruit.isOwned() && player.getUUID().equals(recruit.getOwnerUUID());
+        if (!owner && !player.hasPermissions(2)) return false;
+        return player.distanceToSqr(recruit) <= 16.0D * 16.0D;
+    }
+
+    @Override
     public int getInvOffset() {
         return 56;
     }

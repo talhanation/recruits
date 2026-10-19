@@ -40,7 +40,7 @@ public class TeamEditMenu extends ContainerBase {
 
     public void removed(Player p_39881_) {
         super.removed(p_39881_);
-        player.getInventory().add(getBanner());
+        if (!p_39881_.level().isClientSide()) this.clearContainer(p_39881_, this.container);
     }
 
     @Override
