@@ -233,10 +233,15 @@ public class VillagerEvents {
     }
 
     public static void createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
-        AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
-        if(abstractRecruit == null) return;
+        createHiredRecruitFromVillager(serverLevel, villager, recruitType, player, group, -1);
+    }
+
+    public static boolean createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<?> recruitType, Player player, RecruitsGroup group, int hireCost){
+        if(!(recruitType.create(villager.getCommandSenderWorld()) instanceof AbstractRecruitEntity abstractRecruit)) return false;
+        if(group == null) return false;
 
         abstractRecruit.initSpawn();
+        if(hireCost >= 0) abstractRecruit.setCost(hireCost);
         AbstractRecruitEntity.applyVariantFromVillager(abstractRecruit, villager);
 
         Component name = villager.getCustomName();
@@ -267,14 +272,21 @@ public class VillagerEvents {
             villager.releasePoi(MemoryModuleType.HOME);
             villager.releasePoi(MemoryModuleType.MEETING_POINT);
             villager.discard();
+            return true;
         }
+        return false;
     }
 
     public static void spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
-        AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
-        if(abstractRecruit == null) return;
+        spawnHiredRecruit(serverLevel, recruitType, player, group, -1);
+    }
+
+    public static boolean spawnHiredRecruit(ServerLevel serverLevel, EntityType<?> recruitType, Player player, RecruitsGroup group, int hireCost){
+        if(!(recruitType.create(player.getCommandSenderWorld()) instanceof AbstractRecruitEntity abstractRecruit)) return false;
+        if(group == null) return false;
 
         abstractRecruit.initSpawn();
+        if(hireCost >= 0) abstractRecruit.setCost(hireCost);
 
         if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
             abstractRecruit.copyPosition(player);
@@ -290,7 +302,9 @@ public class VillagerEvents {
                 }
                 companion.applyRecruitValues(abstractRecruit);
             }
+            return true;
         }
+        return false;
     }
 
     @SubscribeEvent

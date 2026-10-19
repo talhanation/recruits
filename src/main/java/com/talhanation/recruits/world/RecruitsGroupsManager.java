@@ -16,6 +16,13 @@ public class RecruitsGroupsManager {
     private final Map<UUID, RecruitsGroup> groupMap = new HashMap<>();
     private final Map<UUID, UUID> redirects = new HashMap<>();
     private final Map<UUID, UUID> recruitRedirects = new HashMap<>();
+    /**
+     * Recruits that were members of a group at the moment it was disbanded.
+     * Before, the disband flag sat on the GROUP and was never cleared: every recruit that joined
+     * the group later (promoted companions, spawn-egg copies right away, normal hires after a
+     * chunk reload) got dismissed on its next group update.
+     */
+    private final Map<UUID, RecruitsGroup.DisbandContext> pendingDisbands = new HashMap<>();
     public void load(ServerLevel level) {
         RecruitsGroupsSaveData data = RecruitsGroupsSaveData.get(level);
         groups.clear();
@@ -93,6 +100,19 @@ public class RecruitsGroupsManager {
 
         save(serverLevel);
         broadCastGroupsToPlayer(serverLevel, group.getPlayerUUID());
+    }
+
+    /** Marks only the CURRENT members of the group for dismissal. The group itself stays usable. */
+    public void markMembersForDisband(RecruitsGroup group, RecruitsGroup.DisbandContext context) {
+        if (group == null || context == null) return;
+        for (UUID member : group.members) {
+            pendingDisbands.put(member, context);
+        }
+    }
+
+    /** @return the pending dismissal for this recruit (and removes it), or null. */
+    public RecruitsGroup.DisbandContext takePendingDisband(UUID recruit) {
+        return pendingDisbands.remove(recruit);
     }
 
     public void removeMember(UUID groupUUID, UUID member, ServerLevel serverLevel) {

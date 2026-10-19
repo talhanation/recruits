@@ -102,30 +102,31 @@ public class RecruitsFactionManager {
         teams.remove(teamName);
     }
 
+    // Fixed: the loops used to overwrite the result each iteration, so only the LAST faction was compared.
     public static boolean isNameInUse(String teamName, List<RecruitsFaction> factions) {
-        boolean equ = false;
+        if(teamName == null) return false;
+        String wanted = teamName.toLowerCase().strip();
         for(RecruitsFaction recruitsFaction : factions){
-            equ = recruitsFaction.getStringID().toLowerCase().strip().equals(teamName.toLowerCase());
+            if(recruitsFaction.getStringID().toLowerCase().strip().equals(wanted)) return true;
         }
-        return equ;
+        return false;
     }
 
     public static boolean isDisplayNameInUse(String displayName, List<RecruitsFaction> factions) {
-        boolean equ = false;
+        if(displayName == null) return false;
+        String wanted = displayName.toLowerCase().strip();
         for(RecruitsFaction recruitsFaction : factions){
-            equ = recruitsFaction.getTeamDisplayName().toLowerCase().strip().equals(displayName.toLowerCase());
+            if(recruitsFaction.getTeamDisplayName().toLowerCase().strip().equals(wanted)) return true;
         }
-        return equ;
+        return false;
     }
 
     public static boolean isBannerInUse(CompoundTag bannerNbt, List<RecruitsFaction> factions){
-        boolean inUse = false;
-        if(bannerNbt != null){
-            for(RecruitsFaction recruitsFaction : factions){
-                inUse = bannerNbt.equals(recruitsFaction.getBanner());
-            }
+        if(bannerNbt == null) return false;
+        for(RecruitsFaction recruitsFaction : factions){
+            if(bannerNbt.equals(recruitsFaction.getBanner())) return true;
         }
-        return inUse;
+        return false;
     }
 
     public static boolean isBannerBlank(ItemStack itemStack){
