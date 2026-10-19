@@ -543,6 +543,11 @@ public class WorldMapScreen extends Screen {
                     && selectedRoute != null) {
                 RecruitsRoute.Waypoint wpHit = RouteRenderer.getWaypointAt(
                         selectedRoute, mouseX, mouseY, offsetX, offsetZ, scale);
+                // Far (not loaded) waypoints stay where they are: they still count for the route
+                // but cannot be moved, because the surface Y at a new position is unknown there.
+                if (wpHit != null && !RouteRenderer.isWaypointLoaded(wpHit)) {
+                    return true;
+                }
                 if (wpHit != null) {
                     draggingWaypoint = wpHit;
                     dragOriginalPos = wpHit.getPosition();

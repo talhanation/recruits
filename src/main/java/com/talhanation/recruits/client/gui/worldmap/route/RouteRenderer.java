@@ -29,7 +29,8 @@ public class RouteRenderer {
     private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
 
     private static final int COLOR_NORMAL = 0xFFFFFFFF; // white
-    private static final int COLOR_NOT_LOADED = 0xFFFF4444; // red
+    /** Waypoint outside the loaded area: still part of the route, but too far away to edit its position. */
+    private static final int COLOR_NOT_LOADED = 0xFFFFA500; // orange
     private static final int ROUTE_LINE_COLOR = 0xE6FFFFFF;
     private static final int ROUTE_LINE_SHADOW_COLOR = 0xAA000000;
     private static final int INSERT_LINE_COLOR = 0xFF00FFFF;
@@ -230,7 +231,7 @@ public class RouteRenderer {
         if (scale > 2.0 && !isDragging) {
             String label = null;
             if (!loaded) {
-                label = Component.translatable("gui.recruits.map.waypoint.not_loaded").getString();
+                label = Component.translatable("gui.recruits.map.waypoint.too_far").getString();
             } else if (waypoint.getAction() != null) {
                 label = getActionLabel(waypoint.getAction());
             }
@@ -257,6 +258,15 @@ public class RouteRenderer {
         pose.translate(centerX, y, 0.0);
         guiGraphics.drawString(font, text, -font.width(text) / 2, 0, color, false);
         pose.popPose();
+    }
+
+    /**
+     * True when the waypoint's chunk is explored and currently loaded on the client. Waypoints outside
+     * that area are kept and still count for the route, they are only rendered orange and cannot be
+     * dragged (their surface Y could not be resolved at the new position).
+     */
+    public static boolean isWaypointLoaded(Waypoint waypoint) {
+        return isChunkLoaded(waypoint);
     }
 
     private static boolean isChunkLoaded(Waypoint waypoint) {
