@@ -66,6 +66,10 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
 
                 world.addFreshEntity(recruit);
 
+                if (recruit.isOwned() && recruit.getOwnerUUID() != null) {
+                    RecruitEvents.recruitsPlayerUnitManager.addRecruits(recruit.getOwnerUUID(), 1);
+                }
+
                 if (!context.getPlayer().isCreative()) {
                     stack.shrink(1);
                 }
@@ -206,6 +210,7 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         }
 
         recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);
+        recruit.resetPaymentTimer();
 
         if(recruit.getGroup() != null){
             RecruitEvents.recruitsGroupsManager.addMember(recruit.getGroup(), recruit.getUUID(), (ServerLevel) recruit.getCommandSenderWorld());

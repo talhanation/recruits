@@ -263,6 +263,11 @@ public class Main {
             event.accept(ModItems.HORSEMAN_SPAWN_EGG.get());
             event.accept(ModItems.CROSSBOWMAN_SPAWN_EGG.get());
             event.accept(ModItems.VILLAGER_NOBLE_SPAWN_EGG.get());
+            event.accept(ModItems.MESSENGER_SPAWN_EGG.get());
+            event.accept(ModItems.SCOUT_SPAWN_EGG.get());
+            event.accept(ModItems.PATROL_LEADER_SPAWN_EGG.get());
+            event.accept(ModItems.CAPTAIN_SPAWN_EGG.get());
+            event.accept(ModItems.SIEGE_ENGINEER_SPAWN_EGG.get());
         }
 
         if (event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)){

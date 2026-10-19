@@ -27,6 +27,12 @@ public class ModItems {
     public static final RegistryObject<SpawnEggItem> CROSSBOWMAN_SPAWN_EGG = createSpawnEggItem("crossbowman", ModEntityTypes.CROSSBOWMAN::get, 16755200, 16777045);
     public static final RegistryObject<SpawnEggItem> VILLAGER_NOBLE_SPAWN_EGG = createSpawnEggItem("villager_noble", ModEntityTypes.VILLAGER_NOBLE::get, 16755200, 16777045);
 
+    public static final RegistryObject<SpawnEggItem> MESSENGER_SPAWN_EGG = createSpawnEggItem("messenger", ModEntityTypes.MESSENGER::get, 16755200, 16777045);
+    public static final RegistryObject<SpawnEggItem> SCOUT_SPAWN_EGG = createSpawnEggItem("scout", ModEntityTypes.SCOUT::get, 16755200, 16777045);
+    public static final RegistryObject<SpawnEggItem> PATROL_LEADER_SPAWN_EGG = createSpawnEggItem("patrol_leader", ModEntityTypes.PATROL_LEADER::get, 16755200, 16777045);
+    public static final RegistryObject<SpawnEggItem> CAPTAIN_SPAWN_EGG = createSpawnEggItem("captain", ModEntityTypes.CAPTAIN::get, 16755200, 16777045);
+    public static final RegistryObject<SpawnEggItem> SIEGE_ENGINEER_SPAWN_EGG = createSpawnEggItem("siege_engineer", ModEntityTypes.SIEGE_ENGINEER::get, 16755200, 16777045);
+
     public static final RegistryObject<BlockItem> RECRUIT_BLOCK = ITEMS.register("recruit_block", () -> new BlockItem(ModBlocks.RECRUIT_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockItem> BOWMAN_BLOCK = ITEMS.register("bowman_block", () -> new BlockItem(ModBlocks.BOWMAN_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockItem> RECRUIT_SHIELD_BLOCK = ITEMS.register("recruit_shield_block", () -> new BlockItem(ModBlocks.RECRUIT_SHIELD_BLOCK.get(), new Item.Properties()));
