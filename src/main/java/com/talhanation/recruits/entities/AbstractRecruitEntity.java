@@ -17,6 +17,7 @@ import com.talhanation.recruits.inventory.DebugInvMenu;
 import com.talhanation.recruits.inventory.RecruitHireMenu;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.util.AttackUtil;
 import com.talhanation.recruits.world.RecruitsDiplomacyManager;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsGroup;
@@ -356,6 +357,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.goalSelector.addGoal(3, new RecruitDismountEntity(this));
         this.goalSelector.addGoal(3, new RecruitMoveToPosGoal(this, 1.05D));
         this.goalSelector.addGoal(2, new RecruitFollowOwnerGoal(this, 1.05D, 300, 100));
+        this.goalSelector.addGoal(2, new RecruitFieldLootGoal(this));
         this.goalSelector.addGoal(2, new RecruitMeleeAttackGoal(this, 1.05D, this.getMeleeStartRange()));
         this.goalSelector.addGoal(3, new RecruitHoldPosGoal(this, 32.0F));
         //this.goalSelector.addGoal(7, new RecruitDodgeGoal(this));
@@ -1608,7 +1610,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         boolean isChest = this.getUpkeepPos() != null;
         boolean isEntity = this.getUpkeepUUID() != null;
 
-        return (forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
         return (upkeepInProgress || forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
     }
 
