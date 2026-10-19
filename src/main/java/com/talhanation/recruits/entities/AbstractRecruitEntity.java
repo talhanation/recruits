@@ -243,6 +243,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         LivingEntity currentTarget = this.getTarget();
         if(currentTarget != null && (currentTarget.isDeadOrDying() || currentTarget.isRemoved())) this.setTarget(null);
 
+        else if(currentTarget != null && (this.tickCount + getTickPhase()) % 10 == 0 && AttackUtil.isTooDeepUnderwater(currentTarget)){
+            // the target dove deeper than allowed after it was acquired
+            this.setTarget(null);
+        }
             // Option 2 safety net: drop a target that is no longer visible, covering the case where a
             // recruit saw an enemy but lost sight before any attack/move goal took over (e.g. target
             // stepped behind cover while still out of melee range). Throttled so that, in the worst
@@ -288,7 +292,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         List<LivingEntity> nearby = serverLevel.getEntitiesOfClass(
                 LivingEntity.class,
                 searchBox,
-                potTarget -> potTarget != this && targetingConditions.test(this, potTarget)
+                potTarget -> potTarget != this && targetingConditions.test(this, potTarget) && !AttackUtil.isTooDeepUnderwater(potTarget)
         );
 
         if (nearby.isEmpty()) return;
@@ -1093,6 +1097,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     @Override
     public void setTarget(@Nullable LivingEntity p_21544_) {
+        if (p_21544_ != null && AttackUtil.isTooDeepUnderwater(p_21544_)) p_21544_ = null;
         super.setTarget(p_21544_);
 
         this.setUpkeepTimer(500);

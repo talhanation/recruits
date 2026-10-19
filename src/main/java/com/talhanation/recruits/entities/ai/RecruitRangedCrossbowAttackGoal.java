@@ -1,9 +1,11 @@
 package com.talhanation.recruits.entities.ai;
 
+import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.musketmod.CrossbowWeapon;
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
+import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.ItemTags;
@@ -41,8 +43,18 @@ public class RecruitRangedCrossbowAttackGoal extends Goal {
         this.target = this.crossBowman.getTarget();
         boolean shouldRanged = crossBowman.getShouldRanged();
         if (target != null && target.isAlive() && shouldRanged) {
+            if(IRangedRecruit.isTooDeepUnderwater(target)){
+                this.crossBowman.setTarget(null);
+                return crossBowman.getShouldStrategicFire();
+            }
+            // Target inside melee range: leave the weapon alone so the melee goal keeps its sword.
+            if(target.distanceTo(this.crossBowman) < stopRange) return false;
+
             if(!this.isWeaponInMainHand()){
-                this.crossBowman.switchMainHandItem(RecruitRangedCrossbowAttackGoal::isCrossbow);
+                // Do not fight the musket goal over the main hand.
+                if(!(Main.isMusketModLoaded && IWeapon.isMusketModWeapon(this.crossBowman.getMainHandItem()))){
+                    this.crossBowman.switchMainHandItem(RecruitRangedCrossbowAttackGoal::isCrossbow);
+                }
                 return false;
             }
             // Option 2: only engage a visible target. Without line of sight the target is dropped

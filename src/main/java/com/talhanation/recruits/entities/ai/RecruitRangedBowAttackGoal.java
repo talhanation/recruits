@@ -2,6 +2,7 @@ package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.BowmanEntity;
+import com.talhanation.recruits.entities.IRangedRecruit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
@@ -44,6 +45,10 @@ public class RecruitRangedBowAttackGoal<T extends BowmanEntity> extends Goal {
     public boolean canUse() {
         LivingEntity livingentity = this.recruit.getTarget();
         if (livingentity != null && livingentity.isAlive()) {
+            if(this.recruit.getShouldRanged() && IRangedRecruit.isTooDeepUnderwater(livingentity)){
+                this.recruit.setTarget(null);
+                return false;
+            }
             if(!isHoldingBow(this.recruit)){
                 recruit.switchMainHandItem(RecruitRangedBowAttackGoal::isBow);
 

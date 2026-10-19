@@ -93,9 +93,9 @@ public class CrossBowmanEntity extends AbstractRecruitEntity implements Crossbow
     protected void registerGoals() {
         super.registerGoals();
         if(isMusketModLoaded){
-            this.goalSelector.addGoal(0, new RecruitRangedMusketAttackGoal(this, this.getMeleeStartRange()));
+            this.goalSelector.addGoal(4, new RecruitRangedMusketAttackGoal(this, this.getMeleeStartRange()));
         }
-        this.goalSelector.addGoal(0, new RecruitRangedCrossbowAttackGoal(this, this.getMeleeStartRange()));
+        this.goalSelector.addGoal(4, new RecruitRangedCrossbowAttackGoal(this, this.getMeleeStartRange()));
         this.goalSelector.addGoal(8, new RecruitMoveTowardsTargetGoal(this, 1.15D, (float) this.getMeleeStartRange()));
     }
 

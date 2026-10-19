@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.entities.NomadEntity;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
@@ -35,6 +36,10 @@ public class NomadAttackAI extends Goal {
         if(nomad.getVehicle() instanceof AbstractHorse && target != null && !nomad.needsToGetFood() && !nomad.getShouldMount() && isHoldingBow() && nomad.getShouldRanged()){
             // Option 2: only engage a visible target. Without line of sight the target is dropped
             // so the mounted archer does not chase enemies behind cover.
+            if(IRangedRecruit.isTooDeepUnderwater(target)){
+                nomad.setTarget(null);
+                return false;
+            }
             if(!nomad.getSensing().hasLineOfSight(target)){
                 nomad.setTarget(null);
                 return false;

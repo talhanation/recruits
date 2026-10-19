@@ -1,6 +1,8 @@
 package com.talhanation.recruits.util;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -10,6 +12,25 @@ import net.minecraftforge.common.ForgeMod;
 import java.util.Random;
 
 public abstract class AttackUtil {
+
+    /** Targets with more water than this above their eyes are ignored by all recruits. */
+    public static final int MAX_TARGET_WATER_DEPTH = 4;
+
+    /**
+     * True when more than {@link #MAX_TARGET_WATER_DEPTH} blocks of water are above the target's eyes.
+     * Arrows lose their momentum and melee units can't follow, so such targets are never acquired.
+     * Cheap: bails out on the cached eye-in-water flag and checks at most 5 blocks.
+     */
+    public static boolean isTooDeepUnderwater(LivingEntity target) {
+        if (target == null || !target.isEyeInFluid(FluidTags.WATER)) return false;
+
+        BlockPos.MutableBlockPos pos = BlockPos.containing(target.getX(), target.getEyeY(), target.getZ()).mutable();
+        for (int depth = 0; depth <= MAX_TARGET_WATER_DEPTH; depth++) {
+            if (!target.level().getFluidState(pos).is(FluidTags.WATER)) return false;
+            pos.move(0, 1, 0);
+        }
+        return true;
+    }
     public static void checkAndPerformAttack(double distanceSqrToTarget, double reach, AbstractRecruitEntity recruit, LivingEntity target){
         if(distanceSqrToTarget <= reach){
             performAttack(recruit, target);
