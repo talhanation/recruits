@@ -202,7 +202,7 @@ public class SiegeWeaponCatapultController implements ISiegeController {
         }
     }
 
-    // ========================= FACE ROTATION (like SmallShipsController) =========================
+    // ========================= FACE ROTATION =========================
 
     public void startFaceRotation(float yaw) {
         this.faceYaw = yaw;

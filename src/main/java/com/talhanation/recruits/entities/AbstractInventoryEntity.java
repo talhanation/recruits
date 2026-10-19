@@ -511,6 +511,19 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
         return count < 64;
     }
 
+    /** @return true while he carries less than 32 of this sail material - string or any wool */
+    public boolean canTakeSailMaterial(ItemStack material) {
+        boolean wool = material.is(ItemTags.WOOL);
+        int count = 0;
+        for(ItemStack itemstack : this.inventory.items){
+            if(wool ? itemstack.is(ItemTags.WOOL) : itemstack.is(material.getItem())){
+                count += itemstack.getCount();
+            }
+        }
+
+        return count < 32;
+    }
+
     public boolean canTakeCartridge() {
         int count = 0;
         for(ItemStack itemstack : this.inventory.items){

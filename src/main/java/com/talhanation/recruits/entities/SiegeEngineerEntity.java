@@ -3,7 +3,7 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.compat.siegeweapons.Ballista;
 import com.talhanation.recruits.compat.siegeweapons.Catapult;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
-import com.talhanation.recruits.compat.smallships.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.ISiegeController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
@@ -314,7 +314,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
                 .filter(e -> e instanceof LivingEntity living
                         && !(living.getVehicle() instanceof AbstractHorse)
                         && !SiegeWeapon.isSiegeWeapon(living.getVehicle())
-                        && !SmallShips.isSmallShip(living.getVehicle()))
+                        && !SmallShipsBridge.isShip(living.getVehicle()))
                 .sorted(Comparator.comparing(this::enemyDistanceToThis))
                 .toList();
 
@@ -351,14 +351,14 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
     private Entity findMannedShipTarget(List<Entity> targets) {
         // Find enemies on ships (manned only)
         for(Entity e : targets){
-            if(e.getVehicle() != null && SmallShips.isSmallShip(e.getVehicle())){
+            if(e.getVehicle() != null && SmallShipsBridge.isShip(e.getVehicle())){
                 return e.getVehicle(); // Target the ship itself
             }
         }
 
         // Also check nearby ships that have passengers
         List<Entity> ships = this.getCommandSenderWorld().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(200D)).stream()
-                .filter(e -> SmallShips.isSmallShip(e) && !e.getPassengers().isEmpty())
+                .filter(e -> SmallShipsBridge.isShip(e) && !e.getPassengers().isEmpty())
                 .sorted(Comparator.comparing(this::enemyDistanceToThis))
                 .toList();
 

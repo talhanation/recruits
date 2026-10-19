@@ -4,12 +4,17 @@ import com.talhanation.recruits.Main;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
@@ -26,8 +31,9 @@ import java.util.List;
  * that is as fast as a direct call. Nothing here or anywhere else in Recruits
  * may import a Small Ships class, so Recruits compiles and runs without it.
  *
- * Without Small Ships, with a Small Ships older than {@link #REQUIRED_VERSION}
- * or with a method missing, {@link #isAvailable()} is false and every method
+ * Without Small Ships, with a Small Ships older than 2.0.2 (Main.isSmallShipsCompatible),
+ * a bridge older than {@link #REQUIRED_VERSION} or with a method missing,
+ * {@link #isAvailable()} is false and every method
  * answers neutrally: false, 0, an empty tag, the unchanged delta. A captain then
  * simply has no ship.
  *
@@ -38,12 +44,6 @@ public final class SmallShipsBridge {
     /** the ShipBridge.VERSION this class was written against */
     public static final int REQUIRED_VERSION = 1;
     private static final String BRIDGE_CLASS = "com.talhanation.smallships.api.ShipBridge";
-    /**
-     * Scoreboard tag that keeps a mob on a still deck instead of being walked
-     * ashore - ShipBridge.STAY_ON_DECK_TAG. Plain vanilla (Entity#addTag), so
-     * it works by this string alone.
-     */
-    public static final String STAY_ON_DECK_TAG = "smallships.stay_on_deck";
 
     private static boolean errorLogged;
 
@@ -51,7 +51,7 @@ public final class SmallShipsBridge {
 
     /** @return true if Small Ships is loaded and offers every method used here. */
     public static boolean isAvailable() {
-        return Main.isSmallShipsLoaded && Handles.AVAILABLE;
+        return Main.isSmallShipsLoaded && Main.isSmallShipsCompatible && Handles.AVAILABLE;
     }
 
     /* ---------------- recognition & state ---------------- */
@@ -60,14 +60,6 @@ public final class SmallShipsBridge {
         if (entity == null || !isAvailable()) return false;
         try { return (boolean) Handles.IS_SHIP.invokeExact(entity); }
         catch (Throwable t) { return fail("isShip", t, false); }
-    }
-
-    /** @return the ship itself or the ship behind one of its hull parts (hits land on parts), else null. */
-    @Nullable
-    public static Entity getShipOf(@Nullable Entity entity) {
-        if (entity == null || !isAvailable()) return null;
-        try { return (Entity) Handles.GET_SHIP_OF.invokeExact(entity); }
-        catch (Throwable t) { return fail("getShipOf", t, null); }
     }
 
     /** @return whoever stands at the helm and may steer - player or NPC - or null. */
@@ -113,13 +105,6 @@ public final class SmallShipsBridge {
         catch (Throwable t) { return fail("getSailState", t, 0); }
     }
 
-    /** @return ticks until W/S may change the sail state again. */
-    public static int getSailCooldown(@Nullable Entity ship) {
-        if (ship == null || !isAvailable()) return 0;
-        try { return (int) Handles.GET_SAIL_COOLDOWN.invokeExact(ship); }
-        catch (Throwable t) { return fail("getSailCooldown", t, 0); }
-    }
-
     /** What the ship is (size, drive, cannons) - see ShipBridge#getProfile for the keys. Empty without a ship. */
     public static CompoundTag getProfile(@Nullable Entity ship) {
         if (ship == null || !isAvailable()) return new CompoundTag();
@@ -139,6 +124,19 @@ public final class SmallShipsBridge {
         if (ship == null || !isAvailable()) return new CompoundTag();
         try { return (CompoundTag) Handles.GET_CONDITION.invokeExact(ship); }
         catch (Throwable t) { return fail("getCondition", t, new CompoundTag()); }
+    }
+
+    /**
+     * A ship item to show in screens and on the map - an oak cog, looked up
+     * by name in the item registry. Works on both sides.
+     *
+     * @return null without Small Ships
+     */
+    @Nullable
+    public static ItemStack getShipItem() {
+        if (!Main.isSmallShipsLoaded) return null;
+        Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("smallships", "oak_cog"));
+        return item == null || item == Items.AIR ? null : item.getDefaultInstance();
     }
 
     /* ---------------- input: the keys a player has ---------------- */
@@ -179,13 +177,6 @@ public final class SmallShipsBridge {
         catch (Throwable t) { return fail("getCannons", t, new ListTag()); }
     }
 
-    /** Fires the gun of one slot for the NPC sitting at its GUNNER post. @return true if triggered */
-    public static boolean fireCannon(@Nullable Entity ship, @Nullable LivingEntity gunner, int slot) {
-        if (ship == null || gunner == null || !isAvailable()) return false;
-        try { return (boolean) Handles.FIRE_CANNON.invokeExact(ship, gunner, slot); }
-        catch (Throwable t) { return fail("fireCannon", t, false); }
-    }
-
     /** The ammo type an NPC shooter loads from now on: "BALL", "CHAINED" or "GRAPE". @return false if unknown */
     public static boolean setAmmoPreference(@Nullable Entity shooter, @Nullable String type) {
         if (shooter == null || type == null || !isAvailable()) return false;
@@ -209,13 +200,6 @@ public final class SmallShipsBridge {
         catch (Throwable t) { return fail("patchSails", t, false); }
     }
 
-    /** What a dockyard repair costs right now: Costs (list of Item|Tag + Count), Time (ticks). Empty without a ship. */
-    public static CompoundTag getDockyardRepairCosts(@Nullable Entity ship, boolean hull, boolean sails) {
-        if (ship == null || !isAvailable()) return new CompoundTag();
-        try { return (CompoundTag) Handles.GET_DOCKYARD_REPAIR_COSTS.invokeExact(ship, hull, sails); }
-        catch (Throwable t) { return fail("getDockyardRepairCosts", t, new CompoundTag()); }
-    }
-
     public static boolean isDockyard(@Nullable Level level, @Nullable BlockPos pos) {
         if (level == null || pos == null || !isAvailable()) return false;
         try { return (boolean) Handles.IS_DOCKYARD.invokeExact(level, pos); }
@@ -228,22 +212,6 @@ public final class SmallShipsBridge {
         if (level == null || dockyard == null || ship == null || payer == null || !isAvailable()) return false;
         try { return (boolean) Handles.START_DOCKYARD_REPAIR.invokeExact(level, dockyard, ship, payer, hull, sails); }
         catch (Throwable t) { return fail("startDockyardRepair", t, false); }
-    }
-
-    /* ---------------- crew ---------------- */
-
-    /** The stations: Id, Type, Slot, X/Y/Z, Blocked, Occupant (UUID) - see ShipBridge#getSeats. */
-    public static ListTag getSeats(@Nullable Entity ship) {
-        if (ship == null || !isAvailable()) return new ListTag();
-        try { return (ListTag) Handles.GET_SEATS.invokeExact(ship); }
-        catch (Throwable t) { return fail("getSeats", t, new ListTag()); }
-    }
-
-    /** Moves a passenger already aboard to another free station. @return true if he sits there now */
-    public static boolean takeSeat(@Nullable Entity ship, @Nullable Entity passenger, int seatId) {
-        if (ship == null || passenger == null || !isAvailable()) return false;
-        try { return (boolean) Handles.TAKE_SEAT.invokeExact(ship, passenger, seatId); }
-        catch (Throwable t) { return fail("takeSeat", t, false); }
     }
 
     /* ---------------- geometry ---------------- */
@@ -294,14 +262,12 @@ public final class SmallShipsBridge {
         private static final Class<?> BRIDGE = findBridge();
 
         static final MethodHandle IS_SHIP = find("isShip", boolean.class, Entity.class);
-        static final MethodHandle GET_SHIP_OF = find("getShipOf", Entity.class, Entity.class);
         static final MethodHandle GET_HELMSMAN = find("getHelmsman", Entity.class, Entity.class);
         static final MethodHandle IS_HELMSMAN = find("isHelmsman", boolean.class, Entity.class, Entity.class);
         static final MethodHandle CAN_MAKE_WAY = find("canMakeWay", boolean.class, Entity.class);
         static final MethodHandle GET_SPEED = find("getSpeed", float.class, Entity.class);
         static final MethodHandle GET_ROT_SPEED = find("getRotSpeed", float.class, Entity.class);
         static final MethodHandle GET_SAIL_STATE = find("getSailState", int.class, Entity.class);
-        static final MethodHandle GET_SAIL_COOLDOWN = find("getSailCooldown", int.class, Entity.class);
         static final MethodHandle GET_PROFILE = find("getProfile", CompoundTag.class, Entity.class);
         static final MethodHandle GET_RULES = find("getRules", CompoundTag.class);
         static final MethodHandle GET_CONDITION = find("getCondition", CompoundTag.class, Entity.class);
@@ -310,15 +276,11 @@ public final class SmallShipsBridge {
         static final MethodHandle SET_BROADSIDE_AIM = find("setBroadsideAim", void.class, Entity.class, boolean.class, float.class, float.class);
         static final MethodHandle FIRE_BROADSIDE = find("fireBroadside", int.class, Entity.class, LivingEntity.class, boolean.class);
         static final MethodHandle GET_CANNONS = find("getCannons", ListTag.class, Entity.class);
-        static final MethodHandle FIRE_CANNON = find("fireCannon", boolean.class, Entity.class, LivingEntity.class, int.class);
         static final MethodHandle SET_AMMO_PREFERENCE = find("setAmmoPreference", boolean.class, Entity.class, String.class);
         static final MethodHandle REPAIR_HULL_BY_HAND = find("repairHullByHand", boolean.class, Entity.class, Container.class);
         static final MethodHandle PATCH_SAILS = find("patchSails", boolean.class, Entity.class, Container.class);
-        static final MethodHandle GET_DOCKYARD_REPAIR_COSTS = find("getDockyardRepairCosts", CompoundTag.class, Entity.class, boolean.class, boolean.class);
         static final MethodHandle IS_DOCKYARD = find("isDockyard", boolean.class, Level.class, BlockPos.class);
         static final MethodHandle START_DOCKYARD_REPAIR = find("startDockyardRepair", boolean.class, Level.class, BlockPos.class, Entity.class, Container.class, boolean.class, boolean.class);
-        static final MethodHandle GET_SEATS = find("getSeats", ListTag.class, Entity.class);
-        static final MethodHandle TAKE_SEAT = find("takeSeat", boolean.class, Entity.class, Entity.class, int.class);
         static final MethodHandle GET_HULL_BOXES = find("getHullBoxes", List.class, Entity.class);
         static final MethodHandle SWEEP = find("sweep", Vec3.class, Entity.class, Vec3.class);
         static final MethodHandle FIND_SHIP_AHEAD = find("findShipAhead", Entity.class, Entity.class, Vec3.class);

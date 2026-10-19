@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.compat.smallships.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -72,8 +72,9 @@ public final class WorldMapPlayerRenderer {
         ItemStack boat = BOAT_STACK;
         if (Main.isSmallShipsLoaded
                 && player.getVehicle() != null
-                && SmallShips.isSmallShip(player.getVehicle())) {
-            boat = SmallShips.getSmallShipsItem();
+                && SmallShipsBridge.isShip(player.getVehicle())) {
+            ItemStack ship = SmallShipsBridge.getShipItem();
+            if (ship != null) boat = ship;
         }
         RenderSystem.disableCull();
         guiGraphics.renderItem(boat, -8, -8);

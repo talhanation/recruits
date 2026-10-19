@@ -5,7 +5,7 @@ import com.talhanation.recruits.*;
 import com.talhanation.recruits.RecruitEvent;
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
-import com.talhanation.recruits.compat.smallships.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
@@ -2260,7 +2260,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return mount instanceof AbstractHorse ||
                 RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
                 this instanceof SiegeEngineerEntity && SiegeWeapon.isSiegeWeapon(mount)||
-                this instanceof CaptainEntity && SmallShips.isSmallShip(mount);
+                this instanceof CaptainEntity && SmallShipsBridge.isShip(mount);
     }
 
     public void clearTarget() {

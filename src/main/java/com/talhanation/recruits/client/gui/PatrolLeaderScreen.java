@@ -5,6 +5,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.AbstractLeaderEntity.EnemyAction;
 import com.talhanation.recruits.entities.AbstractLeaderEntity.InfoMode;
 import com.talhanation.recruits.network.*;
@@ -32,6 +33,10 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
     private static final MutableComponent TT_STOP      = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_stop");
     private static final MutableComponent TT_PAUSE     = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_pause");
     private static final MutableComponent TT_RESUME    = Component.translatable("gui.recruits.inv.tooltip.patrol_leader_resume");
+    private static final MutableComponent BTN_HARBOUR        = Component.translatable("gui.recruits.command.text.harbour");
+    private static final MutableComponent BTN_RETURN_HARBOUR = Component.translatable("gui.recruits.command.text.return_harbour");
+    private static final MutableComponent TT_HARBOUR         = Component.translatable("gui.recruits.command.tooltip.harbour");
+    private static final MutableComponent TT_RETURN_HARBOUR  = Component.translatable("gui.recruits.command.tooltip.return_harbour");
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/professions/blank_gui.png");
     private static final int TEXTURE_W = 195;
     private static final int TEXTURE_H = 160;
@@ -175,7 +180,22 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
                             new MessagePatrolLeaderSetEnemyAction(leaderEntity.getUUID(), enemyAction.getIndex()));
                     buildWidgets();
                 }));
-        y += btnH + 8;
+        y += btnH + 4;
+
+        // --- Captain: home harbour ---
+        if (leaderEntity instanceof CaptainEntity captain) {
+            Button harbourButton = addRenderableWidget(new ExtendedButton(x, y, btnW, btnH, BTN_HARBOUR, btn ->
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageCaptainHarbour(captain.getUUID(), false))));
+            harbourButton.setTooltip(Tooltip.create(TT_HARBOUR));
+            Button returnButton = addRenderableWidget(new ExtendedButton(x + btnW + 4, y, btnW, btnH, BTN_RETURN_HARBOUR, btn -> {
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageCaptainHarbour(captain.getUUID(), true));
+                onClose();
+            }));
+            returnButton.setTooltip(Tooltip.create(TT_RETURN_HARBOUR));
+            returnButton.active = captain.getHarbourPos() != null;
+            y += btnH + 4;
+        }
+        y += 4;
 
         // --- Group dropdown ---
         List<RecruitsGroup> groupOptions = new ArrayList<>();

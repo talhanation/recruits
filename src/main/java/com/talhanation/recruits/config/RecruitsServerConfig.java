@@ -27,6 +27,8 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue MaxRecruitsForPlayer;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpForLevelUp;
     public static ForgeConfigSpec.IntValue RecruitsMaxXpLevel;
+    public static ForgeConfigSpec.IntValue RecruitTrainingPlayerXpCost;
+    public static ForgeConfigSpec.IntValue RecruitTrainingRecruitXp;
     public static ForgeConfigSpec.BooleanValue PillagerIncreasedCombatRange;
     public static ForgeConfigSpec.BooleanValue VindicatorSpawnItems;
     public static ForgeConfigSpec.BooleanValue PillagerSpawnItems;
@@ -62,6 +64,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue GlobalTeamSetting;
     public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
+    public static ForgeConfigSpec.BooleanValue RecruitsFieldLooting;
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
     public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
@@ -86,6 +89,9 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue MaxClaimChunks;
     public static ForgeConfigSpec.IntValue SiegeClaimsRecruitsAmount;
     public static ForgeConfigSpec.IntValue SiegeClaimsConquerTime;
+    public static ForgeConfigSpec.IntValue CaptainRetreatHullPercent;
+    public static ForgeConfigSpec.IntValue CaptainChaseLeash;
+    public static ForgeConfigSpec.IntValue CaptainAmmoReserveVolleys;
     public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
     public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
     public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
@@ -165,6 +171,22 @@ public class RecruitsServerConfig {
                         \tdefault: 20""")
                 .worldRestart()
                 .defineInRange("RecruitsMaxXpLevel", 20, 10, 1453);
+
+        RecruitTrainingPlayerXpCost = BUILDER.comment("""
+                        
+                        Experience points (not levels) a player pays to train one of his recruits once ("More" menu of the recruit).
+                        \t(takes effect after restart)
+                        \tdefault: 20""")
+                .worldRestart()
+                .defineInRange("RecruitTrainingPlayerXpCost", 20, 1, 14530);
+
+        RecruitTrainingRecruitXp = BUILDER.comment("""
+                        
+                        Recruit XP gained per training ("More" menu of the recruit).
+                        \t(takes effect after restart)
+                        \tdefault: 20""")
+                .worldRestart()
+                .defineInRange("RecruitTrainingRecruitXp", 20, 1, 14530);
 
         MaxRecruitsForPlayer = BUILDER.comment("""
                         
@@ -312,6 +334,18 @@ public class RecruitsServerConfig {
 
                 .worldRestart()
                 .define("RangedRecruitsNeedArrowsToShoot", false);
+
+        RecruitsFieldLooting = BUILDER.comment("""
+
+                        RecruitsFieldLooting
+                        \t(takes effect after restart)
+                        \t
+                        Should recruits loot nearby corpses (Corpse mod or RpgZ, player corpses included) when no enemies are around?
+                        They take food first, then better equipment, then everything else that fits into their inventory.
+                        default: true""")
+
+                .worldRestart()
+                .define("RecruitsFieldLooting", true);
 
         RecruitsChunkLoading = BUILDER.comment("""
                         RecruitsChunkLoading
@@ -616,6 +650,27 @@ public class RecruitsServerConfig {
                 .defineInRange("MaxAssassinCount", 16, 1, 64);
 
          */
+
+        BUILDER.pop();
+        BUILDER.comment("Captain Config:").push("Captain");
+
+        CaptainRetreatHullPercent = BUILDER.comment("""
+
+                        A captain at sea retreats once his hull is below this percentage while an enemy is about.
+                        \tdefault: 15""")
+                .defineInRange("CaptainRetreatHullPercent", 15, 0, 100);
+
+        CaptainChaseLeash = BUILDER.comment("""
+
+                        Blocks a captain chases a ship away from the spot where the fight began before he lets it go.
+                        \tdefault: 160""")
+                .defineInRange("CaptainChaseLeash", 160, 16, 1000);
+
+        CaptainAmmoReserveVolleys = BUILDER.comment("""
+
+                        Broadsides per side a captain keeps in the hold for his retreat.
+                        \tdefault: 1""")
+                .defineInRange("CaptainAmmoReserveVolleys", 1, 0, 10);
 
         BUILDER.pop();
         BUILDER.comment("General Damage Config:").push("Damage");

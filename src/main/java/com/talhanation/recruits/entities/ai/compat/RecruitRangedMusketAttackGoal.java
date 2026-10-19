@@ -3,16 +3,19 @@ package com.talhanation.recruits.entities.ai.compat;
 import com.talhanation.recruits.compat.musketmod.*;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.CrossBowmanEntity;
+import com.talhanation.recruits.entities.IRangedRecruit;
 import com.talhanation.recruits.util.AttackUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.EnumSet;
 import java.util.List;
 
 public class RecruitRangedMusketAttackGoal extends Goal {
@@ -29,14 +32,25 @@ public class RecruitRangedMusketAttackGoal extends Goal {
         this.crossBowman = crossBowman;
         this.speedModifier = this.weapon.getMoveSpeedAmp();
         this.stopRange = stopRange;
+        this.setFlags(EnumSet.of(Goal.Flag.LOOK));
     }
 
     public boolean canUse() {
         LivingEntity livingentity = this.crossBowman.getTarget();
         boolean shouldRanged = crossBowman.getShouldRanged();
         if(livingentity != null && livingentity.isAlive() && shouldRanged){
+            if(IRangedRecruit.isTooDeepUnderwater(livingentity)){
+                crossBowman.setTarget(null);
+                return crossBowman.getShouldStrategicFire();
+            }
+            // Target inside melee range: leave the weapon alone so the melee goal keeps its sword.
+            if(livingentity.distanceTo(this.crossBowman) < stopRange) return false;
+
             if(!this.isWeaponInHand()){
-                crossBowman.switchMainHandItem(RecruitRangedMusketAttackGoal::isMusket);
+                // Do not fight the crossbow goal over the main hand.
+                if(!(crossBowman.getMainHandItem().getItem() instanceof CrossbowItem)){
+                    crossBowman.switchMainHandItem(RecruitRangedMusketAttackGoal::isMusket);
+                }
                 return false;
             }
 

@@ -1,15 +1,12 @@
 package com.talhanation.recruits.entities.ai;
 
-import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
-import com.talhanation.recruits.util.Kalkuel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -17,6 +14,7 @@ import java.util.EnumSet;
 
 public class RecruitWanderGoal extends Goal {
     public static final int DEFAULT_INTERVAL = 120;
+    private static final int WANDER_SAIL_TICKS = 600;
     protected final AbstractRecruitEntity recruit;
     protected double wantedX;
     protected double wantedY;
@@ -70,14 +68,16 @@ public class RecruitWanderGoal extends Goal {
             }
         }
 
-        if (--this.timeToRecalcPath <= 0) {
-            if(this.recruit instanceof CaptainEntity captain && captain.getVehicle() instanceof Boat boat && SmallShips.isSmallShip(boat)){
-                Vec3 vec3 = Kalkuel.SailPointCalculator.getRandomSailPoint(captain.getCommandSenderWorld(), initialPosition.getCenter(), 100);
-
-                captain.setSailPos(new BlockPos((int) vec3.x, (int) captain.getY(), (int) vec3.z));
-                captain.smallShipsController.calculatePath();
+        if (this.recruit instanceof CaptainEntity captain && captain.isSteeringShip()) {
+            if (--this.timeToRecalcPath <= 0 || (this.timeToRecalcPath < WANDER_SAIL_TICKS - 50 && captain.shipController.hasArrived())) {
+                BlockPos point = captain.shipController.wanderPoint(this.initialPosition, captain.getRandom());
+                if (point != null) captain.setSailPos(point);
+                this.timeToRecalcPath = point != null ? WANDER_SAIL_TICKS : 40;
             }
+            return;
+        }
 
+        if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = this.adjustedTickDelay(200) + recruit.getRandom().nextInt(50);
             Vec3 vec3 = this.getPosition();
             if (vec3 != null) {

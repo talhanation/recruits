@@ -1,7 +1,7 @@
 package com.talhanation.recruits.entities;
 
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.compat.smallships.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.ai.controller.IAttackController;
 import com.talhanation.recruits.inventory.PatrolLeaderContainer;
 import com.talhanation.recruits.network.MessageOpenSpecialScreen;
@@ -302,6 +302,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
 
             case ATTACKING -> {
+                if(this.leadsOwnFight()) return;
 
                 if(this.retreating && WAYPOINTS != null && WAYPOINTS.size() > 0){
                     this.setPatrolState(State.RETREATING);
@@ -317,6 +318,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             }
 
             case RETREATING -> {
+                if(this.leadsOwnFight()) return;
                 if(this.getOwner() != null && !retreatingMessage) {
                     this.getOwner().sendSystemMessage(RETREATING());
                     retreatingMessage = true;
@@ -348,7 +350,16 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         return false;
     }
 
-    private void checkForPotentialEnemies() {
+    /**
+     * True while this leader fights or retreats on his own terms - a captain
+     * at the helm, see CaptainEntity. The ATTACKING and RETREATING states then
+     * leave him alone.
+     */
+    protected boolean leadsOwnFight() {
+        return false;
+    }
+
+    protected void checkForPotentialEnemies() {
         if(!level().isClientSide()){
             List<LivingEntity> targets = this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(100D)).stream()
                     .filter((target) -> shouldAttack(target) && this.hasLineOfSight(target) && !target.isUnderWater())
@@ -438,6 +449,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
 
     protected void moveToCurrentWaypoint() {
         if(this.tickCount % 20 == 0){
+            refreshCurrentWaypointY();
             this.getNavigation().moveTo(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ(), PatrolSpeed.fromIndex(getPatrolSpeed()).toSpeed());
             Vec3 forward = this.position().vectorTo(this.currentWaypoint.getCenter());
 
@@ -452,6 +464,10 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
         if (horizontalCollision || minorHorizontalCollision) {
             this.getJumpControl().jump();
         }
+    }
+
+    public State getLeaderState() {
+        return this.state;
     }
 
     public void setPatrolState(State state){
@@ -656,10 +672,35 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
      */
     private BlockPos resolveServerY(BlockPos pos) {
         net.minecraft.world.level.Level level = getCommandSenderWorld();
+        // Level#getHeight returns getMinBuildHeight() for chunks that are not loaded. Overwriting the
+        // client Y with that put far waypoints at bedrock level, so the leader could never reach them
+        // and the route effectively ended at the last loaded waypoint. For unloaded chunks keep the
+        // client Y (resolved on the client while that chunk was loaded there); it is re-resolved in
+        // moveToCurrentWaypoint() once the chunk is loaded on the server.
+        if (!level.hasChunkAt(pos)) {
+            int y = net.minecraft.util.Mth.clamp(pos.getY(), level.getMinBuildHeight(), level.getMaxBuildHeight() - 1);
+            return new BlockPos(pos.getX(), y, pos.getZ());
+        }
         int surfaceY = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
                 pos.getX(), pos.getZ()) - 1;
         int y = Math.max(surfaceY, level.getMinBuildHeight());
         return new BlockPos(pos.getX(), y, pos.getZ());
+    }
+
+    /** Re-resolves the current waypoint's Y once its chunk is loaded on the server. */
+    private void refreshCurrentWaypointY() {
+        if (currentWaypoint == null || !hasIndex()) return;
+        if (!this.getCommandSenderWorld().hasChunkAt(currentWaypoint)) return;
+
+        BlockPos resolved = resolveServerY(currentWaypoint);
+        if (resolved.getY() == currentWaypoint.getY()) return;
+
+        int index = getWaypointIndex();
+        if (WAYPOINTS.get(index).equals(currentWaypoint)) {
+            WAYPOINTS.set(index, resolved);
+            if (index < WAYPOINT_ITEMS.size()) WAYPOINT_ITEMS.set(index, getItemStackToRender(resolved));
+        }
+        currentWaypoint = resolved;
     }
 
         public void loadRouteWaypointsFromData(java.util.List<BlockPos> positions,
@@ -719,11 +760,13 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     }
 
     public ItemStack getItemStackToRender(BlockPos pos){
+        // Do not force a synchronous chunk load just to pick an icon for a far waypoint.
+        if (!this.getCommandSenderWorld().hasChunkAt(pos)) return new ItemStack(Items.MAP);
         BlockState state = this.getCommandSenderWorld().getBlockState(pos);
         ItemStack itemStack;
         if (state.is(Blocks.WATER) || state.is(Blocks.KELP) || state.is(Blocks.KELP_PLANT)){
             if(this instanceof CaptainEntity){
-                itemStack = SmallShips.getSmallShipsItem();
+                itemStack = SmallShipsBridge.getShipItem();
                 if(itemStack == null) {
                     itemStack = Items.OAK_BOAT.getDefaultInstance();
                 }

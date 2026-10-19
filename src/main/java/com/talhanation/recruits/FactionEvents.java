@@ -476,12 +476,6 @@ public class FactionEvents {
                 FactionEvents.leaveTeam(false, potentialRemovePlayer, null, level, true);
                 potentialRemovePlayer.sendSystemMessage(PLAYER_REMOVED);
                 if(menu)serverPlayer.sendSystemMessage(REMOVE_PLAYER_LEADER(potentialRemovePlayer.getDisplayName().getString()));
-
-                List<AbstractRecruitEntity> recruits = getRecruitsOfPlayer(serverPlayer.getUUID(), level);
-                int recruitCount = recruits.size();
-
-                addNPCToData(level, team.getName(), -recruitCount);
-                removeRecruitFromTeam(recruits, team, level);
             }
         }
     }

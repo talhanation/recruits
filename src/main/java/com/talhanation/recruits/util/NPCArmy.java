@@ -1,6 +1,6 @@
 package com.talhanation.recruits.util;
 
-import com.talhanation.recruits.compat.smallships.SmallShips;
+import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -146,13 +146,13 @@ public class NPCArmy {
 
     public void updateShips() {
         ships = ships.stream()
-                .filter(boat -> SmallShips.isSmallShip(boat) && !boat.isUnderWater() && hasOnBoard(boat))
+                .filter(boat -> SmallShipsBridge.isShip(boat) && !boat.isUnderWater() && hasOnBoard(boat))
                 .collect(Collectors.toList());
 
 
         List<Boat> nearbyBoats = level.getEntitiesOfClass(Boat.class, getShipSearchArea());
         for (Boat boat : nearbyBoats) {
-            if (SmallShips.isSmallShip(boat) && !ships.contains(boat) && hasOnBoard(boat)) {
+            if (SmallShipsBridge.isShip(boat) && !ships.contains(boat) && hasOnBoard(boat)) {
                 ships.add(boat);
             }
         }

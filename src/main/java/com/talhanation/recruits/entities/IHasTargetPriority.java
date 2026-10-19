@@ -9,7 +9,8 @@ public interface IHasTargetPriority {
         INFANTRY(1),
         CAVALRY(2),
         SIEGE_WEAPONS(3),
-        SHIPS(4);
+        SHIPS(4),
+        AUTO(5);
 
 
         private final int index;

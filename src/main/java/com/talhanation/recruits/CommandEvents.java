@@ -1,7 +1,7 @@
 package com.talhanation.recruits;
 
 import com.talhanation.recruits.config.RecruitsServerConfig;
-import com.talhanation.recruits.entities.ai.controller.SmallShipsController;
+import com.talhanation.recruits.entities.ai.controller.ship.ShipPathfinder;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
 import com.talhanation.recruits.entities.*;
@@ -20,11 +20,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -257,8 +259,7 @@ public class CommandEvents {
 
             // Captain with ship: rotate the ship
             if(recruit instanceof CaptainEntity captain && captain.isSteeringShip()) {
-                if (captain.shipController.isActive()) captain.shipController.face(player.getYRot());
-                else captain.smallShipsController.startFaceRotation(player.getYRot());
+                captain.shipController.face(player.getYRot());
             }
 
             // SiegeEngineer with siege weapon: rotate the siege weapon
@@ -397,7 +398,7 @@ public class CommandEvents {
         }
         else if (recruit instanceof CaptainEntity captain) {
             if (captain.isSteeringShip()) {
-                maxRange = Math.sqrt(captain.smallShipsController.attackRange); // ~67
+                maxRange = captain.shipController.engageRange(); // effective distance of a ball shot, ~47
             }
         } else if (recruit instanceof BowmanEntity) {
             maxRange = 44.0;
@@ -703,6 +704,7 @@ public class CommandEvents {
             recruit.clearUpkeepPos();
         }
     }
+    /** "Anti-upkeep": recruits empty their backpack into the given container (block or entity). */
     public static void onDepositCommand(UUID player_uuid, AbstractRecruitEntity recruit, UUID group, @Nullable UUID entity_uuid, @Nullable BlockPos blockPos) {
         if (!recruit.isEffectedByCommand(player_uuid, group)) return;
         if (entity_uuid != null) {
@@ -730,6 +732,29 @@ public class CommandEvents {
             recruit.setUpkeepTimer(0);
             onClearTargetButton(player_uuid, recruit, group);
         }
+    }
+
+    /** Home harbour for a captain: where his ship lies now. The player is the sender, see MessageCaptainHarbour. */
+    public static void onHarbourCommand(ServerPlayer player, CaptainEntity captain) {
+        Entity ship = captain.getVehicle();
+        if (!captain.isSteeringShip() || ship == null) {
+            player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_harbour_no_ship", captain.getName().getString()));
+            return;
+        }
+        int surfaceY = ShipPathfinder.surfaceY(ship.level(), ship.getX(), ship.getY(), ship.getZ());
+        captain.setHarbourPos(BlockPos.containing(ship.getX(), surfaceY, ship.getZ()));
+        player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_harbour_set", captain.getName().getString()));
+    }
+
+    /** A captain sails back to his home harbour along the recorded way. */
+    public static void onReturnHarbourCommand(ServerPlayer player, CaptainEntity captain) {
+        if (captain.getHarbourPos() == null) {
+            player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_no_harbour", captain.getName().getString()));
+            return;
+        }
+        checkPatrolLeaderState(captain);
+        captain.setTarget(null);
+        captain.shipController.returnHome();
     }
 
     public static void onShieldsCommand(ServerPlayer serverPlayer, UUID player_uuid, AbstractRecruitEntity recruit, UUID group, boolean shields) {

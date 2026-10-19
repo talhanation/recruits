@@ -19,7 +19,8 @@
   "client": [
     "compat.corpse.CorpseRendererMixin",
     "client.ClientLevelMixin",
-    "MixinMinecraft"
+    "MixinMinecraft",
+    "client.BoatLerpMixin"
   ],
   "injectors": {
     "defaultRequire": 1

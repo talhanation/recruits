@@ -211,6 +211,7 @@ public class Main {
                 MessageToClientUpdateEmbargoes.class,
                 MessageAddEmbargoFaction.class,
                 MessageToClientWorldMapIdentity.class,
+                MessageCaptainHarbour.class,
                 MessageDepositInventory.class,
                 MessageTrainRecruit.class
         };

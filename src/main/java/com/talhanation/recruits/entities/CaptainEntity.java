@@ -1,30 +1,23 @@
 package com.talhanation.recruits.entities;
 
-import com.talhanation.recruits.compat.smallships.SmallShips;
 import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.ai.UseShield;
-import com.talhanation.recruits.entities.ai.controller.SmallShipsController;
-import com.talhanation.recruits.entities.ai.controller.CaptainPrepareShipAttackController;
-import com.talhanation.recruits.entities.ai.controller.ship.ShipController;
-import com.talhanation.recruits.entities.ai.navigation.SailorPathNavigation;
+import com.talhanation.recruits.entities.ai.controller.PatrolLeaderAttackController;
+import com.talhanation.recruits.entities.ai.controller.ship.CaptainShipController;
+import com.talhanation.recruits.entities.ai.controller.ship.ShipProfile;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
-import com.talhanation.recruits.util.RecruitCommanderUtil;
-import com.talhanation.recruits.util.WaterObstacleScanner;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.*;
@@ -38,30 +31,40 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFire {
-    /** old reflection based ship control - only used while Small Ships offers no bridge */
-    public final SmallShipsController smallShipsController;
-    /** ship control through SmallShipsBridge: the captain presses the keys a player has */
-    public final ShipController shipController;
-    @Nullable private SailorPathNavigation sailorNavigation;
+public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFire, IHasTargetPriority {
+    /** everything he decides and does with a ship: helm, fight, retreat, harbour, the trail home - see CaptainShipController */
+    public final CaptainShipController shipController;
     private static final EntityDataAccessor<Optional<BlockPos>> SAIL_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Optional<BlockPos>> HARBOUR_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Integer> TARGET_PRIORITY = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.INT);
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
     public CaptainEntity(EntityType<? extends AbstractLeaderEntity> entityType, Level world) {
         super(entityType, world);
-        this.attackController = new CaptainPrepareShipAttackController(this);
-        this.smallShipsController = new SmallShipsController(this, world);
-        this.shipController = new ShipController(this);
-        if (!SmallShipsBridge.isAvailable()) this.smallShipsController.tryMountShip(getVehicle());
+        // at the helm the fight belongs to the ship controller alone - ashore he leads his troops like any patrol leader
+        this.attackController = new PatrolLeaderAttackController(this) {
+            @Override
+            public void tick() {
+                if (!CaptainEntity.this.isSteeringShip()) super.tick();
+            }
+
+            @Override
+            public boolean isTargetInRange() {
+                return false;
+            }
+        };
+        this.shipController = new CaptainShipController(this);
     }
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(SAIL_POS, Optional.empty());
         this.entityData.define(STRATEGIC_FIRE_POS, Optional.empty());
         this.entityData.define(SHOULD_STRATEGIC_FIRE, false);
+        this.entityData.define(HARBOUR_POS, Optional.empty());
+        this.entityData.define(TARGET_PRIORITY, TargetPriority.AUTO.getIndex());
     }
     @Override
     protected void registerGoals() {
@@ -75,50 +78,28 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     }
 
     @Override
-    @NotNull
-    public PathNavigation getNavigation() {
-        // At the helm of a bridged ship the ShipController steers - no water pathing needed.
-        // shipController is null while the Mob constructor already asks for the navigation.
-        if (this.getVehicle() instanceof Boat && (this.shipController == null || !this.shipController.isActive())) {
-            // one instance, not a new one on every call
-            if (this.sailorNavigation == null) this.sailorNavigation = new SailorPathNavigation(this, this.getCommandSenderWorld());
-            return this.sailorNavigation;
-        }
-        else
-            return super.getNavigation();
-    }
-
-    @Override
     public void tick() {
         super.tick();
         if(this.level().isClientSide()) return;
 
-        if (SmallShipsBridge.isAvailable()) {
-            this.shipController.tick();
-        }
-        else {
-            if(this.getVehicle() != null && smallShipsController.ship == null){
-                smallShipsController.tryMountShip(this.getVehicle());
-            }
-            smallShipsController.tick();
-        }
-        attackController.tick();
+        this.shipController.tick();
     }
 
-    /** @return true while this captain steers a ship - through the bridge or the old controller */
+    /** @return true while this captain stands at the helm of a ship he can sail */
     public boolean isSteeringShip() {
-        return this.shipController.isActive()
-                || (this.smallShipsController.ship != null && this.smallShipsController.ship.isCaptainDriver());
+        return this.shipController.isActive();
     }
 
+    @Override
+    protected boolean leadsOwnFight() {
+        return this.isSteeringShip() || this.shipController.isHarbourRunning() || this.shipController.isRetreating();
+    }
 
-    public void setHoldPos(Vec3 holdPos){
-        if(SmallShips.isSmallShip(this.getVehicle())){
-            if(!WaterObstacleScanner.isWaterBlockPos(this.getCommandSenderWorld(), new BlockPos((int) holdPos.x, (int) holdPos.y, (int) holdPos.z))){
-                super.setHoldPos(holdPos);
-            }
-        }
-        super.setHoldPos(holdPos);
+    @Override
+    protected void checkForPotentialEnemies() {
+        // at the helm the ship controller searches for contacts itself
+        if (this.isSteeringShip()) return;
+        super.checkForPotentialEnemies();
     }
 
     public void addAdditionalSaveData(CompoundTag nbt) {
@@ -136,6 +117,15 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
             nbt.putInt("StrategicFirePosZ", this.StrategicFirePos().getZ());
             nbt.putBoolean("ShouldStrategicFire", this.getShouldStrategicFire());
         }
+
+        BlockPos harbour = this.getHarbourPos();
+        if(harbour != null){
+            nbt.putInt("HarbourPosX", harbour.getX());
+            nbt.putInt("HarbourPosY", harbour.getY());
+            nbt.putInt("HarbourPosZ", harbour.getZ());
+            this.shipController.save(nbt);
+        }
+        nbt.putInt("TargetPriority", this.getTargetPriority());
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
@@ -154,6 +144,17 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
                     nbt.getInt("StrategicFirePosZ")));
             this.setShouldStrategicFire(nbt.getBoolean("ShouldStrategicFire"));
         }
+
+        if (nbt.contains("HarbourPosX") && nbt.contains("HarbourPosY") && nbt.contains("HarbourPosZ")) {
+            BlockPos harbour = new BlockPos(
+                    nbt.getInt("HarbourPosX"),
+                    nbt.getInt("HarbourPosY"),
+                    nbt.getInt("HarbourPosZ"));
+            this.entityData.set(HARBOUR_POS, Optional.of(harbour));
+            // after super: loading the follow state would have cancelled a way home again
+            this.shipController.load(nbt, harbour);
+        }
+        if (nbt.contains("TargetPriority")) this.setTargetPriority(TargetPriority.fromIndex(nbt.getInt("TargetPriority")));
     }
 
     //ATTRIBUTES
@@ -187,17 +188,9 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     }
 
     @Override
-    public boolean startRiding(Entity entity) {
-        // with the bridge the ShipController picks the ship up by itself on its next tick
-        if (!SmallShipsBridge.isAvailable()) smallShipsController.tryMountShip(entity);
-        return super.startRiding(entity);
-    }
-
-    @Override
     public void stopRiding() {
         // keys released while he still holds the helm
         shipController.release();
-        smallShipsController.tryDisMountShip();
         super.stopRiding();
     }
 
@@ -232,20 +225,11 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     }
 
     public float getPrecisionMin(){
-        int base = 50;
-        if(this.getVehicle() != null && this.getVehicle().getEncodeId().contains("smallships")){
-            base = 100;
-        }
-        return base;
+        return SmallShipsBridge.isShip(this.getVehicle()) ? 100 : 50;
     }
 
     public float getPrecisionMax(){
-        int base = 150;
-        if(this.getVehicle() != null && this.getVehicle().getEncodeId().contains("smallships")){
-            base = 200;
-        }
-
-        return base;
+        return SmallShipsBridge.isShip(this.getVehicle()) ? 200 : 150;
     }
 
     public void setSailPos(BlockPos pos) {
@@ -257,8 +241,31 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         this.entityData.set(SAIL_POS, pos);
     }
 
+    @Nullable
+    public BlockPos getHarbourPos() {
+        return this.entityData.get(HARBOUR_POS).orElse(null);
+    }
+
+    /** Sets the home harbour, or none - the way home is recorded anew from there. */
+    public void setHarbourPos(@Nullable BlockPos pos) {
+        this.entityData.set(HARBOUR_POS, Optional.ofNullable(pos));
+        this.shipController.resetTrail(pos);
+    }
+
+    @Override
+    public int getTargetPriority() {
+        return this.entityData.get(TARGET_PRIORITY);
+    }
+
+    @Override
+    public void setTargetPriority(TargetPriority priority) {
+        this.entityData.set(TARGET_PRIORITY, priority.getIndex());
+    }
+
     @Override
     public void setFollowState(int state){
+        // any movement order ends a return to the harbour - null while the Mob constructor runs
+        if (this.shipController != null) this.shipController.cancelHomeward();
         super.setFollowState(state);
 
         this.calculateSailPos(state);
@@ -266,7 +273,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     @Override
     protected void moveToCurrentWaypoint() {
         if(this.getVehicle() != null && this.getVehicle() instanceof Boat){
-            // Correct Y to actual water surface so SailorPathNavigation finds a valid target.
+            // the water surface at the waypoint - the ship controller plans the way there
             int surfaceY = getCommandSenderWorld().getHeight(
                     net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE,
                     this.currentWaypoint.getX(), this.currentWaypoint.getZ()) - 1;
@@ -307,73 +314,54 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
                 }
             }
         }
-        this.smallShipsController.calculatePath();
     }
     @Override
     public boolean canAttackWhilePatrolling() {
-        if(enemyArmySpotted() || this.getTarget() != null && this.getTarget().isAlive()) {
-            if(this.army != null && !this.army.getRanged().isEmpty()){
-                return true;
-            }
-            else if(this.getVehicle() != null && smallShipsController.ship != null){
-                return smallShipsController.ship.hasCannons() && smallShipsController.ship.canShootCannons();
-            }
-            return true;
+        if (this.isSteeringShip()) {
+            return this.shipController.canFight() || (this.army != null && !this.army.getRanged().isEmpty());
         }
-        else
-            return false;
+        return enemyArmySpotted() || this.getTarget() != null && this.getTarget().isAlive();
     }
+
+    /**
+     * On a ship the harbour routine does the upkeep: to the harbour, ashore to
+     * the upkeep chest, repair, cannon balls into the hold, aboard again.
+     * Ashore without a ship he is a patrol leader like any other.
+     */
     @Override
     public void handleUpkeepState() {
-        if(army == null) return;
-
-        if(waitForRecruitsUpkeepTime != 0){
-            if(smallShipsController.ship != null){
-                double speed = smallShipsController.ship.getShipSpeed();
-                if(speed < 0.01){
-                    this.stopRiding();
-                    RecruitCommanderUtil.setRecruitsDismount(army.getAllRecruitUnits());
-                }
-            }
+        if (this.shipController.takeHarbourDone()) {
+            this.waitForRecruitsUpkeepTime = this.getAgainResupplyTime();
+            this.setPatrolState(State.PATROLLING);
+            return;
         }
-        else {
-            this.shouldMount(true, this.getMountUUID());
-            RecruitCommanderUtil.setRecruitsFollow(this.army.getAllRecruitUnits(), this.getUUID());
-            if(this.getVehicle() != null && this.getVehicle().getUUID().equals(this.getMountUUID())){
-                // ship == null with the bridge: harbour repairs move to the ShipController later
-                if(canRepair() && smallShipsController.ship != null && smallShipsController.ship.getDamage() > 10){
-                    if(this.tickCount % 20 == 0) smallShipsController.ship.repairShip(this);
-                }
-                else if(this.getCannonBallCount(this.getInventory()) > 0 && smallShipsController.ship instanceof Container container && this.getCannonBallCount(container) < 128){
-                    if(this.tickCount % 20 == 0) refillCannonBalls();
-                }
-                else{
-                    if(isRecruitsInCommandOnBoard()) {
-                        waitForRecruitsUpkeepTime = this.getAgainResupplyTime(); // time to resupply again
-                        this.setPatrolState(State.PATROLLING);
-                    }
-                    else{
-                        this.setFollowState(2);
-                        RecruitCommanderUtil.setRecruitsMount(this.army.getAllRecruitUnits(), this.getVehicle().getUUID());
-                    }
-                }
-            }
+        if (this.shipController.isHarbourRunning()) return;
+        if (SmallShipsBridge.isShip(this.getVehicle())) {
+            this.shipController.startHarbour();
+            return;
         }
+        super.handleUpkeepState();
     }
+
+    @Override
+    public void handleResupply() {
+        // on a ship the harbour routine sends everybody ashore once she lies still
+        if (SmallShipsBridge.isShip(this.getVehicle())) return;
+        super.handleResupply();
+    }
+
     @Override
     public boolean getOtherUpkeepInterruption(){
-        if(smallShipsController.ship != null && smallShipsController.ship.getDamage() > 10){
-            return true;
-        }
-
-        if(smallShipsController.ship != null && smallShipsController.ship.hasCannons() && smallShipsController.ship.getBoat() instanceof Container container && this.getCannonBallCount(container) < 32){
-            return true;
+        Entity ship = this.getVehicle();
+        if (SmallShipsBridge.isShip(ship)) {
+            CompoundTag condition = SmallShipsBridge.getCondition(ship);
+            // below what hand repair can mend, torn canvas, or few balls left
+            if (condition.getFloat("Damage") > condition.getFloat("HandRepairFloor") + 0.5F) return true;
+            if (condition.getInt("SailCondition") > 0) return true;
+            ShipProfile profile = this.shipController.getProfile();
+            if (profile != null && profile.guns() > 0 && condition.getInt("CannonBalls") < 32) return true;
         }
         return super.getOtherUpkeepInterruption();
-    }
-
-    private boolean isRecruitsInCommandOnBoard() {
-        return this.army.getAllRecruitUnits().stream().allMatch(recruit -> recruit.getVehicle() != null && recruit.getVehicle().equals(this.getVehicle()));
     }
 
     public int getResupplyTime()  {
@@ -395,10 +383,7 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         return this.entityData.get(SHOULD_STRATEGIC_FIRE);
     }
 
-    public boolean canRepair() {
-        return this.getInventory().hasAnyMatching(itemStack -> itemStack.is(Items.IRON_NUGGET)) && this.getInventory().hasAnyMatching(itemStack -> itemStack.is(ItemTags.PLANKS));
-    }
-
+    /** Puts the cannon balls he carries into the hold of his ship. */
     public void refillCannonBalls() {
         if(this.getInventory().hasAnyMatching(itemStack -> itemStack.getDescriptionId().contains("cannon_ball"))){
             if(this.getVehicle() instanceof Container container){
@@ -447,14 +432,3 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         return super.hurt(dmg, amt);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
