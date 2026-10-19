@@ -30,7 +30,7 @@ public class MessageSplitGroup implements Message<MessageSplitGroup> {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitsGroup groupToSplit = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
 
-        if(groupToSplit == null) return;
+        if(groupToSplit == null || !NetworkSecurity.canManageGroup(player, groupToSplit)) return;
 
         RecruitEvents.recruitsGroupsManager.splitGroup(groupToSplit, player.serverLevel());
     }

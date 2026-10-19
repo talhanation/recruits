@@ -31,7 +31,7 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements Message<MessagePat
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 context.getSender().getBoundingBox().inflate(100.0D),
-                recruit -> recruit.getUUID().equals(this.recruit)
+                recruit -> recruit.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, recruit)
         ).forEach(leader -> leader.setPatrolSpeed(this.speed));
     }
 

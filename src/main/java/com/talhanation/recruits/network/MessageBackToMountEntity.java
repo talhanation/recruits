@@ -34,7 +34,7 @@ public class MessageBackToMountEntity implements Message<MessageBackToMountEntit
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100)
-        ).forEach((recruit) -> CommandEvents.onMountButton(uuid, recruit, null, group));
+        ).forEach((recruit) -> CommandEvents.onMountButton(player.getUUID(), recruit, null, group));
     }
 
     public MessageBackToMountEntity fromBytes(FriendlyByteBuf buf) {

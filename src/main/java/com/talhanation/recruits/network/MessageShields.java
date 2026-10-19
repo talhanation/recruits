@@ -35,10 +35,10 @@ public class MessageShields implements Message<MessageShields> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100),
-                (recruit) -> recruit.isEffectedByCommand(this.player, group)
+                (recruit) -> recruit.isEffectedByCommand(player.getUUID(), group)
         ).forEach((recruit) -> CommandEvents.onShieldsCommand(
                         player,
-                        this.player,
+                        player.getUUID(),
                         recruit,
                         group,
                         should

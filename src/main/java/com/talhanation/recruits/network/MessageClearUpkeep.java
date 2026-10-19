@@ -32,7 +32,7 @@ public class MessageClearUpkeep implements Message<MessageClearUpkeep> {
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100)
         ).forEach(
-                (recruit) -> CommandEvents.onClearUpkeepButton(uuid, recruit, group)
+                (recruit) -> CommandEvents.onClearUpkeepButton(context.getSender().getUUID(), recruit, group)
         );
     }
 

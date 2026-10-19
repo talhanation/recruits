@@ -37,7 +37,7 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
         ServerPlayer serverPlayer = context.getSender();
         serverPlayer.serverLevel().getEntitiesOfClass(AbstractLeaderEntity.class,
                 context.getSender().getBoundingBox().inflate(100D),
-                (leader) -> leader.getUUID().equals(this.companion)
+                (leader) -> leader.getUUID().equals(this.companion) && NetworkSecurity.canControl(serverPlayer, leader)
         ).forEach((companionEntity) -> {
             if(companionEntity == null) return;
 

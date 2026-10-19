@@ -46,7 +46,7 @@ public class MessageAnswerTreaty implements Message<MessageAnswerTreaty> {
         );
 
         for (MessengerEntity messenger : list) {
-            if (messenger.getUUID().equals(this.recruit)) {
+            if (messenger.getUUID().equals(this.recruit) && NetworkSecurity.canAnswerMessenger(player, messenger)) {
                 if (accepted) {
                     handleTreatyAccepted(messenger, player, level);
                 }

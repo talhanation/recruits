@@ -36,6 +36,8 @@ public class MessageMergeGroup implements Message<MessageMergeGroup> {
         RecruitsGroup baseGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
 
         if(groupToMerge == null || baseGroup == null) return;
+        if(!NetworkSecurity.canManageGroup(player, groupToMerge) || !NetworkSecurity.canManageGroup(player, baseGroup)) return;
+        if(groupToMerge.getUUID().equals(baseGroup.getUUID())) return;
 
         RecruitEvents.recruitsGroupsManager.mergeGroups(groupToMerge, baseGroup, player.serverLevel());
     }

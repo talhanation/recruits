@@ -11,6 +11,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,6 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLeaderAddWayPoint> {
+    private static final double MAX_WAYPOINT_DISTANCE = 128.0D;
     private UUID worker;
     private int x;
     private int y;
@@ -46,16 +48,24 @@ public class MessagePatrolLeaderAddWayPoint implements Message<MessagePatrolLead
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 player.getBoundingBox().inflate(100.0D),
-                v -> v.getUUID().equals(this.worker) && v.isAlive()
+                v -> v.getUUID().equals(this.worker) && NetworkSecurity.canControl(player, v)
         ).forEach((merchant) -> this.addWayPoint(new BlockPos(x, y, z), player, merchant));
     }
 
     private void addWayPoint(BlockPos pos, Player player, AbstractLeaderEntity leaderEntity) {
-        BlockState state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
-        while (state.isAir()) {
+        Level level = leaderEntity.getCommandSenderWorld();
+        // Waypoints are picked by looking at a block: must be near the player and in a loaded chunk.
+        // Before: no limit + "while(isAir) below()" never ended under the world (VOID_AIR) -> server hang.
+        if (player.distanceToSqr(pos.getX() + 0.5D, player.getY(), pos.getZ() + 0.5D) > MAX_WAYPOINT_DISTANCE * MAX_WAYPOINT_DISTANCE) return;
+        if (!level.isLoaded(pos)) return;
+        pos = new BlockPos(pos.getX(), Math.min(pos.getY(), level.getMaxBuildHeight()), pos.getZ());
+
+        BlockState state = level.getBlockState(pos);
+        while (state.isAir() && pos.getY() > level.getMinBuildHeight()) {
             pos = pos.below();
-            state = leaderEntity.getCommandSenderWorld().getBlockState(pos);
+            state = level.getBlockState(pos);
         }
+        if (state.isAir()) return;
 
         if (leaderEntity instanceof CaptainEntity captain && !state.is(Blocks.WATER)) {
             player.sendSystemMessage(TEXT_NOT_WATER_WAYPOINT(captain.getName().getString()));

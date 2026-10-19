@@ -37,7 +37,7 @@ public class MessageProtectEntity implements Message<MessageProtectEntity> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100)
-        ).forEach((recruit) -> CommandEvents.onProtectButton(uuid, recruit, target, group));
+        ).forEach((recruit) -> CommandEvents.onProtectButton(player.getUUID(), recruit, target, group));
     }
     public MessageProtectEntity fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();

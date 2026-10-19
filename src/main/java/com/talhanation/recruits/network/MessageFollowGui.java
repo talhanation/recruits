@@ -35,7 +35,7 @@ public class MessageFollowGui implements Message<MessageFollowGui> {
         serverPlayer.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 serverPlayer.getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
+                (recruit) -> recruit.getUUID().equals(this.uuid) && NetworkSecurity.canControl(serverPlayer, recruit)
         ).forEach((recruit) -> CommandEvents.onMovementCommandGUI(recruit, state));
     }
 

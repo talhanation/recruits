@@ -35,14 +35,16 @@ public class MessageGroup implements Message<MessageGroup> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100),
-                (recruit) -> recruit.getUUID().equals(this.recruitUUID)
+                (recruit) -> recruit.getUUID().equals(this.recruitUUID) && NetworkSecurity.canControl(player, recruit)
         ).forEach((recruit) -> this.setGroup(recruit, player, groupUUID));
     }
 
     public void setGroup(AbstractRecruitEntity recruit, ServerPlayer player , UUID groupUUID){
         RecruitsGroup oldGroup = RecruitEvents.recruitsGroupsManager.getGroup(recruit.getGroup());
         RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
-        if(oldGroup != null && newGroup != null && oldGroup.getUUID().equals(newGroup.getUUID())) return;
+        // Only into an existing group of this player (was: NPE on unknown group, and any foreign group was accepted).
+        if(newGroup == null || !NetworkSecurity.canManageGroup(player, newGroup)) return;
+        if(oldGroup != null && oldGroup.getUUID().equals(newGroup.getUUID())) return;
 
         if(oldGroup != null) RecruitEvents.recruitsGroupsManager.removeMember(oldGroup.getUUID(), recruit.getUUID(), player.serverLevel());
         if(newGroup != null) RecruitEvents.recruitsGroupsManager.addMember(newGroup.getUUID(), recruit.getUUID(), player.serverLevel());

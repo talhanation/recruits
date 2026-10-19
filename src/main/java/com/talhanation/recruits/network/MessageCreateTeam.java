@@ -4,6 +4,7 @@ import com.talhanation.recruits.FactionEvents;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.BannerItem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -35,7 +36,19 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
+        if (player == null) return;
         ServerLevel world = player.serverLevel();
+
+        // Validate what only the GUI checked before.
+        if (player.getTeam() != null) return;
+        if (this.color == null || !this.color.isColor()) return;          // null colour breaks the team packet for all players
+        if (this.index < 0) return;
+        if (this.banner == null || !(this.banner.getItem() instanceof BannerItem)) return;
+        if (this.teamName == null || this.teamName.isBlank() || this.teamName.length() > 32) return;
+        if (!this.teamName.matches("[\\p{L}\\p{N}_]{3,32}")) return;      // same characters FactionEditScreen allows
+        this.displayName = NetworkSecurity.cleanText(this.displayName, 32);
+        if (this.displayName.isBlank()) return;
+        if (FactionEvents.recruitsFactionManager.isDisplayNameInUse(this.displayName)) return;
         FactionEvents.createTeam(true, context.getSender(), world, this.teamName, this.displayName, player.getName().getString(), this.banner, this.color, (byte) index);
     }
 

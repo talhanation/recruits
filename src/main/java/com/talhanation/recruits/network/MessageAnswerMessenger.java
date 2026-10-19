@@ -32,7 +32,7 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
         );
         for (MessengerEntity messenger : list){
 
-            if (messenger.getUUID().equals(this.recruit)){
+            if (messenger.getUUID().equals(this.recruit) && NetworkSecurity.canAnswerMessenger(player, messenger)){
 
                 messenger.teleportWaitTimer = 100;
                 context.getSender().sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());

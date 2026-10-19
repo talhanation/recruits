@@ -41,7 +41,7 @@ public class MessageAssassinGui implements Message<MessageAssassinGui> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AssassinLeaderEntity.class,
                 player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+                v -> v.getUUID().equals(this.recruit) && v.isAlive() && NetworkSecurity.isAdmin(player) // legacy entity without owner
         ).forEach((recruit) -> recruit.openGUI(player));
     }
 

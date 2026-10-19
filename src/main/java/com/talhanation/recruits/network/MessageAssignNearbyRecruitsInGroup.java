@@ -30,7 +30,7 @@ public class MessageAssignNearbyRecruitsInGroup implements Message<MessageAssign
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitsGroup newGroup = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
-        if(newGroup == null) return;
+        if(newGroup == null || !NetworkSecurity.canManageGroup(player, newGroup)) return;
 
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,

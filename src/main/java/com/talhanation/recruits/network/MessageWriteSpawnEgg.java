@@ -11,10 +11,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -36,6 +38,9 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
+        // Pick-block copy is a creative feature (client only sends it in creative). Without this check
+        // a survival player could copy any recruit incl. inventory and armour = item duplication.
+        if (!player.isCreative()) return;
         player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D),
                 (recruit) -> recruit.getUUID().equals(this.recruit)
         ).forEach((recruitEntity) -> {
@@ -164,23 +169,12 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         return entityTag;
     }
 
+    /** The registered spawn egg of this entity type (recruits, noble and companions), EMPTY if there is none. */
     public ItemStack getItemStack(EntityType<?> type){
-        ItemStack itemStack = ItemStack.EMPTY;
-        if (type.getDescriptionId().equals("entity.recruits.recruit")) {
-            itemStack = new ItemStack(ModItems.RECRUIT_SPAWN_EGG.get());
-        } else if (type.getDescriptionId().equals("entity.recruits.recruit_shieldman")) {
-            itemStack = new ItemStack(ModItems.RECRUIT_SHIELD_SPAWN_EGG.get());
-        } else if (type.getDescriptionId().equals("entity.recruits.bowman")) {
-            itemStack = new ItemStack(ModItems.BOWMAN_SPAWN_EGG.get());
-        } else if (type.getDescriptionId().equals("entity.recruits.crossbowman")) {
-            itemStack = new ItemStack(ModItems.CROSSBOWMAN_SPAWN_EGG.get());
-        } else if (type.getDescriptionId().equals("entity.recruits.horseman")) {
-            itemStack = new ItemStack(ModItems.HORSEMAN_SPAWN_EGG.get());
-        } else if (type.getDescriptionId().equals("entity.recruits.nomad")) {
-            itemStack = new ItemStack(ModItems.NOMAD_SPAWN_EGG.get());
+        for (RegistryObject<SpawnEggItem> egg : ModItems.SPAWN_EGGS) {
+            if (egg.get().getType(null) == type) return new ItemStack(egg.get());
         }
-
-        return itemStack;
+        return ItemStack.EMPTY;
     }
 
     public MessageWriteSpawnEgg fromBytes(FriendlyByteBuf buf) {

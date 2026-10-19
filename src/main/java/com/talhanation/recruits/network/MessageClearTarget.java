@@ -35,7 +35,7 @@ public class MessageClearTarget implements Message<MessageClearTarget> {
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100));
         for (AbstractRecruitEntity recruits : list) {
-            CommandEvents.onClearTargetButton(uuid, recruits, group);
+            CommandEvents.onClearTargetButton(player.getUUID(), recruits, group);
         }
     }
     public MessageClearTarget fromBytes(FriendlyByteBuf buf) {

@@ -6,6 +6,7 @@ import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -29,7 +30,13 @@ public class MessageChangeDiplomacyStatus implements Message<MessageChangeDiplom
     }
 
     public void executeServerSide(NetworkEvent.Context context){
+        ServerPlayer sender = context.getSender();
+        // Only the leader of ownTeam may change ownTeam's relations (before: anyone, for any faction).
+        if (sender == null || !NetworkSecurity.isLeaderOf(sender, this.ownTeam)) return;
+        if (this.ownTeam.equals(this.otherTeam)) return;
+        if (FactionEvents.recruitsFactionManager.getFactionByStringID(this.otherTeam) == null) return;
         RecruitsDiplomacyManager.DiplomacyStatus status = RecruitsDiplomacyManager.DiplomacyStatus.fromByte(this.status);
+        if (status == null) return;
 
         FactionEvents.recruitsDiplomacyManager.setRelation(ownTeam, otherTeam, status, (ServerLevel) context.getSender().getCommandSenderWorld());
 

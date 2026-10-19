@@ -9,7 +9,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -55,7 +57,7 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 player.getBoundingBox().inflate(64.0D),
-                leader -> leader.getUUID().equals(this.recruit) && leader.isAlive()
+                leader -> leader.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, leader)
         ).forEach(leader -> {
             if (routeId != null) {
                 leader.setRouteID(routeId);
@@ -66,13 +68,24 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
         });
     }
 
+    private static final int MAX_ROUTE_WAYPOINTS = 1024;
+
+    private static <T> List<T> readBounded(FriendlyByteBuf buf, Function<FriendlyByteBuf, T> reader) {
+        int size = buf.readVarInt();
+        if (size < 0 || size > MAX_ROUTE_WAYPOINTS) throw new IllegalArgumentException("Too many route waypoints: " + size);
+        List<T> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) list.add(reader.apply(buf));
+        return list;
+    }
+
     @Override
     public MessagePatrolLeaderSetRoute fromBytes(FriendlyByteBuf buf) {
         this.recruit     = buf.readUUID();
         boolean hasRoute = buf.readBoolean();
         this.routeId     = hasRoute ? buf.readUUID() : null;
-        this.waypoints   = buf.readList(FriendlyByteBuf::readBlockPos);
-        this.waitSeconds = buf.readList(FriendlyByteBuf::readVarInt);
+        // readList() pre-allocates the size the client claims -> bound it first.
+        this.waypoints   = readBounded(buf, FriendlyByteBuf::readBlockPos);
+        this.waitSeconds = readBounded(buf, FriendlyByteBuf::readVarInt);
         return this;
     }
 

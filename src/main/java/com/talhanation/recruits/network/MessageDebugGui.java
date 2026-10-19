@@ -36,10 +36,10 @@ public class MessageDebugGui implements Message<MessageDebugGui> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
+                (recruit) -> recruit.getUUID().equals(this.uuid) && player.isCreative() // debug actions: creative only
         ).forEach((recruit) -> {
             DebugEvents.handleMessage(id, recruit, context.getSender());
-            recruit.setCustomName(Component.literal(name));
+            recruit.setCustomName(Component.literal(NetworkSecurity.cleanText(name, 32)));
         });
     }
 

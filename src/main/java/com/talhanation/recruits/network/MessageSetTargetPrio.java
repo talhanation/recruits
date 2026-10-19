@@ -31,7 +31,8 @@ public class MessageSetTargetPrio implements Message<MessageSetTargetPrio> {
         List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16D));
         for (AbstractRecruitEntity recruitEntity : list){
 
-            if (recruitEntity.getUUID().equals(this.recruit) && recruitEntity instanceof IHasTargetPriority specialRecruit){
+            if (recruitEntity.getUUID().equals(this.recruit) && recruitEntity instanceof IHasTargetPriority specialRecruit
+                    && NetworkSecurity.canControl(context.getSender(), recruitEntity)){
 
                 specialRecruit.setTargetPriority(IHasTargetPriority.TargetPriority.fromIndex(state));
                 break;

@@ -31,6 +31,8 @@ public class MessageDeleteClaim implements Message<MessageDeleteClaim> {
     public void executeServerSide(NetworkEvent.Context context){
         if (this.claimId == null || context.getSender() == null) return;
         if (context.getSender().level().dimension() != Level.OVERWORLD) return;
+        // Was: anyone could delete any claim. Same rule as MessageUpdateClaim#validateDeleteClaim.
+        if (!NetworkSecurity.isAdminCreative(context.getSender())) return;
 
         ClaimEvents.recruitsClaimManager.removeClaim(
                 (ServerLevel) context.getSender().getCommandSenderWorld(),

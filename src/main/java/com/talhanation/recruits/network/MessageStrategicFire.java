@@ -39,7 +39,7 @@ public class MessageStrategicFire implements Message<MessageStrategicFire> {
         ).forEach((recruit) ->
                 CommandEvents.onStrategicFireCommand(
                         serverPlayer,
-                        this.player,
+                        serverPlayer.getUUID(),
                         recruit,
                         group,
                         should

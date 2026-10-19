@@ -37,7 +37,7 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(100)
         ).forEach((recruit) -> CommandEvents.onUpkeepCommand(
-                this.player,
+                player.getUUID(),
                 recruit,
                 group,
                 false,

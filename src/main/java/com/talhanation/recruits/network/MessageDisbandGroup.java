@@ -35,9 +35,10 @@ public class MessageDisbandGroup implements Message<MessageDisbandGroup> {
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
-        if(group == null) return;
+        if(group == null || !NetworkSecurity.canManageGroup(player, group)) return;
 
-        group.setDisbandContext(new RecruitsGroup.DisbandContext(true, keepTeam, true));
+        // Only the recruits that are in the group right now get dismissed (see RecruitsGroupsManager#markMembersForDisband).
+        RecruitEvents.recruitsGroupsManager.markMembersForDisband(group, new RecruitsGroup.DisbandContext(true, keepTeam, true));
 
         RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
 

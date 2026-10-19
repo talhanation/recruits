@@ -37,7 +37,7 @@ public class MessageUpkeepEntity implements Message<MessageUpkeepEntity> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100)
-        ).forEach(recruit -> CommandEvents.onUpkeepCommand(player_uuid, recruit, group, true, target, null));
+        ).forEach(recruit -> CommandEvents.onUpkeepCommand(player.getUUID(), recruit, group, true, target, null));
     }
 
     public MessageUpkeepEntity fromBytes(FriendlyByteBuf buf) {

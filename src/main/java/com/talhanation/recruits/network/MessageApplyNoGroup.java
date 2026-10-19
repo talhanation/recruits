@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
+import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -34,8 +36,13 @@ public class MessageApplyNoGroup implements Message<MessageApplyNoGroup> {
 
         ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
 
+        // Only your own group / your own recruits (before: any player could strip any group).
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupID);
+        if (group != null && !NetworkSecurity.canManageGroup(player, group)) return;
+
         for(Entity entity : serverLevel.getEntities().getAll()){
-            if(entity instanceof AbstractRecruitEntity recruit && recruit.getGroup() != null && recruit.getGroup().equals(groupID))
+            if(entity instanceof AbstractRecruitEntity recruit && recruit.getGroup() != null && recruit.getGroup().equals(groupID)
+                    && (NetworkSecurity.isOwner(player, recruit) || NetworkSecurity.isAdmin(player)))
                 recruitList.add(recruit);
         }
 

@@ -33,7 +33,7 @@ public class MessageAssassinCount implements Message<MessageAssassinCount> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AssassinLeaderEntity.class,
                 player.getBoundingBox().inflate(16.0D),
-                (leader) -> leader.getUUID().equals(this.uuid)
+                (leader) -> leader.getUUID().equals(this.uuid) && NetworkSecurity.isAdmin(player) // legacy entity without owner
         ).forEach((leader) -> leader.setCount(this.count));
     }
     public MessageAssassinCount fromBytes(FriendlyByteBuf buf) {

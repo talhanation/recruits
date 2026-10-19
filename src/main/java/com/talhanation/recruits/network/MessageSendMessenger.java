@@ -46,11 +46,11 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 MessengerEntity.class,
                 player.getBoundingBox().inflate(16D),
-                (messenger) -> messenger.getUUID().equals(this.recruit)
+                (messenger) -> messenger.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, messenger)
         ).forEach((messenger) -> {
             if (messenger.getUUID().equals(this.recruit)){
 
-                messenger.setMessage(this.message);
+                messenger.setMessage(NetworkSecurity.cleanText(this.message, MAX_MESSAGE_LENGTH));
 
                 if(!this.nbt.isEmpty()){
                     messenger.setTargetPlayerInfo(RecruitsPlayerInfo.getFromNBT(this.nbt));
@@ -63,6 +63,8 @@ public class MessageSendMessenger implements Message<MessageSendMessenger> {
             }
         });
     }
+
+    private static final int MAX_MESSAGE_LENGTH = 512;
 
     public MessageSendMessenger fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();

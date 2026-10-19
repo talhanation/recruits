@@ -1,6 +1,8 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.world.RecruitsFaction;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -29,9 +31,17 @@ public class MessageRemoveFromTeam implements Message<MessageRemoveFromTeam> {
         ServerPlayer sender = Objects.requireNonNull(context.getSender());
         ServerLevel level = sender.serverLevel();
 
+        // Only the leader may remove members of HIS faction. Before: anyone could "remove" any
+        // online player - removing a leader deleted the whole faction.
+        RecruitsFaction faction = NetworkSecurity.getFaction(sender);
+        if (!NetworkSecurity.isFactionLeader(sender, faction)) return;
+        if (!RecruitsServerConfig.ShouldFactionManagingBeAllowed.get() && !NetworkSecurity.isAdmin(sender)) return;
+        if (this.player == null || this.player.equals(sender.getScoreboardName())) return;
+
         boolean foundOnline = false;
         for (ServerPlayer serverPlayer : level.players()) {
             if (serverPlayer.getName().getString().equals(player)) {
+                if (serverPlayer.getTeam() == null || !serverPlayer.getTeam().getName().equals(faction.getStringID())) return;
                 FactionEvents.tryToRemoveFromTeam(
                         serverPlayer.getTeam(),
                         sender,

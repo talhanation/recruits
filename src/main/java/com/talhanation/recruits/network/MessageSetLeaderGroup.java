@@ -42,14 +42,14 @@ public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
         player.serverLevel().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 player.getBoundingBox().inflate(100D),
-                leader -> leader.getUUID().equals(this.leaderUUID) && leader.isAlive()
+                leader -> leader.getUUID().equals(this.leaderUUID) && NetworkSecurity.canControl(player, leader)
         ).forEach(leader -> {
             if (groupUUID == null) {
                 leader.setGroupUUID(null);
                 return;
             }
             RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
-            if (group == null) return;
+            if (group == null || !NetworkSecurity.canManageGroup(player, group)) return;
             leader.setGroupUUID(group.getUUID());
             RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
         });

@@ -32,7 +32,7 @@ public class MessageDisband implements Message<MessageDisband> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16D),
-                (recruit) -> recruit.getUUID().equals(this.recruit)
+                (recruit) -> recruit.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, recruit)
         ).forEach((recruit) -> recruit.disband(context.getSender(), keepTeam, true));
     }
 

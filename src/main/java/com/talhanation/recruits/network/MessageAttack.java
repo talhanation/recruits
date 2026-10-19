@@ -37,7 +37,7 @@ public class MessageAttack implements Message<MessageAttack> {
                 serverPlayer.getBoundingBox().inflate(100)
         );
 
-        CommandEvents.onAttackCommand(serverPlayer, playerUuid, list, group);
+        CommandEvents.onAttackCommand(serverPlayer, serverPlayer.getUUID(), list, group);
     }
 
     public MessageAttack fromBytes(FriendlyByteBuf buf) {

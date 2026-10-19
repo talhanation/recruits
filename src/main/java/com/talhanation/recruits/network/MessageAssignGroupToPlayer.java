@@ -43,9 +43,16 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
         ServerPlayer player = Objects.requireNonNull(context.getSender());
         RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
         ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
-        if(group == null) return;
+        // Only the owner may hand over a group (before: anyone could take any group incl. its recruits).
+        if(group == null || !NetworkSecurity.canManageGroup(player, group)) return;
 
-        RecruitsPlayerInfo newOwner = RecruitsPlayerInfo.getFromNBT(tag);
+        RecruitsPlayerInfo requested = RecruitsPlayerInfo.getFromNBT(tag);
+        if(requested == null || requested.getUUID() == null) return;
+        // New owner must be a real, online player; name comes from the server, not from the packet.
+        ServerPlayer newOwnerPlayer = serverLevel.getServer().getPlayerList().getPlayer(requested.getUUID());
+        if(newOwnerPlayer == null || newOwnerPlayer.getUUID().equals(player.getUUID())) return;
+        RecruitsPlayerInfo newOwner = new RecruitsPlayerInfo(newOwnerPlayer.getUUID(), newOwnerPlayer.getScoreboardName());
+        final UUID oldOwnerUUID = group.getPlayerUUID();
         group.setPlayer(newOwner);
 
         List<AbstractRecruitEntity> list = player.getCommandSenderWorld().getEntitiesOfClass(
@@ -54,7 +61,8 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
         );
 
         for(AbstractRecruitEntity recruit : list){
-            if(recruit.getGroup() != null && recruit.getGroup().equals(groupUUID)){
+            if(recruit.getGroup() != null && recruit.getGroup().equals(groupUUID)
+                    && recruit.isOwned() && oldOwnerUUID.equals(recruit.getOwnerUUID())){
                 recruit.setOwnerUUID(Optional.of(newOwner.getUUID()));
                 recruit.needsGroupUpdate = true;
             }

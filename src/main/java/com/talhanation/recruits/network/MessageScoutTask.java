@@ -30,7 +30,7 @@ public class MessageScoutTask implements Message<MessageScoutTask> {
         List<ScoutEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(ScoutEntity.class, context.getSender().getBoundingBox().inflate(16D));
         for (ScoutEntity scoutEntity : list){
 
-            if (scoutEntity.getUUID().equals(this.recruit)){
+            if (scoutEntity.getUUID().equals(this.recruit) && NetworkSecurity.canControl(context.getSender(), scoutEntity)){
 
                 scoutEntity.startTask(ScoutEntity.State.fromIndex(state));
                 break;

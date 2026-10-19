@@ -43,7 +43,7 @@ public class MessageDebugScreen implements Message<MessageDebugScreen> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit) && v.isAlive()
+                v -> v.getUUID().equals(this.recruit) && v.isAlive() && player.isCreative() // debug menu: creative only, like mobInteract
         ).forEach((recruit) -> recruit.openDebugScreen(player));
     }
 

@@ -55,7 +55,7 @@ public class MessageAggro implements Message<MessageAggro> {
                 return;
             }
 
-            CommandEvents.onAggroCommand(this.player, recruit, this.state, group, fromGui);
+            CommandEvents.onAggroCommand(player.getUUID(), recruit, this.state, group, fromGui);
         });
     }
 

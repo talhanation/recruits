@@ -30,7 +30,7 @@ public class MessageClearUpkeepGui implements Message<MessageClearUpkeepGui> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
-                (recruit) -> recruit.getUUID().equals(this.uuid)
+                (recruit) -> recruit.getUUID().equals(this.uuid) && NetworkSecurity.canControl(player, recruit)
         ).forEach((recruit) -> {
             recruit.clearUpkeepPos();
             recruit.clearUpkeepEntity();

@@ -37,11 +37,32 @@ public class MessageAssignRecruitToPlayer implements Message<MessageAssignRecrui
 
         for (AbstractRecruitEntity recruit : list) {
             if(recruit.getUUID().equals(this.recruit)){
+                if(!mayAssign(serverPlayer, recruit, newOwner)) break;
                 recruit.assignToPlayer(newOwner, null);
                 FactionEvents.notifyPlayer(serverLevel, new RecruitsPlayerInfo(newOwner, ""), 0, serverPlayer.getName().getString());
                 break;
             }
         }
+    }
+
+    /**
+     * Allowed:
+     *  - the owner gives his recruit to another online player
+     *  - the faction leader takes over a recruit of his faction (TakeOverScreen)
+     *  - operators
+     * Before: anyone within 64 blocks could assign any recruit to himself.
+     */
+    private static boolean mayAssign(ServerPlayer sender, AbstractRecruitEntity recruit, UUID newOwner) {
+        if (newOwner == null || !recruit.isAlive()) return false;
+        if (sender.getServer().getPlayerList().getPlayer(newOwner) == null) return false;
+        if (NetworkSecurity.isAdmin(sender)) return true;
+        if (NetworkSecurity.isOwner(sender, recruit)) return !newOwner.equals(sender.getUUID());
+
+        boolean takeOver = newOwner.equals(sender.getUUID())
+                && recruit.isOwned()
+                && recruit.getTeam() != null
+                && NetworkSecurity.isLeaderOf(sender, recruit.getTeam().getName());
+        return takeOver;
     }
 
     public MessageAssignRecruitToPlayer fromBytes(FriendlyByteBuf buf) {

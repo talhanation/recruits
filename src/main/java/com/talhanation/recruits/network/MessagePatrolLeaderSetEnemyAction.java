@@ -31,7 +31,7 @@ public class MessagePatrolLeaderSetEnemyAction implements Message<MessagePatrolL
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractLeaderEntity.class,
                 player.getBoundingBox().inflate(100.0D),
-                leader -> leader.getUUID().equals(this.recruit) && leader.isAlive()
+                leader -> leader.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, leader)
         ).forEach(leader -> leader.setEnemyAction(this.action));
     }
 

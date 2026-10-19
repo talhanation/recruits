@@ -42,6 +42,7 @@ import org.apache.logging.log4j.Logger;
 @Mod(Main.MOD_ID)
 public class Main {
     public static final String MOD_ID = "recruits";
+    public static final int NETWORK_PROTOCOL = 4;
     public static SimpleChannel SIMPLE_CHANNEL;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static boolean isMusketModLoaded;
@@ -99,7 +100,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new ClaimEvents());
         MinecraftForge.EVENT_BUS.register(this);
 
-        SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
+        SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default", NETWORK_PROTOCOL);
 
         Class[] messages = {
                 MessageAggro.class,
@@ -214,7 +215,7 @@ public class Main {
 
 
         for (int i = 0; i < messages.length; i++){
-            CommonRegistry.registerMessage(SIMPLE_CHANNEL, i, messages[i]);
+            NetworkSecurity.registerMessage(SIMPLE_CHANNEL, i, messages[i]);
         }
 
 
@@ -228,7 +229,7 @@ public class Main {
         isSmallShipsCompatible = false;
         if(isSmallShipsLoaded){
             String smallshipsversion = ModList.get().getModFileById("smallships").versionString();
-            isSmallShipsCompatible = isVersionAtLeast(smallshipsversion, "2.0.0-b1.4");
+            isSmallShipsCompatible = isVersionAtLeast(smallshipsversion, "2.0.2");
         }
 
         isSiegeWeaponsCompatible = false;

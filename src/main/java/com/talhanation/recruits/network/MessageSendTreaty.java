@@ -42,10 +42,12 @@ public class MessageSendTreaty implements Message<MessageSendTreaty> {
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
+        // Treaties bind the whole faction -> only its leader may send one (was only checked in the GUI).
+        if (!NetworkSecurity.isFactionLeader(player, NetworkSecurity.getFaction(player))) return;
         player.getCommandSenderWorld().getEntitiesOfClass(
                 MessengerEntity.class,
                 player.getBoundingBox().inflate(16D),
-                (messenger) -> messenger.getUUID().equals(this.recruit)
+                (messenger) -> messenger.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, messenger)
         ).forEach((messenger) -> {
             if (messenger.getUUID().equals(this.recruit)) {
 
@@ -54,7 +56,7 @@ public class MessageSendTreaty implements Message<MessageSendTreaty> {
                 }
 
                 if (start) {
-                    messenger.setTreatyDurationHours(this.durationHours);
+                    messenger.setTreatyDurationHours(Math.max(1, Math.min(48, this.durationHours))); // same range as MessengerTreatyScreen
                     messenger.setIsTreatyMessenger(true);
                     messenger.start();
                 }

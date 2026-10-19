@@ -34,7 +34,7 @@ public class MessageDismount implements Message<MessageDismount> {
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 context.getSender().getBoundingBox().inflate(100)
-        ).forEach((recruit) -> CommandEvents.onDismountButton(uuid, recruit, group));
+        ).forEach((recruit) -> CommandEvents.onDismountButton(player.getUUID(), recruit, group));
     }
     public MessageDismount fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();

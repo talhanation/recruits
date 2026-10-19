@@ -27,6 +27,9 @@ public class MessageAddRecruitToTeam implements Message<MessageAddRecruitToTeam>
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
+        // The server already counts hired recruits itself (CommandEvents#handleRecruiting).
+        // A client could use this packet to set any faction's NPC counter -> admins only.
+        if (!NetworkSecurity.isAdmin(context.getSender())) return;
         ServerLevel level = Objects.requireNonNull(context.getSender()).serverLevel();
 
         FactionEvents.addNPCToData(level, teamName, x);
