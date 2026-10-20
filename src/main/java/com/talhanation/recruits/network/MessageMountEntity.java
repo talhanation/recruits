@@ -2,6 +2,7 @@ package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.CommandEvents;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.compat.smallships.GroundCannon;
 import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -44,7 +45,8 @@ public class MessageMountEntity implements Message<MessageMountEntity> {
                 (mount) -> mount.getUUID().equals(target)
                         && (RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId())
                             || SmallShipsBridge.isShip(mount)
-                            || SiegeWeapon.isSiegeWeapon(mount))
+                            || SiegeWeapon.isSiegeWeapon(mount)
+                            || GroundCannon.isGroundCannon(mount))
         );
         if (entityList.isEmpty()) return;
 

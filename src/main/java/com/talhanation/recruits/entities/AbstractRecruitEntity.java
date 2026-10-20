@@ -5,6 +5,7 @@ import com.talhanation.recruits.*;
 import com.talhanation.recruits.RecruitEvent;
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.compat.smallships.GroundCannon;
 import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
@@ -121,6 +122,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean forcedUpkeep;
     public boolean upkeepInProgress;
     public boolean remountAfterUpkeep;
+    /** Spawned from a spawn egg, companion level still to apply in onAddedToWorld. Server side only, not saved. */
+    private boolean pendingSpawnEggLevel;
     @Nullable public BlockPos depositPos;
     @Nullable public UUID depositEntityUUID;
     public int dismount = 0;
@@ -229,6 +232,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
         if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
         if(remountAfterUpkeep && (this.tickCount + this.getId()) % 20 == 0 && !needsToGetFood()) tryRemountAfterUpkeep();
+        // a Small Ships ground cannon pulls everyone touching it into its barrel - recruits are never its ammo
+        if(this.getVehicle() != null && GroundCannon.isGroundCannon(this.getVehicle())) GroundCannon.handleRecruitInBarrel(this, this.getVehicle());
         if(getHunger() >=  70F && getHealth() < getMaxHealth()){
             this.heal(1.0F/50F);// 1 hp in 2.5s
         }
@@ -329,9 +334,33 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
         this.setRandomSpawnBonus();
         this.createNavigation(world.getLevel());
-        if (reason == MobSpawnType.SPAWN_EGG && this.getXpLevel() == 0) applySpawnValues(this);
+        if (reason == MobSpawnType.SPAWN_EGG) {
+            if (this.getXpLevel() == 0) applySpawnValues(this);
+            // the subclass finalizeSpawn/initSpawn still runs after this and resets the level (applySpawnValues)
+            this.pendingSpawnEggLevel = true;
+        }
         return spawnData;
     }
+    @Override
+    public void onAddedToWorld() {
+        super.onAddedToWorld();
+        if (this.pendingSpawnEggLevel) {
+            this.pendingSpawnEggLevel = false;
+            applyCompanionSpawnLevel();
+        }
+    }
+
+    /** A companion from a spawn egg starts at the level it can be promoted at, with the buffs of the level-ups up to there. */
+    private void applyCompanionSpawnLevel() {
+        int level = RecruitEvents.getPromotionLevel(this.getType());
+        if (level <= this.getXpLevel()) return;
+
+        int levelUps = level - Math.max(1, this.getXpLevel());
+        this.setXpLevel(level);
+        this.addLevelBuffsForLevel(levelUps);
+        this.setHealth(this.getMaxHealth());
+    }
+
     public void setRandomSpawnBonus(){
         getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier("heath_bonus", this.random.nextDouble() * 0.5D, AttributeModifier.Operation.MULTIPLY_BASE));
         getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier("attack_bonus", this.random.nextDouble() * 0.5D, AttributeModifier.Operation.MULTIPLY_BASE));
@@ -1391,35 +1420,44 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrow)) {
                 amt = (amt + 1.0F) / 2.0F;
             }
-            if(this.getMorale() > 0) this.setMoral(this.getMorale() - 0.25F);
             if(isBlocking()) hurtCurrentlyUsedShield(amt);
+            this.reactToHit(entity);
+            return super.hurt(dmg, amt);
+        }
+    }
 
-            if(entity instanceof LivingEntity living && RecruitEvents.canAttack(this, living)){
-                if(this.getFollowState() == 5){//Protecting
-                    List<AbstractRecruitEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, this.getBoundingBox().inflate(32D));
-                    for(AbstractRecruitEntity recruit : list){
-                        if (recruit.getUUID().equals(recruit.getProtectUUID()) && recruit.isAlive() && !recruit.equals(living)){
-                            //Patrolleader
-                            recruit.setTarget(living);
-                        }
+    /**
+     * What a recruit does when he is hit: morale drops, he turns on the attacker (if closer than his target),
+     * and whoever he protects or who protects him does too. Also used for a captain when his ship is hit
+     * (CaptainEntity#onShipHit), without the damage.
+     */
+    public void reactToHit(@Nullable Entity attacker) {
+        if(this.getMorale() > 0) this.setMoral(this.getMorale() - 0.25F);
+
+        if(attacker instanceof LivingEntity living && RecruitEvents.canAttack(this, living)){
+            if(this.getFollowState() == 5){//Protecting
+                List<AbstractRecruitEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, this.getBoundingBox().inflate(32D));
+                for(AbstractRecruitEntity recruit : list){
+                    if (recruit.getUUID().equals(recruit.getProtectUUID()) && recruit.isAlive() && !recruit.equals(living)){
+                        //Patrolleader
+                        recruit.setTarget(living);
                     }
                 }
-
-
-                if(this.getTarget() != null){
-                    double d1 = this.distanceToSqr(this.getTarget());
-                    double d2 = this.distanceToSqr(living);
-
-                    if(d2 < d1) this.setTarget(living);
-                }
-                else
-                    this.setTarget(living);
-
-                if(this.getShouldProtect() && this.getProtectingMob() instanceof AbstractRecruitEntity patrolLeader){
-                    patrolLeader.setTarget(living);
-                }
             }
-            return super.hurt(dmg, amt);
+
+
+            if(this.getTarget() != null){
+                double d1 = this.distanceToSqr(this.getTarget());
+                double d2 = this.distanceToSqr(living);
+
+                if(d2 < d1) this.setTarget(living);
+            }
+            else
+                this.setTarget(living);
+
+            if(this.getShouldProtect() && this.getProtectingMob() instanceof AbstractRecruitEntity patrolLeader){
+                patrolLeader.setTarget(living);
+            }
         }
     }
 
@@ -2226,6 +2264,16 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 }
             }
 
+            // engineer at a ground cannon: balls of any type and fine grain powder, like a player carries them
+            if (this instanceof SiegeEngineerEntity engineer && engineer.siegeController == engineer.groundCannonController && GroundCannon.isAvailable()){
+                if (GroundCannon.isAmmo(itemstack)){
+                    if (GroundCannon.countAmmo(this.inventory) < 32 && takeStackFrom(container, i)) return true;
+                }
+                else if (GroundCannon.isFineGrainPowder(itemstack)){
+                    if (GroundCannon.countFineGrainPowder(this.inventory) < 16 && takeStackFrom(container, i)) return true;
+                }
+            }
+
             if (this instanceof CaptainEntity && Main.isSmallShipsLoaded){
                 if(itemstack.getDescriptionId().contains("cannon_ball")){
                     if(this.canTakeCannonBalls() && takeStackFrom(container, i)) return true;
@@ -2259,7 +2307,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public boolean canMountEntity(Entity mount) {
         return mount instanceof AbstractHorse ||
                 RecruitsServerConfig.MountWhiteList.get().contains(mount.getEncodeId()) ||
-                this instanceof SiegeEngineerEntity && SiegeWeapon.isSiegeWeapon(mount)||
+                this instanceof SiegeEngineerEntity && (SiegeWeapon.isSiegeWeapon(mount) || GroundCannon.isGroundCannon(mount)) ||
                 this instanceof CaptainEntity && SmallShipsBridge.isShip(mount);
     }
 

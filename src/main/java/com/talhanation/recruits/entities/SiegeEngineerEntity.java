@@ -3,11 +3,13 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.compat.siegeweapons.Ballista;
 import com.talhanation.recruits.compat.siegeweapons.Catapult;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
+import com.talhanation.recruits.compat.smallships.GroundCannon;
 import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.ISiegeController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
+import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponGroundCannonController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -19,7 +21,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -38,6 +40,8 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
     public ISiegeController siegeController;
     public final SiegeWeaponCatapultController catapultController;
     public final SiegeWeaponBallistaController ballistaController;
+    /** Small Ships ground cannon, by reflection (see GroundCannon) */
+    public final SiegeWeaponGroundCannonController groundCannonController;
     private static final EntityDataAccessor<String> OWNER_NAME = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Optional<BlockPos>> STRATEGIC_FIRE_POS = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(SiegeEngineerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -49,6 +53,7 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
         super(entityType, world);
         this.catapultController = new SiegeWeaponCatapultController(this, world);
         this.ballistaController = new SiegeWeaponBallistaController(this, world);
+        this.groundCannonController = new SiegeWeaponGroundCannonController(this, world);
     }
 
     protected void defineSynchedData() {
@@ -109,7 +114,9 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficultyInstance, MobSpawnType reason, @Nullable SpawnGroupData data, @Nullable CompoundTag nbt) {
         SpawnGroupData ilivingentitydata = super.finalizeSpawn(world, difficultyInstance, reason, data, nbt);
-        ((GroundPathNavigation)this.getNavigation()).setCanOpenDoors(true);
+        // recruits use RecruitPathNavigation (async), not GroundPathNavigation - the old cast threw a
+        // ClassCastException here, so this unit never spawned from a spawn egg
+        if (this.getNavigation() instanceof AsyncGroundPathNavigation navigation) navigation.setCanOpenDoors(true);
         this.populateDefaultEquipmentEnchantments(random, difficultyInstance);
 
         this.initSpawn();
@@ -211,6 +218,10 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
             this.siegeController = ballistaController;
             ballistaController.tryMount(vehicle);
         }
+        else if(GroundCannon.isGroundCannon(vehicle)){
+            this.siegeController = groundCannonController;
+            groundCannonController.tryMount(vehicle);
+        }
     }
 
     @Override
@@ -258,9 +269,13 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
 
         if(currentTarget != null && currentTarget.isAlive() && currentTarget.hasLineOfSight(this)){
             siegeController.setTargetPos(currentTarget.getEyePosition());
+            this.setGroundCannonTarget(currentTarget);
             return;
         }
-        else siegeController.setTargetPos(null);
+        else {
+            siegeController.setTargetPos(null);
+            this.setGroundCannonTarget(null);
+        }
 
 
         List<Entity> targets = new ArrayList<>(this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(200D)).stream()
@@ -306,7 +321,13 @@ public class SiegeEngineerEntity extends AbstractRecruitEntity implements ICompa
         if(this.siegeController != null){
             if(target instanceof LivingEntity living) this.setTarget(living);
             siegeController.setTargetPos(target.getOnPos().above(2).getCenter());
+            this.setGroundCannonTarget(target);
         }
+    }
+
+    /** The ground cannon leads its target like the captain does - it needs the entity, not only a position. */
+    private void setGroundCannonTarget(@Nullable Entity target) {
+        if(this.siegeController instanceof SiegeWeaponGroundCannonController groundCannon) groundCannon.setTargetEntity(target);
     }
 
     private Entity findInfantryTarget(List<Entity> targets) {

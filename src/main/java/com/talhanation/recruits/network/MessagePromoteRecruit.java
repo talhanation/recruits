@@ -42,13 +42,12 @@ public class MessagePromoteRecruit implements Message<MessagePromoteRecruit> {
 
     /** Server copy of the rules in PromoteScreen (before they were only checked on the client). */
     private static boolean canPromote(AbstractRecruitEntity recruit, int profession) {
-        int level = recruit.getXpLevel();
+        int required = RecruitEvents.getPromotionLevel(profession);
+        if (required < 0 || recruit.getXpLevel() < required) return false;                       // disabled / unknown / too low
         return switch (profession) {
-            case 0, 1 -> level >= 2;                                                              // messenger, scout
-            case 2 -> level >= 3 && Main.isSiegeWeaponsLoaded && Main.isSiegeWeaponsCompatible; // siege engineer
-            case 3 -> level >= 5 && Main.isSmallShipsLoaded && Main.isSmallShipsCompatible;     // captain
-            case 4 -> level >= 5;                                                                 // patrol leader
-            default -> false;                                                                     // disabled / unknown
+            case 2 -> Main.isSiegeWeaponsLoaded && Main.isSiegeWeaponsCompatible;               // siege engineer
+            case 3 -> Main.isSmallShipsLoaded && Main.isSmallShipsCompatible;                   // captain
+            default -> true;                                                                      // messenger, scout, patrol leader
         };
     }
 

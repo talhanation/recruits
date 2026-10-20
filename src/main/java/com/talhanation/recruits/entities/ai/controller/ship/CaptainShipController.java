@@ -100,8 +100,7 @@ public final class CaptainShipController {
     private record Mark(double x, double y, double z, float yaw, float speed, float rotSpeed, @Nullable Entity ship) {
         /** @return {x, y, z} where it will be after that many ticks - a turning ship along its curve */
         double[] lead(float ticks) {
-            Vec3 heading = forward(this.yaw + this.rotSpeed * ticks / 2.0F);
-            return new double[]{this.x + heading.x * this.speed * ticks, this.y, this.z + heading.z * this.speed * ticks};
+            return CaptainShipController.lead(this.x, this.y, this.z, this.yaw, this.speed, this.rotSpeed, ticks);
         }
     }
 
@@ -125,7 +124,7 @@ public final class CaptainShipController {
     /** ticks without any contact before the fight is over */
     private static final int CALM = 200;
     private static final double LAND_TROOPS_RANGE = 60.0D;
-    private static final int LEASH_IGNORE = 1200, PLAYER_OVERRIDE = 600;
+    private static final int LEASH_IGNORE = 1200;
     private static final double IN_HARBOUR = 32.0D, RANGE_SHARE = 0.8D, CHANGE_SHARE = 0.5D;
     /** degrees off the target's bow of the quarter points */
     private static final float[] QUARTERS = {-45.0F, 45.0F, -135.0F, 135.0F};
@@ -178,7 +177,11 @@ public final class CaptainShipController {
     private Station station = Station.QUARTER;
     @Nullable private Reason retreat;
     private boolean fleeRoute, homeThenHarbour;
-    private int noRetreatUntil = Integer.MIN_VALUE / 2, savedFollowState = -1;
+    private int savedFollowState = -1;
+    /** the player gave an order during a retreat: no retreat of his own until this fight is over */
+    private boolean playerOverride;
+    /** set while the controller itself changes the follow state - that is no player order */
+    private boolean internalOrder;
     @Nullable private Vec3 savedHoldPos;
 
     // ---- harbour ----
@@ -256,7 +259,7 @@ public final class CaptainShipController {
 
     /** Turns the ship on the spot to this yaw (face command), then keeps station again. */
     public void face(float yaw) {
-        this.cancelHomeward();
+        this.onPlayerOrder();
         this.faceYaw = yaw;
         this.faceTicks = FACE_TIMEOUT;
         this.turnDir = 0;
@@ -268,9 +271,21 @@ public final class CaptainShipController {
         return this.goHome(false);
     }
 
-    /** Any new order ends the way home - and an upkeep run to the harbour. */
+    /**
+     * A player order (move, follow, hold, protect, face): it counts, also in a
+     * retreat. It ends the way home, the harbour routine and a retreat; he
+     * retreats on his own again only after this fight is over.
+     */
+    public void onPlayerOrder() {
+        this.cancelHomeward();
+        this.harbourDone = false; // the leader leaves its upkeep for the order - see CommandEvents#checkPatrolLeaderState
+        if (this.retreat != null) this.callOffRetreat();
+        if (this.mode == Mode.FLEE || this.mode == Mode.HARBOUR) this.enter(Mode.ORDERS);
+    }
+
+    /** Any change of the follow state ends the way home - and an upkeep run to the harbour. */
     public void cancelHomeward() {
-        if (this.mode != Mode.HOMEWARD) return;
+        if (this.internalOrder || this.mode != Mode.HOMEWARD) return;
         boolean upkeep = this.homeThenHarbour && !this.harbourForRetreat;
         this.homeThenHarbour = false;
         this.enter(Mode.ORDERS);
@@ -426,8 +441,9 @@ public final class CaptainShipController {
                 return;
             }
         }
-        Reason reason = this.retreatReason(now);
-        if (reason != null && now >= this.noRetreatUntil && this.profile.canMakeWay()) {
+        if (this.playerOverride && now - this.lastContact > CALM && now - this.lastHit >= UNDER_FIRE) this.playerOverride = false;
+        Reason reason = this.playerOverride ? null : this.retreatReason(now);
+        if (reason != null && this.profile.canMakeWay()) {
             this.startRetreat(reason);
             this.target = this.nearestArmed(own);
             this.commandCrew();
@@ -729,12 +745,21 @@ public final class CaptainShipController {
             if (over) this.finishRetreat();
             return;
         }
-        // a new order of the player ended it
+        // a new order ended the way home
+        this.callOffRetreat();
+        if (this.captain.getLeaderState() == AbstractLeaderEntity.State.RETREATING) this.resumePatrol();
+    }
+
+    /** The player's order counts: the retreat is over, and he retreats on his own again only after this fight. */
+    private void callOffRetreat() {
         this.retreat = null;
         this.harbourForRetreat = false;
-        this.noRetreatUntil = now + PLAYER_OVERRIDE;
-        if (this.captain.getLeaderState() == AbstractLeaderEntity.State.RETREATING) this.resumePatrol();
-        this.debug("retreat called off");
+        this.fleeRoute = false;
+        this.captain.retreating = false;
+        this.playerOverride = true;
+        this.savedFollowState = -1;
+        this.savedHoldPos = null;
+        this.debug("retreat called off by an order");
     }
 
     private void finishRetreat() {
@@ -749,7 +774,9 @@ public final class CaptainShipController {
             } else if (this.savedFollowState >= 0) {
                 // back to what he was told before - the harbour made him hold there
                 if (this.savedHoldPos != null) this.captain.setHoldPos(this.savedHoldPos);
+                this.internalOrder = true;
                 this.captain.setFollowState(this.savedFollowState);
+                this.internalOrder = false;
             }
         }
         this.savedFollowState = -1;
@@ -1002,7 +1029,9 @@ public final class CaptainShipController {
         this.homeThenHarbour = false;
         this.enter(Mode.ORDERS);
         this.captain.setHoldPos(Vec3.atBottomCenterOf(harbour));
+        this.internalOrder = true;
         this.captain.setFollowState(2);
+        this.internalOrder = false;
         this.tell(Component.translatable("chat.recruits.text.captain_harbour_arrived", this.captain.getName().getString()));
         if (routine) this.startRoutine(this.harbourForRetreat);
     }
@@ -1223,7 +1252,8 @@ public final class CaptainShipController {
             float fuze = sideFuzing ? remainingFuze(rules, elapsed) : (fuze(rules, true) + fuze(rules, false)) / 2.0F;
             double[] aim = this.solve(gun, rules, own, mx, my, mz, fuze, starboard);
             if (aim == null) continue;
-            if (Math.abs(aim[0] - this.laidPitch[side]) >= AIM_STEP || Math.abs(aim[1] - this.laidRotation[side]) >= AIM_STEP) {
+            // lay the side unless the aim is unchanged - never laid yet (NaN) counts as changed
+            if (!(Math.abs(aim[0] - this.laidPitch[side]) < AIM_STEP && Math.abs(aim[1] - this.laidRotation[side]) < AIM_STEP)) {
                 this.laidPitch[side] = (float) aim[0];
                 this.laidRotation[side] = (float) aim[1];
                 SmallShipsBridge.setBroadsideAim(this.ship, starboard, (float) aim[0], (float) aim[1]);
@@ -2222,13 +2252,26 @@ public final class CaptainShipController {
     }
 
     /** @return the unit vector along a yaw, Minecraft convention: 0 = +Z (south), 90 = -X (west) */
+    /**
+     * Where something moving along its heading will be after that many ticks - a turning ship along its
+     * curve. The captain's lead, also used by the siege engineer at a ground cannon.
+     *
+     * @param speed    blocks per tick along the heading (SmallShipsBridge#getSpeed for a ship)
+     * @param rotSpeed degrees per tick (SmallShipsBridge#getRotSpeed for a ship, 0 for anything else)
+     * @return {x, y, z}
+     */
+    public static double[] lead(double x, double y, double z, float yaw, float speed, float rotSpeed, float ticks) {
+        Vec3 heading = forward(yaw + rotSpeed * ticks / 2.0F);
+        return new double[]{x + heading.x * speed * ticks, y, z + heading.z * speed * ticks};
+    }
+
     static Vec3 forward(float yaw) {
         double radians = Math.toRadians(yaw);
         return new Vec3(-Math.sin(radians), 0.0D, Math.cos(radians));
     }
 
     /** @return the yaw that points along (dx, dz) */
-    static float yawTo(double dx, double dz) {
+    public static float yawTo(double dx, double dz) {
         return (float) Math.toDegrees(Math.atan2(-dx, dz));
     }
 

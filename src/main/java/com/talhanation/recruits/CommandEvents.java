@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.controller.ship.ShipPathfinder;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponCatapultController;
 import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponBallistaController;
+import com.talhanation.recruits.entities.ai.controller.siegeengineer.SiegeWeaponGroundCannonController;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.CommandMenu;
 import com.talhanation.recruits.network.*;
@@ -307,6 +308,8 @@ public class CommandEvents {
     }
 
     public static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
+        // a captain hears the player's orders also while he retreats
+        if (recruit instanceof CaptainEntity captain) captain.shipController.onPlayerOrder();
         if(recruit instanceof AbstractLeaderEntity leader) {
             AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
             if(patrolState == AbstractLeaderEntity.State.PATROLLING || patrolState == AbstractLeaderEntity.State.WAITING) {
@@ -394,6 +397,8 @@ public class CommandEvents {
                 maxRange = Math.sqrt(SiegeWeaponCatapultController.MAX_ENGAGE_DISTANCE); // ~137
             } else if (siegeEngineer.siegeController == siegeEngineer.ballistaController) {
                 maxRange = Math.sqrt(SiegeWeaponBallistaController.MAX_ENGAGE_DISTANCE); // ~89
+            } else if (siegeEngineer.siegeController == siegeEngineer.groundCannonController) {
+                maxRange = Math.sqrt(SiegeWeaponGroundCannonController.MAX_ENGAGE_DISTANCE); // 75
             }
         }
         else if (recruit instanceof CaptainEntity captain) {

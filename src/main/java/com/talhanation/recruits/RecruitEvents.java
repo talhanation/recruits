@@ -5,6 +5,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.pathfinding.AsyncPathProcessor;
 import com.talhanation.recruits.util.DelayedExecutor;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.CaptainEntity;
 import com.talhanation.recruits.entities.ICompanion;
 import com.talhanation.recruits.entities.MessengerEntity;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
@@ -38,6 +39,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraftforge.event.VanillaGameEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
@@ -71,6 +74,24 @@ public class RecruitEvents {
             put(4, ModEntityTypes.PATROL_LEADER.get());
         }
     };
+
+    /** Level a recruit needs to be promoted to this profession (same index as {@link #entitiesByProfession}), -1 = not promotable. */
+    public static int getPromotionLevel(int profession) {
+        return switch (profession) {
+            case 0, 1 -> 2; // messenger, scout
+            case 2 -> 3;    // siege engineer
+            case 3, 4 -> 5; // captain, patrol leader
+            default -> -1;
+        };
+    }
+
+    /** Promotion level of a companion type, -1 if the type is no companion. */
+    public static int getPromotionLevel(EntityType<?> type) {
+        for (Map.Entry<Integer, EntityType<? extends AbstractRecruitEntity>> entry : entitiesByProfession.entrySet()) {
+            if (entry.getValue() == type) return getPromotionLevel(entry.getKey());
+        }
+        return -1;
+    }
 
     public static void promoteRecruit(AbstractRecruitEntity recruit, int profession, String name, ServerPlayer player) {
         RecruitEvent.Promoted promoteEvent = new RecruitEvent.Promoted(recruit, profession, name, player);
@@ -387,16 +408,34 @@ public class RecruitEvents {
         Entity target = event.getEntity();
         Entity source = event.getSource().getEntity();
         if (source instanceof LivingEntity sourceEntity) {
-            if (target.getTeam() == null) return;
-
-            target.getCommandSenderWorld().getEntitiesOfClass(
-                    AbstractRecruitEntity.class,
-                    target.getBoundingBox().inflate(32D),
-                    (recruit) -> recruit.getTarget() == null &&
-                            recruit.getTeam() != null &&
-                            recruit.getTeam().equals(target.getTeam())
-            ).forEach((recruit) -> recruit.setTarget(sourceEntity));
+            alertTeam(target, sourceEntity);
         }
+    }
+
+    /** Recruits of the hit one's team within 32 blocks, that have nothing to fight yet, turn on the attacker. */
+    public static void alertTeam(Entity target, LivingEntity attacker) {
+        if (target.getTeam() == null) return;
+
+        target.getCommandSenderWorld().getEntitiesOfClass(
+                AbstractRecruitEntity.class,
+                target.getBoundingBox().inflate(32D),
+                (recruit) -> recruit.getTarget() == null &&
+                        recruit.getTeam() != null &&
+                        recruit.getTeam().equals(target.getTeam())
+        ).forEach((recruit) -> recruit.setTarget(attacker));
+    }
+
+    /**
+     * A captained ship taking a hit: Small Ships books a hull hit with GameEvent.ENTITY_DAMAGE at the ship
+     * (cause: the attacker), every projectile hit - rigging and masts too - with PROJECTILE_LAND at the point
+     * it struck (cause: the projectile). Ships are no LivingEntity, so no LivingHurtEvent fires for them.
+     */
+    @SubscribeEvent
+    public void onVanillaGameEvent(VanillaGameEvent event) {
+        GameEvent gameEvent = event.getVanillaEvent();
+        if (gameEvent != GameEvent.ENTITY_DAMAGE && gameEvent != GameEvent.PROJECTILE_LAND) return;
+        if (event.getLevel().isClientSide()) return;
+        CaptainEntity.onShipGameEvent(event.getLevel(), event.getEventPosition(), event.getCause(), gameEvent == GameEvent.PROJECTILE_LAND);
     }
 
     private static final double DAMAGE_THRESHOLD_PERCENTAGE = 0.75;

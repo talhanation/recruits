@@ -198,6 +198,7 @@
   "chat.recruits.text.wander": "%s: Ich werde mich frei bewegen.",
   "chat.recruits.text.disband": "%s: Dann trennen sich hier unsere Wege.",
   "chat.recruits.text.noFoodInUpkeep": "%s: Es ist keine Nahrung in meiner Versorgung.",
+  "chat.recruits.text.noCannonAmmo": "%s: Ich habe keine Kanonenkugeln für die Kanone.",
   "chat.recruits.text.noPlaceInInv": "%s: Es gibt keinen Platz, um Nahrung aus meinem Inventar zu lagern.",
   "chat.recruits.text.cantInteract": "%s: An der Position gibt es kein Inventar, mit dem ich interagieren kann. Ich suche nach einem neuen.",
   "chat.recruits.text.findMeNewChest": "%s: Ich konnte keine anderen bedienbaren Inventare finden. Bitte weise mir meine Versorgung erneut zu.",

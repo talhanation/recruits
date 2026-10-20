@@ -23,12 +23,21 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import com.talhanation.recruits.RecruitEvents;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.function.Predicate;
 
 public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFire, IHasTargetPriority {
@@ -39,6 +48,13 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     private static final EntityDataAccessor<Boolean> SHOULD_STRATEGIC_FIRE = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Optional<BlockPos>> HARBOUR_POS = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Integer> TARGET_PRIORITY = SynchedEntityData.defineId(CaptainEntity.class, EntityDataSerializers.INT);
+
+    /** Ships with a captain at the helm, for their hits (RecruitEvents#onVanillaGameEvent). Server thread only. */
+    private static final Map<Entity, CaptainEntity> HELMS = new WeakHashMap<>();
+    @Nullable private Entity helmOf;
+    /** one hit, one reaction: a hull hit by a ball is booked twice (ENTITY_DAMAGE and PROJECTILE_LAND) */
+    private int shipHitTick = Integer.MIN_VALUE;
+    @Nullable private Entity shipHitBy;
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -83,6 +99,83 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         if(this.level().isClientSide()) return;
 
         this.shipController.tick();
+        this.updateHelm(this.isSteeringShip() ? this.getVehicle() : null);
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        this.updateHelm(null);
+        super.remove(reason);
+    }
+
+    private void updateHelm(@Nullable Entity ship) {
+        if (ship == this.helmOf) return;
+        if (this.helmOf != null && HELMS.get(this.helmOf) == this) HELMS.remove(this.helmOf);
+        this.helmOf = ship;
+        if (ship != null) HELMS.put(ship, this);
+    }
+
+    /**
+     * A game event that may be a hit on a captained ship - see RecruitEvents#onVanillaGameEvent.
+     *
+     * @param projectileLand false: ENTITY_DAMAGE, posted at the ship's own position by Ship#hurt.
+     *                       true: PROJECTILE_LAND, posted where it struck - a hit if that is on the ship (hull, deck or rigging).
+     */
+    public static void onShipGameEvent(Level level, Vec3 pos, @Nullable Entity cause, boolean projectileLand) {
+        if (HELMS.isEmpty()) return;
+        List<CaptainEntity> hit = null;
+        for (Iterator<Map.Entry<Entity, CaptainEntity>> it = HELMS.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Entity, CaptainEntity> entry = it.next();
+            Entity ship = entry.getKey();
+            // the captain holds his ship, so the weak key alone never lets go - unloaded or gone: out
+            if (ship.isRemoved() || entry.getValue().isRemoved() || entry.getValue().helmOf != ship) {
+                it.remove();
+                continue;
+            }
+            if (ship.level() != level) continue;
+            boolean onShip = projectileLand ? isOnShip(ship, pos) : ship.position().distanceToSqr(pos) < 1.0E-6D;
+            if (!onShip) continue;
+            if (hit == null) hit = new ArrayList<>(1);
+            hit.add(entry.getValue());
+        }
+        if (hit == null) return;
+
+        Entity attacker = projectileLand ? (cause instanceof Projectile projectile ? projectile.getOwner() : null) : cause;
+        if (projectileLand && attacker == null) return; // a stray arrow from nobody
+        for (CaptainEntity captain : hit) captain.onShipHit(attacker);
+    }
+
+    /** @return true if the point is on the ship: over one of its hull boxes, from the keel up - masts stand inside the hull footprint. */
+    private static boolean isOnShip(Entity ship, Vec3 pos) {
+        // cheap first: every arrow landing anywhere comes through here
+        double dx = pos.x - ship.getX(), dz = pos.z - ship.getZ();
+        if (dx * dx + dz * dz > 32.0D * 32.0D) return false;
+        for (AABB box : SmallShipsBridge.getHullBoxes(ship)) {
+            AABB grown = box.inflate(1.0D);
+            if (pos.x >= grown.minX && pos.x <= grown.maxX && pos.z >= grown.minZ && pos.z <= grown.maxZ && pos.y >= grown.minY) return true;
+        }
+        return false;
+    }
+
+    /**
+     * His ship was hit: he reacts exactly as if he had been hit himself - the attacker becomes the one that hurt him
+     * (the ship controller reads that: under fire, fleeing away from him, the hurt-by target goal), his team turns on
+     * the attacker (RecruitEvents#onLivingHurt), and his own reaction (AbstractRecruitEntity#reactToHit). Only the
+     * damage stays with the ship. Fire from his own side is ignored, as it is for a hit on him.
+     */
+    public void onShipHit(@Nullable Entity attacker) {
+        if (attacker == this || (attacker != null && attacker.getVehicle() == this.getVehicle())) return;
+        if (this.shipHitTick == this.tickCount && this.shipHitBy == attacker) return;
+        this.shipHitTick = this.tickCount;
+        this.shipHitBy = attacker;
+
+        if (attacker instanceof LivingEntity living) {
+            if (!RecruitEvents.canAttack(living, this)) return;
+            this.setLastHurtByMob(living);
+            if (living instanceof Player player) this.setLastHurtByPlayer(player);
+            RecruitEvents.alertTeam(this, living);
+        }
+        this.reactToHit(attacker);
     }
 
     /** @return true while this captain stands at the helm of a ship he can sail */
