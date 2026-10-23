@@ -583,7 +583,8 @@
   "gui.recruits.map.waypoint.too_far": "zu weit entfernt",
   "gui.recruits.command.text.deposit": "Abladen",
   "gui.recruits.command.tooltip.deposit": "Rekruten legen alles, was sie tragen, in den Behälter, auf den du schaust – auch Waffen und Rüstung.",
-  "chat.recruits.command.deposit": "%s Ladet euer Inventar hier ab!"
+  "chat.recruits.command.deposit": "%s Ladet euer Inventar hier ab!",
+
   "entity.recruits.villager_noble": "Nobler Dorfbewohner",
   "gui.recruits.noble.tier.hostile": "Feindlich",
   "gui.recruits.noble.tier.neutral": "Neutral",
