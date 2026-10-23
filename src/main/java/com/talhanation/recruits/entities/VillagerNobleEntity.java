@@ -4,7 +4,12 @@ package com.talhanation.recruits.entities;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.VillageEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.world.RecruitsVillage;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.network.MessageToClientOpenNobleTradeScreen;
 import com.talhanation.recruits.network.MessageToClientUpdateHireState;
@@ -52,6 +57,18 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
     public boolean isTrading;
     public boolean needsNewTrades;
     public int restoreTimeLongTime;
+    /** Fallback, falls das Schließen-Paket nie ankommt (z. B. Disconnect im Trade-Screen). */
+    private int tradingTimer;
+
+    /** Altes Default-Custom-Name aus initSpawn; wird bei bestehenden Nobles entfernt. */
+    private static final String LEGACY_DEFAULT_NAME = "Noble Villager";
+    private static final int VILLAGE_CHECK_INTERVAL = 200;
+
+    @Nullable
+    private UUID villageId;
+    private int villageSlot = -1;
+    @Nullable
+    private BlockPos homeBed;
 
     public VillagerNobleEntity(EntityType<? extends AbstractRecruitEntity> entityType, Level world) {
         super(entityType, world);
@@ -86,18 +103,56 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         if(restoreTimer > 0) restoreTimer--;
         if(++restoreTimeLongTime > 12000) this.restoreTradesLongTime();
 
+        if(isTrading && --tradingTimer <= 0){
+            isTrading = false;
+        }
+
         if(needsNewTrades && !isTrading){
             this.updateUsesOfTrades();
             this.setupTrades();
             needsNewTrades = false;
         }
+
+        if(Math.floorMod(level().getGameTime() + this.getId(), VILLAGE_CHECK_INTERVAL) == 0){
+            this.updateVillage();
+        }
+    }
+
+    /** Alle 200 Ticks: im Dorf eintragen und tagsüber an der Mitte halten. */
+    private void updateVillage(){
+        if(!(this.level() instanceof ServerLevel serverLevel) || VillageEvents.villageManager == null) return;
+
+        RecruitsVillage village = VillageEvents.villageManager.ensureNoble(serverLevel, this);
+        if(village == null) return;
+
+        if(this.level().isNight() || this.isSleeping() || this.getTarget() != null) return;
+
+        Vec3 anchor = VillageEvents.villageManager.getAnchor(this);
+        if(anchor == null) return;
+
+        Vec3 holdPos = this.getHoldPos();
+        if(this.getFollowState() != 3 || holdPos == null || holdPos.distanceToSqr(anchor) > 1D){
+            this.goToAnchor(anchor);
+        }
+    }
+
+    /** Halteposition an der Dorfmitte (followState 3 = an bestehender Halteposition halten). */
+    public void goToAnchor(Vec3 anchor){
+        this.setHoldPos(anchor);
+        this.setFollowState(3);
+    }
+
+    /** Nach dem Aufstehen (RestGoal): zurück zur Mitte, ohne Dorf wie bisher an Ort und Stelle. */
+    public void returnToAnchor(){
+        Vec3 anchor = VillageEvents.villageManager != null ? VillageEvents.villageManager.getAnchor(this) : null;
+        if(anchor != null) this.goToAnchor(anchor);
+        else this.setFollowState(2);
     }
 
     @Override
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(2, new UseShield(this));
-        //TODO Move to village center
         //TODO buy from villager / swords, food, armor
         //TODO breed with villager?
         //TODO Supply Bread to villagers
@@ -111,6 +166,14 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         nbt.putInt("TraderProgress", this.getTraderProgress());
         nbt.putInt("TraderLevel", this.getTraderLevel());
         nbt.putString("Type", this.getTraderType());
+
+        if(villageId != null){
+            nbt.putUUID("VillageId", villageId);
+            nbt.putInt("VillageSlot", villageSlot);
+        }
+        if(homeBed != null){
+            nbt.put("HomeBed", NbtUtils.writeBlockPos(homeBed));
+        }
     }
 
     @Override
@@ -120,6 +183,55 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         this.setTraderProgress(nbt.getInt("TraderProgress"));
         this.setTraderLevel(nbt.getInt("TraderLevel"));
         this.setTraderType(nbt.getString("Type"));
+
+        this.villageId = nbt.hasUUID("VillageId") ? nbt.getUUID("VillageId") : null;
+        this.villageSlot = nbt.contains("VillageSlot") ? nbt.getInt("VillageSlot") : -1;
+        this.homeBed = nbt.contains("HomeBed") ? NbtUtils.readBlockPos(nbt.getCompound("HomeBed")) : null;
+
+        // Früher bekam jeder Noble den festen englischen Custom-Name. Jetzt kommt der Name aus der Übersetzung.
+        if(this.getCustomName() != null && LEGACY_DEFAULT_NAME.equals(this.getCustomName().getString())){
+            this.setCustomName(null);
+        }
+    }
+
+    /* ===================== Dorf ===================== */
+
+    @Nullable
+    public UUID getVillageId() {
+        return villageId;
+    }
+
+    public int getVillageSlot() {
+        return villageSlot;
+    }
+
+    public void setVillage(@Nullable UUID villageId, int slot) {
+        this.villageId = villageId;
+        this.villageSlot = villageId == null ? -1 : slot;
+    }
+
+    @Nullable
+    public BlockPos getHomeBed() {
+        return homeBed;
+    }
+
+    public void setHomeBed(@Nullable BlockPos homeBed) {
+        this.homeBed = homeBed == null ? null : homeBed.immutable();
+    }
+
+    @Nullable
+    public RecruitsHireTrade findTrade(ResourceLocation resourceLocation) {
+        if(resourceLocation == null) return null;
+        for(RecruitsHireTrade trade : this.getTrades()){
+            if(trade != null && resourceLocation.equals(trade.resourceLocation)) return trade;
+        }
+        return null;
+    }
+
+    /** Rechtsklick: Hauptscreen mit Ruf, „Anheuern“ und „Aufträge“. */
+    public void openNobleScreen(ServerPlayer player){
+        if(VillageEvents.villageManager == null) return;
+        VillageEvents.villageManager.sendInfo(player, this, true);
     }
 
         //ATTRIBUTES
@@ -154,7 +266,6 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
 
     @Override
     public void initSpawn() {
-        this.setCustomName(Component.literal("Noble Villager"));
         this.setCost(64);
 
         this.setEquipment();
@@ -193,6 +304,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
 
     public void openTradeGUI(Player player){
         this.isTrading(true);
+        this.tradingTimer = 6000;
         String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
 
         boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());

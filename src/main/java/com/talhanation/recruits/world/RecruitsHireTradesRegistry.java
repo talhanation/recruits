@@ -83,6 +83,37 @@ public class RecruitsHireTradesRegistry {
                 .getOrDefault(level, Collections.emptyList());
     }
 
+    /**
+     * Händlerstufe, auf der ein Trade freigeschaltet wird. Zuerst beim eigenen Händlertyp, sonst die niedrigste
+     * Stufe über alle Typen. Unbekannte Trades (z. B. per Admin-Befehl hinzugefügt) zählen als Stufe 1.
+     */
+    public static int getTradeLevel(String traderType, ResourceLocation resourceLocation) {
+        if (resourceLocation == null) return 1;
+        Integer own = findLevel(TRADES.get(traderType), resourceLocation);
+        if (own != null) return own;
+
+        int best = Integer.MAX_VALUE;
+        for (Map<Integer, List<RecruitsHireTrade>> levelMap : TRADES.values()) {
+            Integer level = findLevel(levelMap, resourceLocation);
+            if (level != null) best = Math.min(best, level);
+        }
+        return best == Integer.MAX_VALUE ? 1 : best;
+    }
+
+    @Nullable
+    private static Integer findLevel(@Nullable Map<Integer, List<RecruitsHireTrade>> levelMap, ResourceLocation resourceLocation) {
+        if (levelMap == null) return null;
+        Integer best = null;
+        for (Map.Entry<Integer, List<RecruitsHireTrade>> entry : levelMap.entrySet()) {
+            for (RecruitsHireTrade trade : entry.getValue()) {
+                if (trade != null && resourceLocation.equals(trade.resourceLocation)) {
+                    if (best == null || entry.getKey() < best) best = entry.getKey();
+                }
+            }
+        }
+        return best;
+    }
+
     public static List<String> getAllTraderTypes() {
         List<String> list = new ArrayList<>(TRADES.keySet());
         Collections.sort(list);

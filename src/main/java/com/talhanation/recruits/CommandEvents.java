@@ -602,8 +602,16 @@ public class CommandEvents {
     }
 
     public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message){
+        return handleRecruiting(player, group, recruit, recruit.getCost(), message);
+    }
+
+    /**
+     * Wie {@link #handleRecruiting(Player, RecruitsGroup, AbstractRecruitEntity, boolean)}, aber mit festem Preis
+     * (z. B. vom Noble, abhängig vom Ruf – serverseitig berechnet).
+     */
+    public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, int price, boolean message){
         String name = recruit.getName().getString() + ": ";
-        int sollPrice = recruit.getCost();
+        int sollPrice = Math.max(0, price);
         Inventory playerInv = player.getInventory();
         int playerEmeralds = 0;
 

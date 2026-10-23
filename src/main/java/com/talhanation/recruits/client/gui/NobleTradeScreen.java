@@ -10,6 +10,8 @@ import com.talhanation.recruits.network.MessageHireFromNobleVillager;
 import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsHireTrade;
 import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
+import com.talhanation.recruits.world.NobleReputation;
+import com.talhanation.recruits.world.NobleVillageInfo;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
@@ -47,6 +49,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private static final Component ERROR_NO_USES = Component.translatable("gui.recruits.villager_noble.error_no_uses");
     private static final Component ERROR_NOT_ENOUGH_CURRENCY = Component.translatable("gui.recruits.villager_noble.error_not_enough_currency");
     private static final Component ERROR_HIRE_LIMIT_REACHED = Component.translatable("gui.recruits.villager_noble.error_hire_limit_reached");
+    private static final Component ERROR_REPUTATION = Component.translatable("gui.recruits.villager_noble.error_reputation");
+    private static final Component BACK_BUTTON = Component.translatable("gui.recruits.noble.button.back");
     private final Player player;
     private final VillagerNobleEntity villagerNoble;
     private TradeList tradeList;
@@ -135,6 +139,21 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
         addRenderableWidget(groupSelectionDropDownMenu);
 
+        this.addRenderableWidget(new ExtendedButton(guiLeft + 256, guiTop + 150, 75, 20, BACK_BUTTON,
+            btn -> {
+                // Trade schließen und zurück zum Hauptscreen (Ruf, Aufträge).
+                if(group != null){
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, group, false, true));
+                }
+                if(ClientManager.nobleInfo != null && ClientManager.nobleInfo.nobleId.equals(villagerNoble.getUUID())){
+                    Minecraft.getInstance().setScreen(new NobleScreen());
+                }
+                else {
+                    Minecraft.getInstance().setScreen(null);
+                }
+            }
+        ));
+
         if(isPlayerFactionLeader() || isPlayerClaimLeader() || (player.hasPermissions(2) && player.isCreative())){
             this.addRenderableWidget(new ExtendedButton(guiLeft + 256, guiTop + 172, 75, 20, INVENTORY_BUTTON,
                 btn -> {
@@ -160,6 +179,27 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                     && ClientManager.currentClaim.getPlayerInfo().getUUID().equals(player.getUUID());
         }
         return false;
+    }
+
+    /** Ruf-Info dieses Nobles, sonst null (dann gelten Grundpreise ohne Sperren – der Server prüft ohnehin). */
+    @Nullable
+    private NobleVillageInfo getInfo(){
+        NobleVillageInfo info = ClientManager.nobleInfo;
+        return info != null && info.nobleId.equals(villagerNoble.getUUID()) ? info : null;
+    }
+
+    private int getPrice(RecruitsHireTrade trade){
+        NobleVillageInfo info = getInfo();
+        return info != null ? info.getPrice(trade.cost) : trade.cost;
+    }
+
+    private int getTradeLevel(RecruitsHireTrade trade){
+        return RecruitsHireTradesRegistry.getTradeLevel(villagerNoble.getTraderType(), trade.resourceLocation);
+    }
+
+    private boolean isLocked(RecruitsHireTrade trade){
+        NobleVillageInfo info = getInfo();
+        return info != null && !info.isTradeLevelUnlocked(getTradeLevel(trade));
     }
 
     @Override
@@ -291,14 +331,14 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
 
         int playerMoney = getPlayerCurrencyAmount();
-        boolean hasMoney = (playerMoney >= selection.cost || player.isCreative());
+        boolean hasMoney = (playerMoney >= getPrice(selection) || player.isCreative());
         boolean hasVillager = true;
 
         if(ClientManager.configValueNobleNeedsVillagers){
             hasVillager = villagerList != null && villagerList.size() > 2;
         }
 
-        this.hireButton.active = selection.uses > 0 && hasMoney && hasVillager && ClientManager.canPlayerHire;
+        this.hireButton.active = selection.uses > 0 && hasMoney && hasVillager && ClientManager.canPlayerHire && !isLocked(selection);
     }
 
     private int getPlayerCurrencyAmount(){
@@ -367,7 +407,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                 int y = top + 3;
 
                 boolean selected = (TradeList.this.getSelected() == this);
-                boolean out = trade.uses <= 0;
+                boolean locked = isLocked(trade);
+                boolean out = trade.uses <= 0 || locked;
                 int textureY = getButtonTextureY(hovered, selected, out);
 
                 guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -377,10 +418,16 @@ public class NobleTradeScreen extends RecruitsScreenBase {
                 guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
                 guiGraphics.drawString(font, trade.title, x, y, -2039584, false);
-                guiGraphics.drawString(font, Component.literal("" + trade.uses), x, y + yOffset + 5, -2039584, false);
+                if(locked){
+                    Component required = Component.translatable("gui.recruits.villager_noble.requires", NobleReputation.getRequiredTier(getTradeLevel(trade)).getName());
+                    guiGraphics.drawString(font, font.plainSubstrByWidth(required.getString(), xOffset - 2), x, y + yOffset + 5, 0xFFFF5555, false);
+                }
+                else {
+                    guiGraphics.drawString(font, Component.literal("" + trade.uses), x, y + yOffset + 5, -2039584, false);
+                }
 
                 if(currency != null){
-                    currency.setCount(trade.cost);
+                    currency.setCount(getPrice(trade));
                     guiGraphics.renderFakeItem(currency, x + xOffset, y + yOffset);
                     guiGraphics.renderItemDecorations(font, currency, x + xOffset, y + yOffset);
                 }
@@ -445,7 +492,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
         else if(selection != null){
             int playerMoney = getPlayerCurrencyAmount();
-            if(!(player.isCreative() || playerMoney >= selection.cost)) errorList.add(HireError.NOT_ENOUGH_CURRENCY);
+            if(isLocked(selection)) errorList.add(HireError.REPUTATION_TOO_LOW);
+            if(!(player.isCreative() || playerMoney >= getPrice(selection))) errorList.add(HireError.NOT_ENOUGH_CURRENCY);
             if(selection.uses <= 0) errorList.add(HireError.NO_USES);
 
         }
@@ -457,7 +505,8 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         NOT_ENOUGH_CURRENCY(ERROR_NOT_ENOUGH_CURRENCY),
         NOT_ENOUGH_VILLAGERS_NEARBY(ERROR_NOT_ENOUGH_VILLAGERS),
         NO_USES(ERROR_NO_USES),
-        HIRE_LIMIT_REACHED(ERROR_HIRE_LIMIT_REACHED);
+        HIRE_LIMIT_REACHED(ERROR_HIRE_LIMIT_REACHED),
+        REPUTATION_TOO_LOW(ERROR_REPUTATION);
         private final Component message;
 
         HireError(Component message) {

@@ -3,7 +3,6 @@ package com.talhanation.recruits;
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.*;
-import com.talhanation.recruits.entities.ai.villager.VillagerBecomeNobleGoal;
 import com.talhanation.recruits.init.ModBlocks;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.init.ModProfessions;
@@ -71,16 +70,6 @@ public class VillagerEvents {
             }
         }
     }
-    @SubscribeEvent
-    public void onVillagerJoinWorld(EntityJoinLevelEvent event) {
-        Entity entity = event.getEntity();
-        if(!RecruitsServerConfig.NobleVillagerSpawn.get()) return;
-
-        if (entity instanceof Villager villager) {
-            villager.goalSelector.addGoal(0, new VillagerBecomeNobleGoal(villager));
-        }
-    }
-
     public HashMap<VillagerProfession, EntityType<? extends  AbstractRecruitEntity>> entitiesByProfession = new HashMap<>(){{
         put(ModProfessions.RECRUIT.get(), ModEntityTypes.RECRUIT.get());
         put(ModProfessions.BOWMAN.get(), ModEntityTypes.BOWMAN.get());
@@ -193,62 +182,28 @@ public class VillagerEvents {
         }
     }
 
-    public static void createNobleVillager(Villager villager){
-        Level level = villager.getCommandSenderWorld();
-        VillagerNobleEntity nobleEntity = ModEntityTypes.VILLAGER_NOBLE.get().create(level);
-
-        if (nobleEntity != null && !level.isClientSide()){
-            nobleEntity.copyPosition(villager);
-
-            nobleEntity.initSpawn();
-            AbstractRecruitEntity.applyVariantFromVillager(nobleEntity, villager);
-            nobleEntity.setFollowState(0);
-
-            for(ItemStack itemStack : villager.getInventory().items){
-                nobleEntity.getInventory().addItem(itemStack);
-            }
-
-            Component name = villager.getCustomName();
-            if(name  != null) nobleEntity.setCustomName(name);
-
-            Optional<GlobalPos> homeMemory = villager.getBrain().getMemory(MemoryModuleType.HOME);
-
-            if(homeMemory.isPresent()){
-                nobleEntity.setSleepingPos(homeMemory.get().pos());
-                nobleEntity.setShouldRest(true);
-            }
-
-            Optional<GlobalPos> meetingMemory = villager.getBrain().getMemory(MemoryModuleType.MEETING_POINT);
-            if(meetingMemory.isPresent()){
-                nobleEntity.setHoldPos(meetingMemory.get().pos().getCenter());
-
-            }
-
-            villager.getCommandSenderWorld().addFreshEntity(nobleEntity);
-            if(RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
-            villager.releasePoi(MemoryModuleType.HOME);
-            villager.releasePoi(MemoryModuleType.MEETING_POINT);
-            villager.discard();
-        }
-    }
-
     public static void createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group){
         createHiredRecruitFromVillager(serverLevel, villager, recruitType, player, group, -1);
     }
 
-    public static boolean createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<?> recruitType, Player player, RecruitsGroup group, int hireCost){
-        if(!(recruitType.create(villager.getCommandSenderWorld()) instanceof AbstractRecruitEntity abstractRecruit)) return false;
-        if(group == null) return false;
+    /**
+     * @param price Preis in Währung; {@code -1} = Preis des Recruits ({@code getCost()}).
+     * @return true, wenn angeheuert wurde.
+     */
+    public static boolean createHiredRecruitFromVillager(ServerLevel serverLevel, Villager villager, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group, int price){
+        AbstractRecruitEntity abstractRecruit = recruitType.create(villager.getCommandSenderWorld());
+        if(abstractRecruit == null) return false;
 
         abstractRecruit.initSpawn();
-        if(hireCost >= 0) abstractRecruit.setCost(hireCost);
+        if(price >= 0) abstractRecruit.setCost(price);
         AbstractRecruitEntity.applyVariantFromVillager(abstractRecruit, villager);
 
         Component name = villager.getCustomName();
 
         if(name != null && !name.getString().isEmpty()) abstractRecruit.setCustomName(name);
 
-        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
+        int cost = price >= 0 ? price : abstractRecruit.getCost();
+        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, cost, false)) {
             abstractRecruit.copyPosition(villager);
 
             abstractRecruit.setFollowState(1);
@@ -281,14 +236,18 @@ public class VillagerEvents {
         spawnHiredRecruit(serverLevel, recruitType, player, group, -1);
     }
 
-    public static boolean spawnHiredRecruit(ServerLevel serverLevel, EntityType<?> recruitType, Player player, RecruitsGroup group, int hireCost){
-        if(!(recruitType.create(player.getCommandSenderWorld()) instanceof AbstractRecruitEntity abstractRecruit)) return false;
-        if(group == null) return false;
+    /**
+     * @param price Preis in Währung; {@code -1} = Preis des Recruits ({@code getCost()}).
+     * @return true, wenn angeheuert wurde.
+     */
+    public static boolean spawnHiredRecruit(ServerLevel serverLevel, EntityType<? extends AbstractRecruitEntity> recruitType, Player player, RecruitsGroup group, int price){
+        AbstractRecruitEntity abstractRecruit = recruitType.create(player.getCommandSenderWorld());
+        if(abstractRecruit == null) return false;
 
         abstractRecruit.initSpawn();
-        if(hireCost >= 0) abstractRecruit.setCost(hireCost);
 
-        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, false)) {
+        int cost = price >= 0 ? price : abstractRecruit.getCost();
+        if (CommandEvents.handleRecruiting(player, group, abstractRecruit, cost, false)) {
             abstractRecruit.copyPosition(player);
 
             abstractRecruit.setFollowState(1);

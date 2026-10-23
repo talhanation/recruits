@@ -1288,8 +1288,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
                 return InteractionResult.SUCCESS;
             }
-            if(this instanceof VillagerNobleEntity noble && !noble.isTrading){
-                noble.openTradeGUI(player);
+            if(this instanceof VillagerNobleEntity noble && player instanceof ServerPlayer serverPlayer){
+                noble.openNobleScreen(serverPlayer);
                 return InteractionResult.SUCCESS;
             }
             if ((this.isOwned() && player.getUUID().equals(this.getOwnerUUID()))) {

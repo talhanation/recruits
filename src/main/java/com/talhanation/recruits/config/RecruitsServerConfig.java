@@ -95,6 +95,11 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue NobleVillagerNeedsVillagers;
     public static ForgeConfigSpec.BooleanValue ShouldProfessionBlocksTrade;
     public static ForgeConfigSpec.BooleanValue NobleVillagerSpawn;
+    public static ForgeConfigSpec.IntValue NobleMinInhabitants;
+    public static ForgeConfigSpec.IntValue NobleInhabitantsPerAdditional;
+    public static ForgeConfigSpec.IntValue NobleMaxPerVillage;
+    public static ForgeConfigSpec.BooleanValue NobleReputationEnabled;
+    public static ForgeConfigSpec.BooleanValue NobleQuestsEnabled;
     public static ForgeConfigSpec.BooleanValue AllowClaiming;
     public static ForgeConfigSpec.BooleanValue FogOfWarEnabled;
     public static ForgeConfigSpec.BooleanValue RecruitsStarving;
@@ -393,11 +398,54 @@ public class RecruitsServerConfig {
                 .define("RecruitTablesPOIReleasing", true);
         NobleVillagerSpawn = BUILDER.comment("""
                         
-                        Does a Villager decide to become noble? Condition: 7 Villagers and no Noble Villager nearby
+                        Do villages elect Noble Villagers? Once per day at the villager meeting time (bell),
+                        an unemployed villager whose bed is in the village becomes noble, if the village has
+                        fewer nobles than its inhabitants allow (see NobleMinInhabitants).
                         \t(takes effect after restart)
                         \tdefault: true""")
                 .worldRestart()
                 .define("NobleVillagerSpawns", true);
+
+        NobleMinInhabitants = BUILDER.comment("""
+                        
+                        Inhabitants (villagers with a bed in the village + nobles) needed for the first Noble Villager.
+                        \t(takes effect after restart)
+                        \tdefault: 7""")
+                .worldRestart()
+                .defineInRange("NobleMinInhabitants", 7, 1, 1000);
+
+        NobleInhabitantsPerAdditional = BUILDER.comment("""
+                        
+                        Additional inhabitants needed for each further Noble Villager in the same village.
+                        \t(takes effect after restart)
+                        \tdefault: 10""")
+                .worldRestart()
+                .defineInRange("NobleInhabitantsPerAdditional", 10, 1, 1000);
+
+        NobleMaxPerVillage = BUILDER.comment("""
+                        
+                        Maximum Noble Villagers a village elects.
+                        \t(takes effect after restart)
+                        \tdefault: 3""")
+                .worldRestart()
+                .defineInRange("NobleMaxPerVillage", 3, 1, 20);
+
+        NobleReputationEnabled = BUILDER.comment("""
+                        
+                        Do villages track reputation of players and factions? Reputation changes recruit prices
+                        and unlocks higher trader levels at the Noble Villager.
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("NobleReputationEnabled", true);
+
+        NobleQuestsEnabled = BUILDER.comment("""
+                        
+                        Do Noble Villagers offer simple daily quests (delivery, monster hunt, bounty)?
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("NobleQuestsEnabled", true);
 
         NobleVillagerNeedsVillagers = BUILDER.comment("""
                         

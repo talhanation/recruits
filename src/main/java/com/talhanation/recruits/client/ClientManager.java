@@ -37,6 +37,9 @@ public class ClientManager {
     public static int factionCreationPrice;
     public static int factionMaxRecruitsPerPlayerConfigSetting;
     public static boolean configValueNobleNeedsVillagers;
+    /** Ruf, Dorf und Aufträge des zuletzt angesprochenen Nobles (MessageToClientNobleInfo). */
+    @Nullable
+    public static NobleVillageInfo nobleInfo;
     public static int availableRecruitsToHire;
     public static int formationSelection;
     public static int groupSelection;
