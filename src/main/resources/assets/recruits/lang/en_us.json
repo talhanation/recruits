@@ -299,6 +299,7 @@
   "chat.recruits.text.captain_harbour_set": "%s: Home harbour set here.",
   "chat.recruits.text.captain_harbour_no_ship": "%s: I need to be at the helm of a ship for that.",
   "chat.recruits.text.captain_harbour_arrived": "%s: Arrived at the home harbour.",
+  "chat.recruits.text.captain_waypoint_unreachable": "%s: Waypoint %s cannot be reached with my ship (too shallow or too narrow). I am going as close as I can and then on.",
   "chat.recruits.text.captain_contact": "%s: Enemy contact – %s at %s/%s/%s",
   "chat.recruits.text.captain_contact_ship": "a ship (%s)",
   "chat.recruits.text.captain_contact_ships": "%s ships (%s)",

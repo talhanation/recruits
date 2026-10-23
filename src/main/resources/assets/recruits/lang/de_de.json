@@ -297,6 +297,7 @@
   "chat.recruits.text.captain_harbour_set": "%s: Heimathafen hier festgelegt.",
   "chat.recruits.text.captain_harbour_no_ship": "%s: Dafür muss ich am Steuer eines Schiffs stehen.",
   "chat.recruits.text.captain_harbour_arrived": "%s: Im Heimathafen angekommen.",
+  "chat.recruits.text.captain_waypoint_unreachable": "%s: Wegpunkt %s ist für mein Schiff nicht erreichbar (zu flach oder zu eng). Ich fahre so nah heran wie möglich und dann weiter.",
   "chat.recruits.text.captain_contact": "%s: Feindkontakt – %s bei %s/%s/%s",
   "chat.recruits.text.captain_contact_ship": "ein Schiff (%s)",
   "chat.recruits.text.captain_contact_ships": "%s Schiffe (%s)",

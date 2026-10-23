@@ -90,7 +90,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
 
     @Override
     public double getDistanceToReachWaypoint() {
-        return 150D;
+        // at the helm: by the ship's length, and through a waypoint once past it or once another ship lies on it
+        return this.shipController.isActive() ? this.shipController.waypointReach() : 150D;
     }
 
     @Override

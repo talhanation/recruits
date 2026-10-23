@@ -39,9 +39,10 @@ import java.util.WeakHashMap;
  * can get off it. A step costs more the worse the class, so the way keeps off
  * the coast where the water allows it.
  *
- * <b>Other ships</b> are land for one search: their hull plus a block, and a
- * moving one also the water it makes in the next three seconds, once more to
- * its starboard side - two ships meeting head on both keep to starboard.
+ * <b>Other ships</b> are land for one search: their hull plus half a block,
+ * where it lies when she plans - a ship under way is the traffic watch's
+ * business. A hull never drops out, not even the one she follows: she keeps
+ * astern of it. The way keeps to the right, see keepRight.
  *
  * Synchronous and bounded: MAX_NODES expansions, a search that stops getting
  * closer gives up, goals beyond HORIZON are planned in stages, an unreachable
@@ -64,10 +65,10 @@ public final class ShipPathfinder {
     // ---- other ships ----
     /** blocks around her that other ships are looked for */
     private static final double SCAN = 64.0D;
-    /** ticks of way a moving ship is taken to make */
-    private static final int PREDICT = 60;
-    /** blocks: the longest hull there is - a ship this close to her goal is the one she follows */
-    static final double LONGEST = 16.0D;
+    /** blocks kept free around another hull */
+    private static final double MARGIN = 0.5D;
+    /** blocks between two points of a lane; how far across the water is looked for the banks */
+    private static final double LANE_STEP = 16.0D, LANE_LOOK = 24.0D;
 
     /** What came out of a search. */
     public record Result(List<double[]> waypoints, boolean reachedGoal) {}
@@ -153,34 +154,76 @@ public final class ShipPathfinder {
 
     /* ---------------- other ships ---------------- */
 
-    /** @return the ships around her as obstacles - her own, the one she follows and one she lies against left out */
-    public static Obstacles ships(Entity ship, double goalX, double goalZ) {
+    /**
+     * @return the hulls of the ships around her as obstacles - half a block
+     * round each, less where she lies closer, so she can still plan away from it
+     */
+    public static Obstacles ships(Entity ship) {
         List<Boat> found = ship.level().getEntitiesOfClass(Boat.class, ship.getBoundingBox().inflate(SCAN, 8.0D, SCAN),
                 other -> other != ship && other.isAlive() && SmallShipsBridge.isShip(other));
         if (found.isEmpty()) return Obstacles.NONE;
-        List<double[]> capsules = new ArrayList<>();
-        List<Entity> ships = new ArrayList<>();
+        List<double[]> capsules = new ArrayList<>(found.size());
+        List<Entity> ships = new ArrayList<>(found.size());
         for (Boat other : found) {
             CompoundTag profile = SmallShipsBridge.getProfile(other);
             double length = Math.max(2.0D, profile.getFloat("Length")), beam = Math.max(1.0D, profile.getFloat("Beam"));
-            if (Math.hypot(goalX - other.getX(), goalZ - other.getZ()) < length) continue; // her goal lies on it
-            float speed = Math.max(0.0F, SmallShipsBridge.getSpeed(other));
             Vec3 fwd = CaptainShipController.forward(other.getYRot());
-            double r = beam / 2.0D + 1.0D, ahead = length / 2.0D + speed * PREDICT;
-            double bx = other.getX() + fwd.x * ahead, bz = other.getZ() + fwd.z * ahead;
-            List<double[]> own = new ArrayList<>(2);
-            own.add(new double[]{other.getX() - fwd.x * length / 2.0D, other.getZ() - fwd.z * length / 2.0D, bx, bz, r});
-            if (speed > 0.05F) {
-                Vec3 sb = CaptainShipController.forward(other.getYRot() + 90.0F).scale(beam);
-                own.add(new double[]{other.getX() + sb.x, other.getZ() + sb.z, bx + sb.x, bz + sb.z, r});
-            }
-            boolean touching = false;
-            for (double[] c : own) touching |= capsuleDistanceSqr(c, ship.getX(), ship.getZ()) <= c[4] * c[4];
-            if (touching) continue; // she has to be able to plan away from it
-            capsules.addAll(own);
+            double[] hull = {other.getX() - fwd.x * length / 2.0D, other.getZ() - fwd.z * length / 2.0D,
+                    other.getX() + fwd.x * length / 2.0D, other.getZ() + fwd.z * length / 2.0D, beam / 2.0D + MARGIN};
+            double inside = Math.sqrt(capsuleDistanceSqr(hull, ship.getX(), ship.getZ()));
+            if (inside < hull[4]) hull[4] = Math.max(0.0D, inside - 1.0D);
+            capsules.add(hull);
             ships.add(other);
         }
-        return capsules.isEmpty() ? Obstacles.NONE : new Obstacles(capsules, ships);
+        return new Obstacles(capsules, ships);
+    }
+
+    /**
+     * Where two hulls going straight on first come closer than half a block -
+     * each a segment along its heading, the beams round it.
+     *
+     * @return {ticks until then, her own speed towards the other then, the other's speed away from her then},
+     * null if not within horizon ticks or if they touch already
+     */
+    @Nullable
+    public static double[] contact(double x, double z, float yaw, float speed, double length, double beam,
+                                   double ox, double oz, float oyaw, float ospeed, double olength, double obeam, int horizon) {
+        Vec3 u = CaptainShipController.forward(yaw), w = CaptainShipController.forward(oyaw);
+        // half the margin the way keeps: a way planned past it does not count as an approach
+        double clearance = beam / 2.0D + obeam / 2.0D + MARGIN / 2.0D;
+        for (int t = 0; t <= horizon; t += 2) {
+            double px = x + u.x * speed * t, pz = z + u.z * speed * t;
+            double qx = ox + w.x * ospeed * t, qz = oz + w.z * ospeed * t;
+            double gap = segmentDistance(px, pz, u.x, u.z, length / 2.0D, qx, qz, w.x, w.z, olength / 2.0D);
+            if (t == 0 && gap < clearance - MARGIN / 2.0D) return null; // already touching: that is not an approach any more
+            if (gap < clearance) return approach(px, pz, u, speed, qx, qz, w, ospeed, Math.max(1, t));
+        }
+        return null;
+    }
+
+    private static double[] approach(double px, double pz, Vec3 u, double speed, double qx, double qz, Vec3 w, double ospeed, int ticks) {
+        double nx = qx - px, nz = qz - pz, n = Math.max(1.0E-6D, Math.hypot(nx, nz));
+        nx /= n;
+        nz /= n;
+        return new double[]{ticks, (u.x * nx + u.z * nz) * speed, (w.x * nx + w.z * nz) * ospeed};
+    }
+
+    /** @return the shortest distance between two centred segments a +- da * ha and b +- db * hb (d unit vectors) */
+    static double segmentDistance(double ax, double az, double dax, double daz, double ha,
+                                  double bx, double bz, double dbx, double dbz, double hb) {
+        // the closest pair of points on two segments, the textbook way with clamping
+        double rx = ax - bx, rz = az - bz;
+        double b = dax * dbx + daz * dbz, c = dax * rx + daz * rz, f = dbx * rx + dbz * rz;
+        double denom = 1.0D - b * b, s, t;
+        s = denom > 1.0E-9D ? clamp((b * f - c) / denom, -ha, ha) : 0.0D;
+        t = clamp(b * s + f, -hb, hb);
+        s = clamp(b * t - c, -ha, ha);
+        double px = ax + dax * s - (bx + dbx * t), pz = az + daz * s - (bz + dbz * t);
+        return Math.hypot(px, pz);
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return value < min ? min : Math.min(value, max);
     }
 
     private static double capsuleDistanceSqr(double[] c, double x, double z) {
@@ -286,6 +329,86 @@ public final class ShipPathfinder {
             at = furthest;
         }
         return corners;
+    }
+
+    /* ---------------- keep to the right ---------------- */
+
+    /**
+     * The way moved onto the starboard lane: every LANE_STEP blocks and at
+     * every corner the water is measured across the way, left and right as far
+     * as her hull can go, and the point laid to the middle of it plus a
+     * quarter of its width to starboard - at most lane blocks. Where the water
+     * is narrower than two lanes the point stays where it is. Two ships on the
+     * same way in opposite directions so pass each other port to port without
+     * having to give way. Every moved stretch has to be clear for the hull,
+     * else that point stays; if the way cannot be kept that way, it stays as it was.
+     *
+     * @param corners the way, its last point the end
+     * @param lane    blocks to starboard of the middle at most
+     * @param moveEnd false: the end stays where it is (a stop, a goal to lie at)
+     */
+    public List<double[]> keepRight(double fromX, double fromZ, List<double[]> corners, double lane, boolean moveEnd) {
+        if (corners.isEmpty() || lane <= 0.0D) return corners;
+        List<double[]> plain = new ArrayList<>(), moved = new ArrayList<>();
+        double px = fromX, pz = fromZ;
+        for (int i = 0; i < corners.size(); i++) {
+            double[] corner = corners.get(i);
+            double dx = corner[0] - px, dz = corner[1] - pz, length = Math.hypot(dx, dz);
+            if (length < 1.0E-6D) continue;
+            double ux = dx / length, uz = dz / length;
+            for (double t = LANE_STEP; t <= length - LANE_STEP / 2.0D; t += LANE_STEP) {
+                double sx = px + ux * t, sz = pz + uz * t;
+                plain.add(new double[]{sx, sz});
+                moved.add(this.onLane(sx, sz, ux, uz, lane));
+            }
+            boolean last = i == corners.size() - 1;
+            double vx = ux, vz = uz;
+            if (!last) { // across the mean of the leg in and the leg out
+                double[] next = corners.get(i + 1);
+                double ox = next[0] - corner[0], oz = next[1] - corner[1], out = Math.hypot(ox, oz);
+                if (out > 1.0E-6D && Math.hypot(ux + ox / out, uz + oz / out) > 0.2D) {
+                    vx = ux + ox / out;
+                    vz = uz + oz / out;
+                    double v = Math.hypot(vx, vz);
+                    vx /= v;
+                    vz /= v;
+                }
+            }
+            plain.add(corner);
+            moved.add(last && !moveEnd ? corner : this.onLane(corner[0], corner[1], vx, vz, lane));
+            px = corner[0];
+            pz = corner[1];
+        }
+        // every stretch clear for the hull - a point that is not stays where it was
+        List<double[]> way = new ArrayList<>(moved.size());
+        double lx = fromX, lz = fromZ;
+        for (int i = 0; i < moved.size(); i++) {
+            double[] point = moved.get(i);
+            if (point != plain.get(i) && !this.isClear(lx, lz, point[0], point[1], TIGHT)) point = plain.get(i);
+            if (!this.isClear(lx, lz, point[0], point[1], TIGHT)) return corners; // the old way, then
+            way.add(point);
+            lx = point[0];
+            lz = point[1];
+        }
+        return way;
+    }
+
+    /** @return the point on the starboard lane across heading (ux, uz) - see keepRight */
+    private double[] onLane(double x, double z, double ux, double uz, double lane) {
+        double rx = -uz, rz = ux; // starboard of the heading
+        double right = this.free(x, z, rx, rz), left = this.free(x, z, -rx, -rz), width = left + right;
+        if (width < 2.0D * lane) return new double[]{x, z}; // room for one only
+        double to = Math.min(right - 1.0D, (right - left) / 2.0D + Math.min(lane, width / 4.0D));
+        if (to <= 0.0D && to > -0.5D) return new double[]{x, z};
+        return new double[]{x + rx * to, z + rz * to};
+    }
+
+    /** @return blocks her hull can move from the point that way, up to LANE_LOOK */
+    private double free(double x, double z, double dx, double dz) {
+        for (double d = 1.0D; d <= LANE_LOOK; d += 1.0D) {
+            if (!discFits(this.columns, x + dx * d, z + dz * d, this.tight)) return d - 1.0D;
+        }
+        return LANE_LOOK;
     }
 
     /** @return true if every cell on the line is at least of this class and the hull fits at every point of it - the first cell left out */
