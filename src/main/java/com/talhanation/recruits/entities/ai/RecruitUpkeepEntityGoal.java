@@ -110,9 +110,7 @@ public class RecruitUpkeepEntityGoal extends Goal {
             }
 
 
-            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                this.recruit.getJumpControl().jump();
-            }
+            this.recruit.tryJumpOverTerrain();
             double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(pos));
             if (distance < 50 && container != null) {
 

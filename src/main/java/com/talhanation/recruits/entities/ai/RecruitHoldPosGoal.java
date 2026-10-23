@@ -45,9 +45,7 @@ public class RecruitHoldPosGoal extends Goal {
                     this.recruit.getNavigation().moveTo(pos.x(), pos.y(), pos.z(), this.recruit.moveSpeed);
                 }
 
-                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                    this.recruit.getJumpControl().jump();
-                }
+                this.recruit.tryJumpOverTerrain();
             } else{
             }
         }

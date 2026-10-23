@@ -2,6 +2,7 @@ package com.talhanation.recruits.pathfinding;
 
 import com.google.common.collect.ImmutableSet;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.entities.ai.navigation.RecruitsPathNodeEvaluator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.DebugPackets;
@@ -249,7 +250,36 @@ public abstract class AsyncPathNavigation extends PathNavigation {
             this.path.advance();
         }
 
+        // a path can get stale while we walk it (e.g. a siege weapon was placed after it was calculated).
+        // Checked every 5 ticks, staggered per mob; recomputePath() itself is limited to once per second.
+        if (!this.path.isDone() && (this.tick + this.mob.getId()) % 5 == 0 && this.isUpcomingPathObstructed()) {
+            this.recomputePath();
+            return;
+        }
+
         this.doStuckDetection(vec3);
+    }
+
+    /**
+     * @return true if one of the next nodes is blocked by an entity obstacle that did not exist when the
+     * path was calculated. Only for navigations whose evaluator avoids obstacles, others would just
+     * recalculate the same path again.
+     */
+    private boolean isUpcomingPathObstructed() {
+        if (!(this.nodeEvaluator instanceof RecruitsPathNodeEvaluator)) return false;
+
+        ObstacleSnapshot.Query obstacles = ObstacleIndex.query(this.mob);
+        if (!obstacles.hasSolidObstacles()) return false;
+
+        BlockPos target = this.path.getTarget();
+        obstacles.ignoreObstaclesAt(target.getX(), target.getY(), target.getZ());
+
+        int end = Math.min(this.path.getNextNodeIndex() + 3, this.path.getNodeCount());
+        for (int i = this.path.getNextNodeIndex(); i < end; i++) {
+            Node node = this.path.getNode(i);
+            if (obstacles.isBlocked(node.x, node.y, node.z)) return true;
+        }
+        return false;
     }
 
     private boolean shouldTargetNextNodeInDirection(Vec3 p_26560_) {

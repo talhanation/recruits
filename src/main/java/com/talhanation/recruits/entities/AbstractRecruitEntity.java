@@ -11,6 +11,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
+import com.talhanation.recruits.entities.ai.navigation.RecruitCollision;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.entities.ai.navigation.RecruitsOpenDoorGoal;
 import com.talhanation.recruits.init.ModItems;
@@ -138,6 +139,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public int rotateTicks;
     public int formationPos = -1;
     private int maxFallDistance;
+    private final RecruitCollision collision = new RecruitCollision(this);
     // Stagger periodic work (target search, arrow pickup, LoS re-check) across ticks so the cost
     // is spread evenly instead of spiking every 20th tick. Derived from the entity id (uniformly
     // distributed) rather than spawn time, so armies that spawn together still scatter. 60 is the
@@ -156,7 +158,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public AbstractRecruitEntity(EntityType<? extends AbstractInventoryEntity> entityType, Level world) {
         super(entityType, world);
         this.xpReward = 6;
-        this.navigation = this.createNavigation(world);
+        // navigation is already created by the Mob constructor (it calls createNavigation()),
+        // creating it here again only built a second navigation + pathfinder per recruit
         this.targetingConditions = TargetingConditions.forCombat().ignoreInvisibilityTesting().ignoreLineOfSight().selector(this::shouldAttack);
         this.setMaxUpStep(1F);
         this.setMaxFallDistance(1);
@@ -188,6 +191,25 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.maxFallDistance = x;
     }
 
+    ///////////////////////////////////RECRUIT COLLISION/////////////////////////////////////////
+
+    public RecruitCollision getCollision() {
+        return this.collision;
+    }
+
+    // recruits are solid for each other, see RecruitCollision
+    @Override
+    public boolean canCollideWith(@NotNull Entity other) {
+        return other instanceof AbstractRecruitEntity otherRecruit
+                ? RecruitCollision.collides(this, otherRecruit)
+                : super.canCollideWith(other);
+    }
+
+    /** Jumps only if that clears a block in front, see {@link RecruitCollision#tryJumpOverTerrain()}. */
+    public void tryJumpOverTerrain() {
+        this.collision.tryJumpOverTerrain();
+    }
+
     ///////////////////////////////////TICK/////////////////////////////////////////
 
     @Override
@@ -217,6 +239,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     public void tick() {
         super.tick();
         if(this.level().isClientSide()) return;
+
+        this.collision.tick();
 
         if(despawnTimer > 0) despawnTimer--;
         if(despawnTimer == 0) recruitCheckDespawn();
@@ -333,7 +357,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance diff, MobSpawnType reason, @Nullable SpawnGroupData spawnData, @Nullable CompoundTag nbt) {
         this.setRandomSpawnBonus();
-        this.createNavigation(world.getLevel());
         if (reason == MobSpawnType.SPAWN_EGG) {
             if (this.getXpLevel() == 0) applySpawnValues(this);
             // the subclass finalizeSpawn/initSpawn still runs after this and resets the level (applySpawnValues)

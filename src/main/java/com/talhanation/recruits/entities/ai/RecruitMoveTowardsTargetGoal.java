@@ -82,8 +82,6 @@ public class RecruitMoveTowardsTargetGoal extends Goal {
         if (this.target == null){
             stop();
         }
-        if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-            this.recruit.getJumpControl().jump();
-        }
+        this.recruit.tryJumpOverTerrain();
     }
 }

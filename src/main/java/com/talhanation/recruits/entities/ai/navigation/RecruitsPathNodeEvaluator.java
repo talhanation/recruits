@@ -1,5 +1,7 @@
 package com.talhanation.recruits.entities.ai.navigation;
 
+import com.talhanation.recruits.pathfinding.ObstacleIndex;
+import com.talhanation.recruits.pathfinding.ObstacleSnapshot;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
@@ -32,14 +34,28 @@ import org.jetbrains.annotations.NotNull;
 
 public class RecruitsPathNodeEvaluator extends NodeEvaluator {
 
+    /**
+     * Extra cost for walking through a standing recruit. A normal node already costs 1 + up to 8
+     * (see getNode), so this is roughly "two extra nodes": a short detour is preferred,
+     * but a path through a crowd is still found.
+     */
+    private static final float STANDING_RECRUIT_MALUS = 16.0F;
+
     private int x;
     private int y;
     private int z;
+
+    /** Entity obstacles for the current path; set up on the server thread in prepare()/getGoal(). */
+    private ObstacleSnapshot.Query obstacles = ObstacleSnapshot.Query.NONE;
+    private final BlockPos.MutableBlockPos nodeCheckPos = new BlockPos.MutableBlockPos();
+
     public void prepare(PathNavigationRegion region, Mob mob) {
         super.prepare(region, mob);
         if(mob.isVehicle()){
             this.entityHeight = Mth.floor(mob.getBbHeight() + (float) getEntityHeight());
         }
+        this.obstacles = ObstacleIndex.query(mob);
+
         mob.setPathfindingMalus(BlockPathTypes.WATER, 128.0F);
         mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 128.0F);
         mob.setPathfindingMalus(BlockPathTypes.TRAPDOOR, -1.0F);
@@ -70,8 +86,16 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
     //prefer walk on dirt path
     //prefer walk on stairs when goal pos is higher or lower current position >2 blocks
     //prefer walk on ways with no leaves
+    //
+    // The extra malus is only calculated ONCE, when the node is created. getNode() returns the cached
+    // Node object for already known coordinates, and before this fix every further call added the
+    // neighbour malus again (+2 per non-path neighbour), so often visited nodes got more and more
+    // expensive and each call did 4-8 extra block lookups.
     protected @NotNull Node getNode(int x, int y, int z) {
+        boolean isNew = !this.nodes.containsKey(Node.createHash(x, y, z));
         Node node = super.getNode(x, y, z);
+        if (!isNew) return node;
+
         BlockPathTypes blockpathtypes = this.getCachedBlockType(this.mob, x, y, z);
         float f = this.mob.getPathfindingMalus(blockpathtypes);
 
@@ -79,28 +103,30 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
             node.type = blockpathtypes;
             node.costMalus = Math.max(node.costMalus, f);
 
-            BlockPos pos = new BlockPos(x, y, z);
-            BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
-
-            BlockPos aboveEntityHeightPos = pos.above(getEntityHeight());
+            BlockPos.MutableBlockPos mutablePos = this.nodeCheckPos;
+            int aboveY = y + getEntityHeight();
 
             for (Direction direction : Direction.Plane.HORIZONTAL) {
-                mutablePos.set(pos).move(direction);
-                BlockState belowStateNeighbors = this.level.getBlockState(mutablePos.below());
+                mutablePos.set(x + direction.getStepX(), y - 1, z + direction.getStepZ());
+                BlockState belowStateNeighbors = this.level.getBlockState(mutablePos);
 
                 if (!belowStateNeighbors.is(Blocks.DIRT_PATH)) {
                     node.costMalus += 2.0F;
                     continue;
                 }
 
-                BlockState aboveLeavesCheck = this.level.getBlockState(aboveEntityHeightPos.relative(direction, 2));
+                mutablePos.set(x + direction.getStepX() * 2, aboveY, z + direction.getStepZ() * 2);
+                BlockState aboveLeavesCheck = this.level.getBlockState(mutablePos);
                 if (aboveLeavesCheck.is(BlockTags.LEAVES)) {
                     node.costMalus = -1.0F;
                     break;
                 }
             }
-        }
 
+            if (node.costMalus >= 0.0F && this.obstacles.isCrowded(x, y, z)) {
+                node.costMalus += STANDING_RECRUIT_MALUS;
+            }
+        }
 
         return node;
     }
@@ -178,6 +204,7 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         this.mob.onPathfindingDone();
         this.pathTypesByPosCache.clear();
         this.collisionCache.clear();
+        this.obstacles = ObstacleSnapshot.Query.NONE; // evaluators are pooled, release the snapshot
         super.done();
     }
 
@@ -237,8 +264,11 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         return blockpathtypes != BlockPathTypes.OPEN && this.mob.getPathfindingMalus(blockpathtypes) >= 0.0F;
     }
 
+    // called on the server thread for every path target, before the async search starts
     public Target getGoal(double p_77550_, double p_77551_, double p_77552_) {
-        return this.getTargetFromNode(this.getNode(Mth.floor(p_77550_), Mth.floor(p_77551_), Mth.floor(p_77552_)));
+        int x = Mth.floor(p_77550_), y = Mth.floor(p_77551_), z = Mth.floor(p_77552_);
+        this.obstacles.ignoreObstaclesAt(x, y, z); // the target entity itself (mount, cart, ...) must stay reachable
+        return this.getTargetFromNode(this.getNode(x, y, z));
     }
 
     public int getNeighbors(Node[] p_77640_, Node p_77641_) {
@@ -464,7 +494,16 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         });
     }
 
+    /** Block based type; additionally BLOCKED if the mob would intersect a solid entity there (cached per position). */
     public BlockPathTypes getBlockPathType(BlockGetter p_265141_, int p_265661_, int p_265757_, int p_265716_, Mob p_265398_) {
+        BlockPathTypes type = this.getBlockPathTypeIgnoringEntities(p_265141_, p_265661_, p_265757_, p_265716_, p_265398_);
+        if (type != BlockPathTypes.OPEN && p_265398_.getPathfindingMalus(type) >= 0.0F && this.obstacles.isBlocked(p_265661_, p_265757_, p_265716_)) {
+            return BlockPathTypes.BLOCKED;
+        }
+        return type;
+    }
+
+    private BlockPathTypes getBlockPathTypeIgnoringEntities(BlockGetter p_265141_, int p_265661_, int p_265757_, int p_265716_, Mob p_265398_) {
         EnumSet<BlockPathTypes> enumset = EnumSet.noneOf(BlockPathTypes.class);
         BlockPathTypes blockpathtypes = BlockPathTypes.BLOCKED;
         blockpathtypes = this.getBlockPathTypes(p_265141_, p_265661_, p_265757_, p_265716_, enumset, blockpathtypes, p_265398_.blockPosition());

@@ -44,9 +44,7 @@ public class RecruitMountEntityGoal extends Goal {
                     recruit.getNavigation().moveTo(mount, 1.15F);
                 }
 
-                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                    this.recruit.getJumpControl().jump();
-                }
+                this.recruit.tryJumpOverTerrain();
 
                 if (recruit.distanceToSqr(mount) < 50D) {
                     recruit.startRiding(mount);

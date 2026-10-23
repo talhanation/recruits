@@ -63,9 +63,7 @@ public class RecruitWanderGoal extends Goal {
         super.tick();
 
         if(!recruit.getNavigation().isDone()){
-            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                this.recruit.getJumpControl().jump();
-            }
+            this.recruit.tryJumpOverTerrain();
         }
 
         if (this.recruit instanceof CaptainEntity captain && captain.isSteeringShip()) {

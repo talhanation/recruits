@@ -100,9 +100,7 @@ public class RecruitMeleeAttackGoal extends Goal {
     public void tick() {
         if (this.pathingCooldown > 0) this.pathingCooldown--;
 
-        if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-            this.recruit.getJumpControl().jump();
-        }
+        this.recruit.tryJumpOverTerrain();
 
         LivingEntity target = this.recruit.getTarget();
         if (target != null && target.isAlive()) {

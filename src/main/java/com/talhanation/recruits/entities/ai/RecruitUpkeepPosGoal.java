@@ -110,9 +110,7 @@ public class RecruitUpkeepPosGoal extends Goal {
                 this.recruit.getNavigation().moveTo(chestPos.getX(), chestPos.getY(), chestPos.getZ(), 1.15D);
             }
 
-            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                this.recruit.getJumpControl().jump();
-            }
+            this.recruit.tryJumpOverTerrain();
 
             if (chestPos.closerThan(recruit.getOnPos(), 3) && container != null) {
 

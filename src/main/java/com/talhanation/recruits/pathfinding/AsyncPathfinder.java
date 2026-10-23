@@ -49,6 +49,7 @@ public class AsyncPathfinder extends PathFinder {
         Node node = nodeEvaluator.getStart();
 
         if (node == null) {
+            nodeEvaluator.done();
             if (this.nodeEvaluatorGenerator != null) {
                 NodeEvaluatorCache.returnNodeEvaluator(nodeEvaluator);
             }

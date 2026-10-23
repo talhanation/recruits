@@ -67,9 +67,7 @@ public class RecruitProtectEntityGoal extends Goal {
                     }
                 }
 
-                if (recruit.horizontalCollision || recruit.minorHorizontalCollision) {
-                    this.recruit.getJumpControl().jump();
-                }
+                this.recruit.tryJumpOverTerrain();
             }
         }
 

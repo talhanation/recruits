@@ -117,7 +117,7 @@ public class RecruitDepositGoal extends Goal {
                 if (containerEntity != null) recruit.getNavigation().moveTo(containerEntity, 1.15D);
                 else recruit.getNavigation().moveTo(targetPos.x, targetPos.y, targetPos.z, 1.15D);
             }
-            if (recruit.horizontalCollision || recruit.minorHorizontalCollision) recruit.getJumpControl().jump();
+            recruit.tryJumpOverTerrain();
             return;
         }
 

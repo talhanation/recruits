@@ -461,9 +461,7 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             //this.setRecruitsToMove(this.currentWaypoint);
         }
 
-        if (horizontalCollision || minorHorizontalCollision) {
-            this.getJumpControl().jump();
-        }
+        this.tryJumpOverTerrain();
     }
 
     public State getLeaderState() {
