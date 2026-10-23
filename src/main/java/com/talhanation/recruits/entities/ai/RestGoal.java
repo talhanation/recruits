@@ -60,6 +60,16 @@ public class RestGoal extends Goal {
         super.start();
         this.recruit.setFollowState(0);
         this.stackOfBeds = this.getListOfBeds();
+
+        // Der Noble schläft zuerst in seinem eigenen Bett (das Bett des Villagers, aus dem er gewählt wurde).
+        if(recruit instanceof VillagerNobleEntity noble && noble.getHomeBed() != null){
+            BlockPos home = noble.getHomeBed();
+            BlockState state = recruit.getCommandSenderWorld().getBlockState(home);
+            if(state.isBed(recruit.getCommandSenderWorld(), home, recruit) && !state.getValue(BlockStateProperties.OCCUPIED)){
+                this.stackOfBeds.remove(home);
+                this.stackOfBeds.push(home);
+            }
+        }
     }
 
     @Override
@@ -70,8 +80,8 @@ public class RestGoal extends Goal {
         this.recruit.clearSleepingPos();
         this.recruit.setShouldRest(false);
 
-        if(recruit instanceof VillagerNobleEntity){
-            this.recruit.setFollowState(2);
+        if(recruit instanceof VillagerNobleEntity noble){
+            noble.returnToAnchor();
         }
     }
 
