@@ -9,10 +9,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.NodeEvaluator;
 import net.minecraft.world.level.pathfinder.PathFinder;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class RecruitPathNavigation extends AsyncGroundPathNavigation {
     AbstractRecruitEntity recruit;
+    /** While true, {@link RecruitClimbGoal} steers the recruit on a ladder; the path is still followed. */
+    private boolean climbControlled;
 
     private static final NodeEvaluatorGenerator nodeEvaluatorGenerator = () -> {
         NodeEvaluator nodeEvaluator = new RecruitsPathNodeEvaluator();
@@ -41,6 +44,21 @@ public class RecruitPathNavigation extends AsyncGroundPathNavigation {
             return new AsyncPathfinder(this.nodeEvaluator, range, nodeEvaluatorGenerator, this.level);
         }
         return new PathFinder(this.nodeEvaluator, range);
+    }
+
+    public void setClimbControlled(boolean climbControlled) {
+        this.climbControlled = climbControlled;
+    }
+
+    @Override
+    protected void moveTowards(Vec3 target) {
+        if (!this.climbControlled) super.moveTowards(target);
+    }
+
+    // also keep following (and creating) paths while hanging on a ladder
+    @Override
+    protected boolean canUpdatePath() {
+        return super.canUpdatePath() || this.mob.onClimbable();
     }
 
     public boolean moveTo(double x, double y, double z, double speed) {

@@ -41,6 +41,7 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue CrossbowmanCost;
     public static ForgeConfigSpec.ConfigValue<List<String>> TargetBlackList;
     public static ForgeConfigSpec.ConfigValue<List<String>> MountWhiteList;
+    public static ForgeConfigSpec.ConfigValue<List<String>> RecruitClimbableBlocks;
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> RecruitStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> ShieldmanStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> BowmanStartEquipments;
@@ -112,6 +113,8 @@ public class RecruitsServerConfig {
             Arrays.asList("minecraft:poisonous_potato", "minecraft:spider_eye", "minecraft:pufferfish"));
     public static ArrayList<String> MOUNTS = new ArrayList<>(
             Arrays.asList("minecraft:camel", "minecraft:mule", "minecraft:donkey", "minecraft:horse", "minecraft:llama", "minecraft:pig", "minecraft:boat", "minecraft:minecart", "smallships:cog", "smallships:brigg", "smallships:galley", "smallships:drakkar", "siegeweapons:catapult", "siegeweapons:ballista"));
+    public static ArrayList<String> CLIMBABLE_BLOCKS = new ArrayList<>(
+            Arrays.asList("minecraft:ladder", "minecraft:vine"));
     public static ArrayList<List<String>> START_EQUIPMENT_RECRUIT = new ArrayList<>(
             List.of(Arrays.asList("minecraft:wooden_sword", "", "", "", "", ""),
                     Arrays.asList("minecraft:stone_sword", "", "", "", "", "")
@@ -224,6 +227,15 @@ public class RecruitsServerConfig {
                         \tONLY Entities in this list can be mounted by a recruit, for example: ["minecraft:boat", "smallships:cog", ...]""")
                 .worldRestart()
                 .define("MountWhitelist", MOUNTS);
+
+        RecruitClimbableBlocks = BUILDER.comment("""
+                        
+                        Climbable Blocks
+                        \t(takes effect after restart)
+                        \tBlocks recruits can climb up and down when pathfinding. Block ids or block tags starting with #, for example: ["minecraft:ladder", "minecraft:vine", "minecraft:twisting_vines", "#minecraft:climbable"]
+                        \tOpen or wooden trapdoors directly on top of a ladder (same facing) are climbable too, recruits open and close wooden ones.""")
+                .worldRestart()
+                .define("ClimbableBlocks", CLIMBABLE_BLOCKS);
 
         RecruitCost = BUILDER.comment("""
                         

@@ -1,5 +1,6 @@
 package com.talhanation.recruits.entities.ai.navigation;
 
+import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.pathfinding.ObstacleIndex;
 import com.talhanation.recruits.pathfinding.ObstacleSnapshot;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -40,6 +41,8 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
      * but a path through a crowd is still found.
      */
     private static final float STANDING_RECRUIT_MALUS = 16.0F;
+    /** Extra cost per climbed block (climbing is slower than walking), so comparable stairs are preferred. */
+    private static final float CLIMB_MALUS = 4.0F;
 
     private int x;
     private int y;
@@ -47,6 +50,9 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
 
     /** Entity obstacles for the current path; set up on the server thread in prepare()/getGoal(). */
     private ObstacleSnapshot.Query obstacles = ObstacleSnapshot.Query.NONE;
+    /** Blocks this mob can climb; null = no climbing (mounted, horses, ...). Set in prepare(). */
+    @Nullable
+    private ClimbableBlocks climbable;
     private final BlockPos.MutableBlockPos nodeCheckPos = new BlockPos.MutableBlockPos();
 
     public void prepare(PathNavigationRegion region, Mob mob) {
@@ -55,6 +61,7 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
             this.entityHeight = Mth.floor(mob.getBbHeight() + (float) getEntityHeight());
         }
         this.obstacles = ObstacleIndex.query(mob);
+        this.climbable = mob instanceof AbstractRecruitEntity && !mob.isPassenger() && !mob.isVehicle() ? ClimbableBlocks.get() : null;
 
         mob.setPathfindingMalus(BlockPathTypes.WATER, 128.0F);
         mob.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 128.0F);
@@ -205,10 +212,15 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         this.pathTypesByPosCache.clear();
         this.collisionCache.clear();
         this.obstacles = ObstacleSnapshot.Query.NONE; // evaluators are pooled, release the snapshot
+        this.climbable = null;
         super.done();
     }
 
     public Node getStart() {
+        // on a ladder the code below would search downwards for the ground - start where we hang instead
+        if (this.climbable != null && this.mob.onClimbable()) {
+            return this.getStartNode(this.mob.blockPosition());
+        }
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
         int i = this.mob.getBlockY();
         BlockState blockstate = this.level.getBlockState(blockpos$mutableblockpos.set(this.mob.getX(), (double)i, this.mob.getZ()));
@@ -321,7 +333,62 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
             p_77640_[i++] = node7;
         }
 
+        if (this.climbable != null) {
+            // hanging on a ladder that goes on downwards: no dropping off sideways, climb down to the bottom first
+            if (this.canClimbAt(p_77641_.x, p_77641_.y, p_77641_.z) && this.canClimbAt(p_77641_.x, p_77641_.y - 1, p_77641_.z)) {
+                i = removeLowerNeighbors(p_77640_, i, p_77641_.y);
+            }
+            i = this.addClimbNeighbors(p_77640_, i, p_77641_);
+        }
+
         return i;
+    }
+
+    // ------------------------------------------------------------------ climbing
+
+    /** Ladders, vines etc.: straight up or down within the same column. */
+    private int addClimbNeighbors(Node[] neighbors, int count, Node from) {
+        int x = from.x, y = from.y, z = from.z;
+
+        // up: feet in a climbable block, the block above climbable too and room for the head
+        if (this.canClimbAt(x, y, z) && this.canClimbAt(x, y + 1, z) && this.isPassable(x, y + this.entityHeight, z)) {
+            Node up = this.getClimbNode(x, y + 1, z);
+            if (this.isNeighborValid(up, from)) neighbors[count++] = up;
+        }
+
+        // down: the block below is climbable (also from the floor above a trapdoor)
+        if (this.canClimbAt(x, y - 1, z)) {
+            Node down = this.getClimbNode(x, y - 1, z);
+            if (this.isNeighborValid(down, from)) neighbors[count++] = down;
+        }
+        return count;
+    }
+
+    private static int removeLowerNeighbors(Node[] neighbors, int count, int y) {
+        int kept = 0;
+        for (int k = 0; k < count; k++) {
+            if (neighbors[k].y >= y) neighbors[kept++] = neighbors[k];
+        }
+        return kept;
+    }
+
+    private boolean canClimbAt(int x, int y, int z) {
+        return this.climbable != null && this.climbable.canClimbAt(this.level, x, y, z);
+    }
+
+    private boolean isPassable(int x, int y, int z) {
+        BlockPos pos = new BlockPos(x, y, z);
+        return this.canClimbAt(x, y, z) || this.level.getBlockState(pos).isPathfindable(this.level, pos, PathComputationType.LAND);
+    }
+
+    /** Climb nodes get the climb malus once, when created; entity obstacles block them like any node. */
+    private Node getClimbNode(int x, int y, int z) {
+        boolean isNew = !this.nodes.containsKey(Node.createHash(x, y, z));
+        Node node = this.getNode(x, y, z);
+        if (isNew) {
+            node.costMalus = this.obstacles.isBlocked(x, y, z) ? -1.0F : Math.max(node.costMalus, 0.0F) + CLIMB_MALUS;
+        }
+        return node;
     }
 
     protected boolean isNeighborValid(@Nullable Node p_77627_, Node p_77628_) {
@@ -430,6 +497,10 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
                 }
 
                 if (blockpathtypes == BlockPathTypes.OPEN) {
+                    // stepping onto a ladder / vine (or into the air above one): climb down instead of falling
+                    if (this.canClimbAt(p_164726_, p_164727_, p_164728_)) {
+                        return this.getClimbNode(p_164726_, p_164727_, p_164728_);
+                    }
                     int j = 0;
                     int i = p_164727_;
 
@@ -437,6 +508,10 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
                         --p_164727_;
                         if (p_164727_ < this.level.getMinBuildHeight()) {
                             return this.getBlockedNode(p_164726_, i, p_164728_);
+                        }
+
+                        if (this.canClimbAt(p_164726_, p_164727_, p_164728_)) {
+                            return this.getClimbNode(p_164726_, p_164727_, p_164728_);
                         }
 
                         if (j++ >= this.mob.getMaxFallDistance()) {

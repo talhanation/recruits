@@ -231,8 +231,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
             DebugPackets.sendPathFindingPacket(this.level, this.mob, this.path, this.maxDistanceToWaypoint);
             if (!this.isDone()) {
-                Vec3 vec32 = this.path.getNextEntityPos(this.mob);
-                this.mob.getMoveControl().setWantedPosition(vec32.x, this.getGroundY(vec32), vec32.z, this.speedModifier);
+                this.moveTowards(this.path.getNextEntityPos(this.mob));
             }
         }
     }
@@ -258,6 +257,11 @@ public abstract class AsyncPathNavigation extends PathNavigation {
         }
 
         this.doStuckDetection(vec3);
+    }
+
+    /** Steers the mob to the next path point. Overridden to hand control to e.g. the climb goal. */
+    protected void moveTowards(Vec3 target) {
+        this.mob.getMoveControl().setWantedPosition(target.x, this.getGroundY(target), target.z, this.speedModifier);
     }
 
     /**

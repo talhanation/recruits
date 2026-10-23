@@ -11,6 +11,7 @@ import com.talhanation.recruits.config.RecruitsClientConfig;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.ai.*;
 import com.talhanation.recruits.entities.ai.compat.BlockWithWeapon;
+import com.talhanation.recruits.entities.ai.navigation.RecruitClimbGoal;
 import com.talhanation.recruits.entities.ai.navigation.RecruitCollision;
 import com.talhanation.recruits.entities.ai.navigation.RecruitPathNavigation;
 import com.talhanation.recruits.entities.ai.navigation.RecruitsOpenDoorGoal;
@@ -396,6 +397,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     protected void registerGoals() {
         this.goalSelector.addGoal(4, new BlockWithWeapon(this));
         this.goalSelector.addGoal(0, new RecruitFloatGoal(this));
+        this.goalSelector.addGoal(0, new RecruitClimbGoal(this));
         this.goalSelector.addGoal(1, new RecruitQuaffGoal(this));
         this.goalSelector.addGoal(1, new FleeTNT(this));
         this.goalSelector.addGoal(1, new FleeFire(this));
