@@ -82,6 +82,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TOOLTIP_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote");
     private static final MutableComponent TOOLTIP_DISABLED_PROMOTE = Component.translatable("gui.recruits.inv.tooltip.promote_disabled");
     private static final MutableComponent TOOLTIP_SPECIAL = Component.translatable("gui.recruits.inv.tooltip.special");
+    private static final MutableComponent TEXT_RELEASE_GARRISON = Component.translatable("gui.recruits.inv.text.release_garrison");
+    private static final MutableComponent TOOLTIP_RELEASE_GARRISON = Component.translatable("gui.recruits.inv.tooltip.release_garrison");
     private static final int fontColor = 4210752;
     private final AbstractRecruitEntity recruit;
     private final Inventory playerInventory;
@@ -306,6 +308,17 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         if(recruit instanceof VillagerNobleEntity){
             return;
         }
+
+        //GARRISON: hand the recruit back from its Governor to the owner
+        if(recruit.isGarrison() && this.playerInventory.player.getUUID().equals(recruit.getOwnerUUID())){
+            Button releaseButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 9, 80, 20, TEXT_RELEASE_GARRISON,
+                    button -> {
+                        Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorReleaseRecruit(recruit.getUUID()));
+                        this.onClose();
+                    }
+            ));
+            releaseButton.setTooltip(Tooltip.create(TOOLTIP_RELEASE_GARRISON));
+        }
         //promote
         if(recruit instanceof ICompanion || recruit instanceof IVillagerWorker){
             Button promoteButton = addRenderableWidget(new ExtendedButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 8, 80, 20, TEXT_SPECIAL,
@@ -366,7 +379,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
                     }
             );
             groupSelectionDropDownMenu.setBgFillSelected(FastColor.ARGB32.color(255, 139, 139, 139));
-            groupSelectionDropDownMenu.visible = Minecraft.getInstance().player.getUUID().equals(recruit.getOwnerUUID());
+            groupSelectionDropDownMenu.visible = Minecraft.getInstance().player.getUUID().equals(recruit.getOwnerUUID()) && !recruit.isGarrison() && !(recruit instanceof GovernorEntity);
             RecruitsGroup group = ClientManager.getGroup(recruit.getGroup());
             groupSelectionDropDownMenu.canSelect = group == null || recruit.getGroup() == null || !recruit.getUUID().equals(group.leaderUUID);
             addRenderableWidget(groupSelectionDropDownMenu);

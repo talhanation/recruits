@@ -12,4 +12,17 @@ public interface ICommandCategory {
     Component getToolTipName();
     ItemStack getIcon();
     void createButtons(CommandScreen screen, int centerX, int centerY, List<RecruitsGroup> groups, Player player);
+
+    /** Categories can hide themselves, e.g. the Governor tab outside of an own claim with a Governor. */
+    default boolean isAvailable(CommandScreen screen, Player player) {
+        return true;
+    }
+
+    /** Called once when the command screen opens. */
+    default void onOpen(CommandScreen screen, Player player) {
+    }
+
+    /** Called every client tick while this category is selected. */
+    default void tick(CommandScreen screen, Player player) {
+    }
 }

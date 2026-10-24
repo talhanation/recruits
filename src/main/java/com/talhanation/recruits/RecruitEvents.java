@@ -2,12 +2,10 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
+import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.pathfinding.AsyncPathProcessor;
 import com.talhanation.recruits.util.DelayedExecutor;
-import com.talhanation.recruits.entities.AbstractRecruitEntity;
-import com.talhanation.recruits.entities.CaptainEntity;
-import com.talhanation.recruits.entities.ICompanion;
-import com.talhanation.recruits.entities.MessengerEntity;
+import com.talhanation.recruits.governor.GovernorOffice;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
@@ -72,6 +70,7 @@ public class RecruitEvents {
             put(2, ModEntityTypes.SIEGE_ENGINEER.get());
             put(3, ModEntityTypes.CAPTAIN.get());
             put(4, ModEntityTypes.PATROL_LEADER.get());
+            put(6, ModEntityTypes.GOVERNOR.get());
         }
     };
 
@@ -81,6 +80,7 @@ public class RecruitEvents {
             case 0, 1 -> 2; // messenger, scout
             case 2 -> 3;    // siege engineer
             case 3, 4 -> 5; // captain, patrol leader
+            case 6 -> 7;    // governor
             default -> -1;
         };
     }
@@ -99,7 +99,21 @@ public class RecruitEvents {
         if (promoteEvent.isCanceled()) return;
 
         EntityType<? extends AbstractRecruitEntity> companionType = entitiesByProfession.get(profession);
+        if (companionType == null) return;
+
+        // Governor: any own recruit; the claim is chosen in the Governor screen (or taken right away
+        // if he stands in an own claim without Governor)
+        if (profession == 6 && !GovernorOffice.canPromote(recruit, player)) return;
+
         AbstractRecruitEntity abstractRecruit = companionType.create(recruit.getCommandSenderWorld());
+        if (abstractRecruit instanceof GovernorEntity governor) {
+            governor.setCustomName(Component.literal(name));
+            governor.copyPosition(recruit);
+            governor.applyRecruitValues(recruit);
+            governor.setOwnerName(player.getName().getString());
+            GovernorOffice.setupPromoted(governor, recruit, player);
+            return;
+        }
         if (abstractRecruit instanceof ICompanion companion) {
             abstractRecruit.setCustomName(Component.literal(name));
             abstractRecruit.copyPosition(recruit);
@@ -681,4 +695,4 @@ public class RecruitEvents {
             }
         }
     }
-}
+}

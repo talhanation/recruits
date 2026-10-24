@@ -97,6 +97,13 @@ public class ModEntityTypes {
                     .canSpawnFarFromPlayer()
                     .build(new ResourceLocation(Main.MOD_ID, "siege_engineer").toString()));
 
+    public static final RegistryObject<EntityType<GovernorEntity>> GOVERNOR = ENTITY_TYPES.register("governor",
+            () -> EntityType.Builder.of(GovernorEntity::new, MobCategory.CREATURE)
+                    .sized(0.6F, 1.95F)
+                    .clientTrackingRange(10)
+                    .canSpawnFarFromPlayer()
+                    .build(new ResourceLocation(Main.MOD_ID, "governor").toString()));
+
 
     /*
     public static final RegistryObject<EntityType<AssassinEntity>> ASSASSIN = ENTITY_TYPES.register("assassin",

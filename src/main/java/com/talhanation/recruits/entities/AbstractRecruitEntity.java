@@ -118,6 +118,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     private static final EntityDataAccessor<Byte> BIOME = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BYTE);
     private static final EntityDataAccessor<Boolean> SHOULD_REST = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOULD_RANGED = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.BOOLEAN);
+    /** UUID of the claim whose Governor garrison this recruit belongs to (empty = normal recruit). */
+    private static final EntityDataAccessor<Optional<UUID>> GARRISON_CLAIM = SynchedEntityData.defineId(AbstractRecruitEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     public int blockCoolDown;
     public boolean needsTeamUpdate = true;
     public boolean needsGroupUpdate = true;
@@ -464,6 +466,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         this.entityData.define(BIOME, (byte) 0);
         this.entityData.define(SHOULD_REST, false);
         this.entityData.define(SHOULD_RANGED, true);
+        this.entityData.define(GARRISON_CLAIM, Optional.empty());
         //STATE
         // 0 = NEUTRAL
         // 1 = AGGRESSIVE
@@ -549,6 +552,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             nbt.putInt("UpkeepPosX", this.getUpkeepPos().getX());
             nbt.putInt("UpkeepPosY", this.getUpkeepPos().getY());
             nbt.putInt("UpkeepPosZ", this.getUpkeepPos().getZ());
+        }
+
+        if(this.getGarrisonClaim() != null){
+            nbt.putUUID("GarrisonClaim", this.getGarrisonClaim());
         }
     }
 
@@ -637,6 +644,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                     nbt.getInt("UpkeepPosY"),
                     nbt.getInt("UpkeepPosZ")));
         }
+
+        if(nbt.hasUUID("GarrisonClaim")) this.setGarrisonClaim(nbt.getUUID("GarrisonClaim"));
 
         if(nbt.contains("Biome"))this.setBiome(nbt.getByte("Biome"));
         else applyBiomeAndVariant(this);
@@ -836,6 +845,25 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
     }
 
     @Nullable
+    public UUID getGarrisonClaim() {
+        return entityData.get(GARRISON_CLAIM).orElse(null);
+    }
+
+    public void setGarrisonClaim(@Nullable UUID claimId) {
+        entityData.set(GARRISON_CLAIM, Optional.ofNullable(claimId));
+    }
+
+    /** Garrison recruits are commanded by a Governor and do not count towards the player limit. */
+    public boolean isGarrison() {
+        return getGarrisonClaim() != null;
+    }
+
+    /** Public access to the protected item check, used by the Governor loadout. */
+    public boolean canGarrisonHold(ItemStack itemStack) {
+        return this.canHoldItem(itemStack);
+    }
+
+    @Nullable
     public LivingEntity getProtectingMob(){
         List<LivingEntity> list = this.getCommandSenderWorld().getEntitiesOfClass(
                 LivingEntity.class,
@@ -934,7 +962,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         if(increaseCost) this.recalculateCost();
 
         if(this.getCommandSenderWorld().isClientSide()) return;
-        RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+        // garrison recruits are not counted for the player (Governor, Variante B)
+        if(!this.isGarrison()) RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
+        if(this.isGarrison()){
+            this.setGarrisonClaim(null);
+            this.setListen(true);
+        }
         this.setOwnerUUID(Optional.empty());
 
         if (this.getTeam() != null && !keepTeam){
@@ -1277,6 +1310,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public boolean isEffectedByCommand(UUID player_uuid, UUID group) {
         if (!this.isOwned() || !this.isAlive() || !this.getListen()) return false;
+        if (this.isGarrison()) return false;
 
         if (!this.getOwnerUUID().equals(player_uuid)) return false;
 
@@ -1321,6 +1355,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if (player.isCrouching()) {
                     this.openGUI(player);
                     this.navigation.stop();
+                    return InteractionResult.SUCCESS;
+                }
+                if(!player.isCrouching() && this.isGarrison()) {
+                    // garrison recruits are commanded by their Governor; open the inventory to release them
+                    player.sendSystemMessage(Component.translatable("chat.recruits.governor.garrison_info", name));
                     return InteractionResult.SUCCESS;
                 }
                 if(!player.isCrouching()) {
@@ -1578,7 +1617,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 RecruitEvents.recruitsGroupsManager.removeMember(this.getGroup(), this.getUUID(), (ServerLevel) this.getCommandSenderWorld());
             }
 
-            if(this.isOwned()){
+            if(this.isOwned() && !this.isGarrison()){
                 RecruitEvents.recruitsPlayerUnitManager.removeRecruits(this.getOwnerUUID(), 1);
             }
             FactionEvents.removeRecruitFromTeam(this, this.getTeam(), (ServerLevel) this.getCommandSenderWorld());

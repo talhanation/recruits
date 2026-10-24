@@ -80,6 +80,12 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         this.rayBlockPos = getBlockPos();
         this.rayEntity = ClientEvent.getEntityByLooking();
         this.currentCategory = getSelectionFromClient();
+        for (ICommandCategory category : CommandCategoryManager.getCategories()) {
+            category.onOpen(this, player);
+        }
+        if (this.currentCategory == null || !this.currentCategory.isAvailable(this, player)) {
+            this.currentCategory = getFirstAvailableCategory();
+        }
         formation = Formation.fromIndex((byte) ClientManager.formationSelection);
 
         this.setButtons();
@@ -89,6 +95,28 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     protected void containerTick() {
         super.containerTick();
         ClientManager.updateGroups();
+        if (this.currentCategory != null) this.currentCategory.tick(this, player);
+    }
+
+    /** Rebuilds all buttons, e.g. after new Governor data arrived. */
+    public void refreshButtons() {
+        if (this.currentCategory == null || !this.currentCategory.isAvailable(this, player)) {
+            this.currentCategory = getFirstAvailableCategory();
+        }
+        this.setButtons();
+    }
+
+    private List<ICommandCategory> getAvailableCategories() {
+        List<ICommandCategory> available = new ArrayList<>();
+        for (ICommandCategory category : CommandCategoryManager.getCategories()) {
+            if (category.isAvailable(this, player)) available.add(category);
+        }
+        return available;
+    }
+
+    private ICommandCategory getFirstAvailableCategory() {
+        List<ICommandCategory> available = getAvailableCategories();
+        return available.isEmpty() ? CommandCategoryManager.getByIndex(0) : available.get(0);
     }
 
     boolean statusSet = false;
@@ -194,7 +222,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     private void createCategoryButtons(int centerX, int centerY) {
-        List<ICommandCategory> allCategories = CommandCategoryManager.getCategories();
+        List<ICommandCategory> allCategories = getAvailableCategories();
         int spacing = 21;
         int count = allCategories.size();
 
@@ -456,11 +484,15 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     @Override
     public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
-        if(p_94688_ > 0){
-            this.setCurrentCategory(CommandCategoryManager.getPrevious(currentCategory));
-        }
-        else{
-            this.setCurrentCategory(CommandCategoryManager.getNext(currentCategory));
+        List<ICommandCategory> available = getAvailableCategories();
+        int index = available.indexOf(currentCategory);
+        if(index >= 0){
+            if(p_94688_ > 0 && index > 0){
+                this.setCurrentCategory(available.get(index - 1));
+            }
+            else if(p_94688_ <= 0 && index < available.size() - 1){
+                this.setCurrentCategory(available.get(index + 1));
+            }
         }
 
         return super.mouseScrolled(p_94686_, p_94687_, p_94688_);

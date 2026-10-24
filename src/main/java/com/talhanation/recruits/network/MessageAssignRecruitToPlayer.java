@@ -1,6 +1,10 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.FactionEvents;
+import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.entities.GovernorEntity;
+import com.talhanation.recruits.governor.GovernorManager;
+import net.minecraft.network.chat.Component;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
@@ -37,7 +41,7 @@ public class MessageAssignRecruitToPlayer implements Message<MessageAssignRecrui
 
         for (AbstractRecruitEntity recruit : list) {
             if(recruit.getUUID().equals(this.recruit)){
-                if(!mayAssign(serverPlayer, recruit, newOwner)) break;
+                if(!canAssign(serverPlayer, recruit)) return;
                 recruit.assignToPlayer(newOwner, null);
                 FactionEvents.notifyPlayer(serverLevel, new RecruitsPlayerInfo(newOwner, ""), 0, serverPlayer.getName().getString());
                 break;
@@ -46,23 +50,34 @@ public class MessageAssignRecruitToPlayer implements Message<MessageAssignRecrui
     }
 
     /**
-     * Allowed:
-     *  - the owner gives his recruit to another online player
-     *  - the faction leader takes over a recruit of his faction (TakeOverScreen)
-     *  - operators
-     * Before: anyone within 64 blocks could assign any recruit to himself.
+     * The owner may give his recruit to another player; a faction leader may take over the recruits of
+     * his members (including garrison recruits). A Governor cannot be handed over, and garrison recruits
+     * have to be released before their owner can give them away.
      */
-    private static boolean mayAssign(ServerPlayer sender, AbstractRecruitEntity recruit, UUID newOwner) {
-        if (newOwner == null || !recruit.isAlive()) return false;
-        if (sender.getServer().getPlayerList().getPlayer(newOwner) == null) return false;
-        if (NetworkSecurity.isAdmin(sender)) return true;
-        if (NetworkSecurity.isOwner(sender, recruit)) return !newOwner.equals(sender.getUUID());
+    private boolean canAssign(ServerPlayer sender, AbstractRecruitEntity recruit) {
+        if (recruit instanceof GovernorEntity) {
+            sender.sendSystemMessage(Component.translatable("chat.recruits.governor.cannot_take_over", recruit.getName().getString()));
+            return false;
+        }
+        boolean isOwner = sender.getUUID().equals(recruit.getOwnerUUID());
+        if (isOwner) {
+            if (recruit.isGarrison()) {
+                sender.sendSystemMessage(Component.translatable("chat.recruits.governor.release_first", recruit.getName().getString()));
+                return false;
+            }
+            return true;
+        }
 
-        boolean takeOver = newOwner.equals(sender.getUUID())
-                && recruit.isOwned()
-                && recruit.getTeam() != null
-                && NetworkSecurity.isLeaderOf(sender, recruit.getTeam().getName());
-        return takeOver;
+        String factionId = recruit.getTeam() != null ? recruit.getTeam().getName() : null;
+        boolean isLeader = factionId != null && sender.getTeam() != null && factionId.equals(sender.getTeam().getName())
+                && GovernorManager.isFactionLeader(factionId, sender.getUUID());
+        if (!isLeader || !sender.getUUID().equals(this.newOwner)) return false;
+
+        if (!RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(factionId, sender.getUUID())) {
+            sender.sendSystemMessage(Component.translatable("chat.recruits.governor.release_limit", recruit.getName().getString()));
+            return false;
+        }
+        return true;
     }
 
     public MessageAssignRecruitToPlayer fromBytes(FriendlyByteBuf buf) {

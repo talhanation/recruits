@@ -58,7 +58,8 @@ public class RecruitsPlayerUnitManager {
         int owned = 0;
         for (ServerLevel level : server.getAllLevels()) {
             for (AbstractRecruitEntity recruit : level.getEntities(EntityTypeTest.forClass(AbstractRecruitEntity.class), r -> true)) {
-                if (recruit.isAlive() && recruit.isOwned() && playerUUID.equals(recruit.getOwnerUUID())) {
+                // garrison recruits of a Governor do not count towards the player limit
+                if (recruit.isAlive() && recruit.isOwned() && !recruit.isGarrison() && playerUUID.equals(recruit.getOwnerUUID())) {
                     owned++;
                 }
             }

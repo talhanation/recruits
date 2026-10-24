@@ -50,6 +50,15 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.ConfigValue<List<List<String>>> NomadStartEquipments;
     public static ForgeConfigSpec.ConfigValue<List<String>> AcceptedDamagesourceImmunity;
     public static ForgeConfigSpec.ConfigValue<List<String>> FoodBlackList;
+    public static ForgeConfigSpec.IntValue GovernorRecruitsPerChunk;
+    public static ForgeConfigSpec.IntValue GovernorTickInterval;
+    public static ForgeConfigSpec.IntValue GovernorPatrolInterval;
+    public static ForgeConfigSpec.IntValue GovernorMaxPatrols;
+    public static ForgeConfigSpec.IntValue GovernorPatrolDwellTicks;
+    public static ForgeConfigSpec.IntValue GovernorTaxPer10Inhabitants;
+    public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyLow;
+    public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyMedium;
+    public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyHigh;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
     public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
@@ -953,6 +962,73 @@ public class RecruitsServerConfig {
                         \tdefault: true""")
                 .worldRestart()
                 .define("FogOfWarEnabled", true);
+
+        BUILDER.comment("Governor Config:").push("Governor");
+
+        GovernorRecruitsPerChunk = BUILDER.comment("""
+                        How many garrison recruits a Governor may command per claimed chunk.
+                        \t(takes effect after restart)
+                        \tdefault: 3""")
+                .worldRestart()
+                .defineInRange("GovernorRecruitsPerChunk", 3, 0, 64);
+
+        GovernorTickInterval = BUILDER.comment("""
+                        Interval in ticks in which the Governor distributes his garrison, checks chests and recruits.
+                        \t(takes effect after restart)
+                        \tdefault: 40""")
+                .worldRestart()
+                .defineInRange("GovernorTickInterval", 40, 20, 1200);
+
+        GovernorPatrolInterval = BUILDER.comment("""
+                        Interval in ticks in which the Governor may send recruits of the reserve to a random patrol point.
+                        \t(takes effect after restart)
+                        \tdefault: 600""")
+                .worldRestart()
+                .defineInRange("GovernorPatrolInterval", 600, 40, 72000);
+
+        GovernorMaxPatrols = BUILDER.comment("""
+                        Maximum number of patrols a Governor sends out at the same time.
+                        \t(takes effect after restart)
+                        \tdefault: 2""")
+                .worldRestart()
+                .defineInRange("GovernorMaxPatrols", 2, 0, 16);
+
+        GovernorPatrolDwellTicks = BUILDER.comment("""
+                        How long in ticks a patrol stays at a patrol point before returning to the reserve.
+                        \t(takes effect after restart)
+                        \tdefault: 100""")
+                .worldRestart()
+                .defineInRange("GovernorPatrolDwellTicks", 100, 0, 72000);
+
+        GovernorTaxPer10Inhabitants = BUILDER.comment("""
+                        Currency per day and per 10 villagers for tax level 1. Level 2 doubles it, level 3 triples it.
+                        \t(takes effect after restart)
+                        \tdefault: 1""")
+                .worldRestart()
+                .defineInRange("GovernorTaxPer10Inhabitants", 1, 0, 1453);
+
+        GovernorTaxReputationPenaltyLow = BUILDER.comment("""
+                        Daily reputation loss of the claim owner in the village at tax level 1 (used once the reputation system exists).
+                        \t(takes effect after restart)
+                        \tdefault: 0""")
+                .worldRestart()
+                .defineInRange("GovernorTaxReputationPenaltyLow", 0, 0, 100);
+
+        GovernorTaxReputationPenaltyMedium = BUILDER.comment("""
+                        Daily reputation loss of the claim owner in the village at tax level 2 (used once the reputation system exists).
+                        \t(takes effect after restart)
+                        \tdefault: 1""")
+                .worldRestart()
+                .defineInRange("GovernorTaxReputationPenaltyMedium", 1, 0, 100);
+
+        GovernorTaxReputationPenaltyHigh = BUILDER.comment("""
+                        Daily reputation loss of the claim owner in the village at tax level 3 (used once the reputation system exists).
+                        \t(takes effect after restart)
+                        \tdefault: 3""")
+                .worldRestart()
+                .defineInRange("GovernorTaxReputationPenaltyHigh", 3, 0, 100);
+
+        BUILDER.pop();
 
         SERVER = BUILDER.build();
     }

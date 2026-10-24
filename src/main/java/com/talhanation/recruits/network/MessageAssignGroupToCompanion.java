@@ -57,11 +57,10 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
         if(group == null || !NetworkSecurity.canManageGroup(serverPlayer, group)) return;
 
-        final AbstractLeaderEntity leaderEntity = companionEntity;
         list.removeIf(living -> !(living instanceof AbstractRecruitEntity recruit)
                 || (recruit.getGroup() == null || !recruit.getGroup().equals(group.getUUID()))
-                || recruit.getUUID().equals(this.companionUUID)
-                || !java.util.Objects.equals(recruit.getOwnerUUID(), leaderEntity.getOwnerUUID()));
+                || recruit.isGarrison()
+                || recruit.getUUID().equals(this.companionUUID));
 
         for (LivingEntity living : list) {
             if(living instanceof AbstractRecruitEntity recruit) ICompanion.assignToLeaderCompanion(companionEntity, recruit);

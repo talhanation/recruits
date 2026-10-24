@@ -118,7 +118,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         createProfessionButtons(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 4,recruit.getXpLevel() >= 5);
         createProfessionButtons(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 5, false && recruit.getXpLevel() >= 5);
 
-        createProfessionButtons(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, false && recruit.getXpLevel() >= 7);
+        createProfessionButtons(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, recruit.getXpLevel() >= 7);
         createProfessionButtons(BUTTON_SPY, TOOLTIP_SPY, 7, false && recruit.getXpLevel() >= 7);
         createProfessionButtons(BUTTON_ROGUE, TOOLTIP_ROGUE, 8, false && recruit.getXpLevel() >= 7);
     }

@@ -2,8 +2,6 @@ package com.talhanation.recruits.init;
 
 import com.google.common.collect.Lists;
 import com.talhanation.recruits.Main;
-import com.talhanation.recruits.items.RecruitsSpawnEgg;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
@@ -32,6 +30,7 @@ public class ModItems {
     public static final RegistryObject<SpawnEggItem> PATROL_LEADER_SPAWN_EGG = createSpawnEggItem("patrol_leader", ModEntityTypes.PATROL_LEADER::get, 16755200, 16777045);
     public static final RegistryObject<SpawnEggItem> CAPTAIN_SPAWN_EGG = createSpawnEggItem("captain", ModEntityTypes.CAPTAIN::get, 16755200, 16777045);
     public static final RegistryObject<SpawnEggItem> SIEGE_ENGINEER_SPAWN_EGG = createSpawnEggItem("siege_engineer", ModEntityTypes.SIEGE_ENGINEER::get, 16755200, 16777045);
+    public static final RegistryObject<SpawnEggItem> GOVERNOR_SPAWN_EGG = createSpawnEggItem("governor", ModEntityTypes.GOVERNOR::get, 16755200, 16777045);
 
     public static final RegistryObject<BlockItem> RECRUIT_BLOCK = ITEMS.register("recruit_block", () -> new BlockItem(ModBlocks.RECRUIT_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<BlockItem> BOWMAN_BLOCK = ITEMS.register("bowman_block", () -> new BlockItem(ModBlocks.BOWMAN_BLOCK.get(), new Item.Properties()));

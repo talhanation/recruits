@@ -8,6 +8,8 @@ import com.talhanation.recruits.client.events.ClientPlayerEvents;
 import com.talhanation.recruits.client.gui.commandscreen.CombatCategory;
 import com.talhanation.recruits.client.gui.commandscreen.MovementCategory;
 import com.talhanation.recruits.client.gui.commandscreen.OtherCategory;
+import com.talhanation.recruits.client.gui.commandscreen.GovernorCategory;
+import com.talhanation.recruits.governor.GovernorEvents;
 import com.talhanation.recruits.network.MessageSaveTeamSettings;
 import com.talhanation.recruits.commands.PatrolSpawnCommand;
 import com.talhanation.recruits.commands.RecruitsAdminCommands;
@@ -100,6 +102,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new ClaimEvents());
         MinecraftForge.EVENT_BUS.register(new VillageEvents());
         MinecraftForge.EVENT_BUS.register(com.talhanation.recruits.pathfinding.ObstacleIndex.class);
+        MinecraftForge.EVENT_BUS.register(new GovernorEvents());
         MinecraftForge.EVENT_BUS.register(this);
 
         SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default", NETWORK_PROTOCOL);
@@ -218,7 +221,18 @@ public class Main {
                 MessageTrainRecruit.class,
                 MessageToClientNobleInfo.class,
                 MessageOpenNobleTrade.class,
-                MessageNobleQuestAction.class
+                MessageNobleQuestAction.class,
+                MessageGovernorAddPost.class,
+                MessageGovernorRemovePost.class,
+                MessageGovernorSetQuota.class,
+                MessageGovernorSetLoadout.class,
+                MessageGovernorSetBudget.class,
+                MessageGovernorSetTax.class,
+                MessageGovernorReleaseRecruit.class,
+                MessageGovernorAssignGroup.class,
+                MessageGovernorRequestData.class,
+                MessageToClientGovernorData.class,
+                MessageGovernorSetClaim.class
         };
 
 
@@ -259,6 +273,7 @@ public class Main {
         CommandCategoryManager.register(new MovementCategory(), -2);
         CommandCategoryManager.register(new CombatCategory(), -3);
         CommandCategoryManager.register(new OtherCategory(), -1);
+        CommandCategoryManager.register(new GovernorCategory(), 0);
     }
 
     private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {
@@ -275,6 +290,7 @@ public class Main {
             event.accept(ModItems.PATROL_LEADER_SPAWN_EGG.get());
             event.accept(ModItems.CAPTAIN_SPAWN_EGG.get());
             event.accept(ModItems.SIEGE_ENGINEER_SPAWN_EGG.get());
+            event.accept(ModItems.GOVERNOR_SPAWN_EGG.get());
         }
 
         if (event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)){

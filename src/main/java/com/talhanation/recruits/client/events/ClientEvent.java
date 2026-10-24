@@ -51,6 +51,7 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitVillagerRenderer::new );
             EntityRenderers.register(ModEntityTypes.SIEGE_ENGINEER.get(), RecruitVillagerRenderer::new );
+            EntityRenderers.register(ModEntityTypes.GOVERNOR.get(), RecruitVillagerRenderer::new );
 
             //OTHER
             EntityRenderers.register(ModEntityTypes.VILLAGER_NOBLE.get(), RecruitVillagerRenderer::new );
@@ -70,6 +71,7 @@ public class ClientEvent {
             EntityRenderers.register(ModEntityTypes.PATROL_LEADER.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.CAPTAIN.get(), RecruitHumanRenderer::new );
             EntityRenderers.register(ModEntityTypes.SIEGE_ENGINEER.get(), RecruitHumanRenderer::new );
+            EntityRenderers.register(ModEntityTypes.GOVERNOR.get(), RecruitHumanRenderer::new );
 			
             //OTHER
             EntityRenderers.register(ModEntityTypes.VILLAGER_NOBLE.get(), RecruitHumanRenderer::new );
