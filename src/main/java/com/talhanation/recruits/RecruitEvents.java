@@ -105,6 +105,9 @@ public class RecruitEvents {
         // if he stands in an own claim without Governor)
         if (profession == 6 && !GovernorOffice.canPromote(recruit, player)) return;
 
+        // empty name field: keep the name of the recruit
+        if (name == null || name.isBlank()) name = recruit.getName().getString();
+
         AbstractRecruitEntity abstractRecruit = companionType.create(recruit.getCommandSenderWorld());
         if (abstractRecruit instanceof GovernorEntity governor) {
             governor.setCustomName(Component.literal(name));
@@ -695,4 +698,4 @@ public class RecruitEvents {
             }
         }
     }
-}
+}

@@ -75,11 +75,12 @@ public class DebugInvScreen extends ScreenBase<DebugInvMenu> {
         teamColorButton(zeroLeftPos, zeroTopPos);
         disband(zeroLeftPos, zeroTopPos);
 
-        Component name = Component.literal("Name");
-        if(recruit.getCustomName() != null) name = recruit.getCustomName();
+        // empty = no custom name: the entity keeps its translated type name (e.g. "Noble Villager")
+        String name = recruit.getCustomName() != null ? recruit.getCustomName().getString() : "";
 
-        textField = new EditBox(font, leftPos + 18, topPos - 23, 140, 20, name);
-        textField.setValue(name.getString());
+        textField = new EditBox(font, leftPos + 18, topPos - 23, 140, 20, recruit.getName());
+        textField.setValue(name);
+        textField.setHint(recruit.getType().getDescription());
         textField.setTextColor(-1);
         textField.setTextColorUneditable(-1);
         textField.setBordered(true);

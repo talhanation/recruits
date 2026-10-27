@@ -155,18 +155,22 @@ public class RecruitClimbGoal extends Goal {
                 // in the column: straight up or down
                 target = this.anchor(to.x, feet.getY(), to.z);
                 if (onLadder) vy = dy > 0.05D ? CLIMB_UP_SPEED : dy < -0.05D ? -CLIMB_DOWN_SPEED : 0.0D;
-            } else if (dy > 0.0D) {
+            } else if (dy > 0.05D) {
                 // leaving at the top: keep climbing, lean towards the exit for the last half block
                 // (touching its edge only helps climbing) and step over once the feet are above it
                 target = dy < 0.5D ? this.anchor(to.x, to.y, to.z) : this.anchor(feet.getX(), feet.getY(), feet.getZ());
                 if (onLadder) vy = CLIMB_UP_SPEED;
-            } else if (onLadder && !this.recruit.onGround() && dy < -0.05D) {
-                // next node is beside and lower: climb down to its height first, never jump off early
+            } else if (onLadder && !this.recruit.onGround() && to.y < feet.getY()) {
+                // next node is beside and a whole block lower: climb down to its height first, never jump off early.
+                // Compared by block, not by the exact height: right after climbing over the top edge the feet are
+                // a bit above the exit node, and treating that as "lower" pulled him back into the ladder forever.
                 target = this.anchor(feet.getX(), feet.getY(), feet.getZ());
                 vy = -CLIMB_DOWN_SPEED;
             } else {
-                // stepping over into the next column: onto the ladder from above, or off it at the bottom
+                // stepping over into the next column: onto the ladder from above, off it at the bottom or at the top
                 target = this.anchor(to.x, to.y, to.z);
+                // at the top: do not slide back down while stepping over the edge
+                if (onLadder && !this.recruit.onGround()) vy = Math.max(vy, 0.0D);
             }
             this.openTrapdoorsAhead(path);
         }

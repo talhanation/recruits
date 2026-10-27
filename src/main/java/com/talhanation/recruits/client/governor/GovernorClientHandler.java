@@ -2,6 +2,7 @@ package com.talhanation.recruits.client.governor;
 
 import com.talhanation.recruits.client.gui.CommandScreen;
 import com.talhanation.recruits.client.gui.governor.GovernorScreen;
+import com.talhanation.recruits.client.gui.governor.GovernorUnitEditScreen;
 import com.talhanation.recruits.client.gui.governor.SelectClaimScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
@@ -32,6 +33,9 @@ public final class GovernorClientHandler {
             if (snapshot.self != null) minecraft.setScreen(new GovernorScreen(snapshot));
         } else if (minecraft.screen instanceof GovernorScreen governorScreen && governorScreen.matches(snapshot)) {
             governorScreen.update(snapshot);
+        } else if (minecraft.screen instanceof GovernorUnitEditScreen editScreen && editScreen.getParent().matches(snapshot)) {
+            // the edit screen keeps its draft, the Governor screen behind it gets the new data
+            editScreen.getParent().update(snapshot);
         } else if (minecraft.screen instanceof SelectClaimScreen claimScreen && claimScreen.getParentScreen().matches(snapshot)) {
             claimScreen.getParentScreen().update(snapshot);
             claimScreen.update(snapshot);

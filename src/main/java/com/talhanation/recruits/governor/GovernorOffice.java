@@ -103,6 +103,7 @@ public final class GovernorOffice {
 
         ClaimGovernorData data = manager.getOrCreate(claim.getUUID());
         data.setGovernor(governor.getUUID(), player.getUUID(), governor.getName().getString());
+        data.setGovernorLevel(governor.getXpLevel());
         governor.setGovernedClaim(claim.getUUID());
         governor.setHomePos(GovernorManager.isInClaim(claim, governor.blockPosition()) ? governor.blockPosition() : null);
         governor.setListen(false);

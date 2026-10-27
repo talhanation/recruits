@@ -32,9 +32,11 @@ import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -64,6 +66,8 @@ public class RecruitsVillageManager {
     public static final int REP_HIT = -3;
     public static final int REP_KILL_VILLAGER = -15;
     public static final int REP_KILL_NOBLE = -40;
+    /** Hiring from a noble needs more than 2 jobless villagers of the village, so the village never runs empty. */
+    public static final int MIN_JOBLESS_FOR_HIRE = 3;
     private static final String HIT_THROTTLE_KEY = "RecruitsNobleRepHit";
     private static final int HIT_THROTTLE_TICKS = 20;
 
@@ -144,6 +148,67 @@ public class RecruitsVillageManager {
     @Nullable
     public RecruitsVillage getVillageOfNoble(VillagerNobleEntity noble) {
         return getVillage(noble.getVillageId());
+    }
+
+    /* ===================== Claims (Governor) ===================== */
+
+    /** Villages whose centre (the bell) lies in the claim. Claims only exist in the overworld. */
+    public List<RecruitsVillage> getVillagesInClaim(@Nullable RecruitsClaim claim) {
+        List<RecruitsVillage> list = new ArrayList<>();
+        if (claim == null) return list;
+        for (RecruitsVillage village : villages.values()) {
+            if (!village.getDimension().equals(Level.OVERWORLD)) continue;
+            if (claim.containsChunk(new ChunkPos(village.getCenter()))) list.add(village);
+        }
+        return list;
+    }
+
+    /** Inhabitants of all villages in the claim, counted exactly like the nobles count them. */
+    public int getInhabitants(@Nullable RecruitsClaim claim, long day) {
+        int count = 0;
+        for (RecruitsVillage village : getVillagesInClaim(claim)) count += village.getInhabitants(day);
+        return count;
+    }
+
+    /** Loaded nobles of the village. */
+    public List<VillagerNobleEntity> getLoadedNobles(ServerLevel level, RecruitsVillage village) {
+        List<VillagerNobleEntity> list = new ArrayList<>();
+        if (!village.getDimension().equals(level.dimension())) return list;
+        for (UUID uuid : village.nobles.keySet()) {
+            if (level.getEntity(uuid) instanceof VillagerNobleEntity noble && noble.isAlive()) list.add(noble);
+        }
+        return list;
+    }
+
+    /**
+     * Jobless adult villagers that belong to the village (their bed is in it) and are loaded right now.
+     * These are the villagers a noble can turn into recruits.
+     */
+    public List<Villager> findJoblessResidents(ServerLevel level, RecruitsVillage village) {
+        if (!village.getDimension().equals(level.dimension())) return new ArrayList<>();
+        return level.getEntitiesOfClass(Villager.class,
+                new AABB(village.getCenter()).inflate(RecruitsVillage.RADIUS + 16),
+                villager -> villager.isAlive() && !villager.isBaby() && !villager.isPassenger()
+                        && villager.getVillagerData().getProfession().equals(VillagerProfession.NONE)
+                        && getVillageOfVillager(villager) == village);
+    }
+
+    /** Jobless villagers a noble can hire from: the residents of his village, without village the ones around him. */
+    public List<Villager> findHireableVillagers(ServerLevel level, VillagerNobleEntity noble) {
+        RecruitsVillage village = getVillageOfNoble(noble);
+        if (village != null) return findJoblessResidents(level, village);
+        return level.getEntitiesOfClass(Villager.class, noble.getBoundingBox().inflate(32D),
+                villager -> villager.isAlive() && !villager.isBaby() && !villager.isPassenger()
+                        && villager.getVillagerData().getProfession().equals(VillagerProfession.NONE));
+    }
+
+    /** The villager that becomes the recruit: the nearest hireable one, if the village has enough of them. */
+    @Nullable
+    public Villager pickVillagerForHire(ServerLevel level, VillagerNobleEntity noble) {
+        List<Villager> list = findHireableVillagers(level, noble);
+        if (list.size() < MIN_JOBLESS_FOR_HIRE) return null;
+        list.sort(Comparator.comparingDouble(villager -> villager.distanceToSqr(noble)));
+        return list.get(0);
     }
 
     /* ===================== Einwohner ===================== */
@@ -478,6 +543,26 @@ public class RecruitsVillageManager {
         return village != null && NobleReputation.getTier(getEffectiveReputation(village, player)) == NobleReputation.Tier.HOSTILE;
     }
 
+    /**
+     * Price for a (maybe offline) player, e.g. when his Governor hires. −1 if he may not buy this trade.
+     * Same rules as {@link #getHirePrice(ServerPlayer, VillagerNobleEntity, RecruitsHireTrade)}.
+     */
+    public int getHirePrice(MinecraftServer server, UUID player, VillagerNobleEntity noble, RecruitsHireTrade trade) {
+        String teamId = noble.getEmbargoTeamID();
+        if (teamId != null && !teamId.isEmpty() && FactionEvents.recruitsDiplomacyManager != null
+                && FactionEvents.recruitsDiplomacyManager.hasEmbargo(player, teamId)) return -1;
+        RecruitsVillage village = getReputationVillage(noble);
+        if (village == null) return trade.cost;
+
+        int reputation = getEffectiveReputation(village, player, getFactionOf(server, player));
+        if (NobleReputation.getTier(reputation) == NobleReputation.Tier.HOSTILE) return -1;
+
+        int tradeLevel = RecruitsHireTradesRegistry.getTradeLevel(noble.getTraderType(), trade.resourceLocation);
+        if (!NobleReputation.isTradeLevelUnlocked(reputation, tradeLevel)) return -1;
+
+        return NobleReputation.getPrice(trade.cost, reputation);
+    }
+
     /** Preis auf dem Server. −1, wenn der Spieler diesen Trade nicht kaufen darf. */
     public int getHirePrice(ServerPlayer player, VillagerNobleEntity noble, RecruitsHireTrade trade) {
         if (hasEmbargo(player, noble)) return -1;
@@ -519,8 +604,37 @@ public class RecruitsVillageManager {
         addReputation(village, actor, REP_HIT);
     }
 
+    /**
+     * Who gets the credit for a kill: the attacker, the owner of a projectile, the recruit that operates a
+     * siege weapon or cannon, or - for deaths by fire, falling and the like - whoever hurt the victim last.
+     */
+    @Nullable
+    public Entity resolveKiller(LivingEntity victim, DamageSource source) {
+        Entity entity = source.getEntity();
+        if (entity == null && source.getDirectEntity() instanceof Projectile projectile) entity = projectile.getOwner();
+        if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractRecruitEntity)) {
+            Entity operator = entity.getControllingPassenger();
+            if (!(operator instanceof AbstractRecruitEntity)) {
+                operator = null;
+                for (Entity passenger : entity.getPassengers()) {
+                    if (passenger instanceof AbstractRecruitEntity) {
+                        operator = passenger;
+                        break;
+                    }
+                }
+            }
+            if (operator != null) entity = operator;
+        }
+        if (resolveActor(entity) == null) {
+            LivingEntity credit = victim.getKillCredit();
+            if (credit != null && credit != victim) entity = credit;
+        }
+        return entity;
+    }
+
     public void onLivingDeath(ServerLevel level, LivingEntity victim, DamageSource source) {
-        Actor actor = resolveActor(source.getEntity());
+        Entity killer = resolveKiller(victim, source);
+        Actor actor = resolveActor(killer);
 
         // Ruf: Dorfbewohner −15, Noble −40
         if (actor != null && isReputationEnabled()) {
@@ -540,9 +654,13 @@ public class RecruitsVillageManager {
         ServerPlayer holder = level.getServer().getPlayerList().getPlayer(actor.player());
 
         if (quest.type == NobleQuest.Type.MONSTER_HUNT) {
-            if (!EntityType.getKey(victim.getType()).toString().equals(quest.target)) return;
+            if (!NobleQuestRegistry.matchesMonster(quest.target, victim.getType())) return;
             RecruitsVillage village = getVillage(progress.villageId);
-            if (village == null || !village.isInRange(level.dimension(), victim.blockPosition())) return;
+            if (village == null) return;
+            // the victim or the one who killed it (archers shoot from the edge of the village) has to be in the village
+            boolean inVillage = village.isInRange(level.dimension(), victim.blockPosition())
+                    || (killer != null && village.isInRange(level.dimension(), killer.blockPosition()));
+            if (!inVillage) return;
 
             progress.addProgress(1);
             if (holder != null) {
@@ -717,6 +835,48 @@ public class RecruitsVillageManager {
         if (!player.getInventory().add(stack)) player.drop(stack, false);
     }
 
+    /* ===================== Aufträge durch den Governor ===================== */
+
+    /**
+     * The Governor takes an offer of the village for his (maybe offline) owner. Same rules as for the player:
+     * one active quest, not when hostile, every offer once per player. Bounties are left to the player.
+     */
+    @Nullable
+    public NobleQuestProgress acceptQuestFor(ServerLevel level, UUID owner, @Nullable String faction, RecruitsVillage village, UUID offerId) {
+        if (!isQuestsEnabled()) return null;
+        if (isReputationEnabled() && NobleReputation.getTier(getEffectiveReputation(village, owner, faction)) == NobleReputation.Tier.HOSTILE) return null;
+
+        long gameTime = level.getGameTime();
+        NobleQuestProgress current = activeQuests.get(owner);
+        if (current != null && !current.isExpired(gameTime)) return null;
+
+        NobleQuest offer = village.getOffer(offerId);
+        if (offer == null || offer.type == NobleQuest.Type.BOUNTY || offer.takenBy.contains(owner)) return null;
+
+        offer.takenBy.add(owner);
+        NobleQuestProgress progress = new NobleQuestProgress(offer.copy(), village.getId(), gameTime + NobleQuestProgress.DURATION_TICKS);
+        activeQuests.put(owner, progress);
+        return progress;
+    }
+
+    /**
+     * The Governor turns in the owner's quest of this village. A delivery counts as done when he brought the items.
+     * Gives the reputation to the owner and returns the currency reward (goes to the treasury), −1 if nothing was turned in.
+     */
+    public int turnInQuestFor(ServerLevel level, UUID owner, @Nullable String faction, RecruitsVillage village, boolean deliveredItems) {
+        NobleQuestProgress progress = activeQuests.get(owner);
+        if (progress == null || !village.getId().equals(progress.villageId) || progress.isExpired(level.getGameTime())) return -1;
+        if (progress.quest.type == NobleQuest.Type.DELIVERY && !progress.completed && deliveredItems) {
+            progress.completed = true;
+            progress.progress = progress.quest.count;
+        }
+        if (!progress.completed) return -1;
+
+        activeQuests.remove(owner);
+        addReputation(village, new Actor(owner, faction), progress.quest.rewardReputation);
+        return NobleQuestRegistry.REWARD_CURRENCY;
+    }
+
     /* ===================== Client-Info ===================== */
 
     public NobleVillageInfo buildInfo(ServerPlayer player, VillagerNobleEntity noble) {
@@ -725,10 +885,14 @@ public class RecruitsVillageManager {
 
         RecruitsVillage village = getVillageOfNoble(noble);
         info.hasVillage = village != null;
-        if (village == null) return info;
+        if (village == null) {
+            info.joblessVillagers = findHireableVillagers(player.serverLevel(), noble).size();
+            return info;
+        }
 
         long day = getDay(player.level());
         info.inhabitants = village.getInhabitants(day);
+        info.joblessVillagers = findJoblessResidents(player.serverLevel(), village).size();
 
         info.reputationActive = isReputationEnabled();
         if (info.reputationActive) {

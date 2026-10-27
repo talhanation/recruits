@@ -7,7 +7,6 @@ import com.talhanation.recruits.VillagerEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.world.RecruitsVillageManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.npc.VillagerProfession;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.world.RecruitsGroup;
@@ -94,13 +93,13 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         boolean hired;
         // Die Config entscheidet, nicht das Flag vom Client.
         if(RecruitsServerConfig.NobleVillagerNeedsVillagers.get()){
-            Villager villager = serverLevel.getEntitiesOfClass(
-                    Villager.class,
-                    player.getBoundingBox().inflate(32.0D),
-                    v -> v.getUUID().equals(this.villagerUUID) && v.isAlive() && !v.isBaby()
-                            && v.getVillagerData().getProfession().equals(VillagerProfession.NONE)
-            ).stream().findAny().orElse(null);
-            if(villager == null) return;
+            // the villager comes from the noble's village (jobless residents), not from around the player;
+            // the server picks him, the UUID from the client is not used any more
+            Villager villager = VillageEvents.villageManager != null ? VillageEvents.villageManager.pickVillagerForHire(serverLevel, villagerNoble) : null;
+            if(villager == null){
+                player.sendSystemMessage(Component.translatable("chat.recruits.noble.no_villagers", RecruitsVillageManager.MIN_JOBLESS_FOR_HIRE));
+                return;
+            }
 
             hired = VillagerEvents.createHiredRecruitFromVillager(serverLevel, villager, recruitType, player, group, price);
         }
@@ -109,6 +108,8 @@ public class MessageHireFromNobleVillager implements Message<MessageHireFromNobl
         }
 
         if(hired) villagerNoble.doTrade(trade.resourceLocation);
+        // new count of jobless villagers etc. for the open screen
+        if(VillageEvents.villageManager != null) VillageEvents.villageManager.sendInfo(player, villagerNoble, false);
 
         String stringID = player.getTeam() != null ? player.getTeam().getName() : "";
         boolean canHire = RecruitEvents.recruitsPlayerUnitManager.canPlayerRecruit(stringID, player.getUUID());

@@ -39,7 +39,9 @@ public class MessageDebugGui implements Message<MessageDebugGui> {
                 (recruit) -> recruit.getUUID().equals(this.uuid) && player.isCreative() // debug actions: creative only
         ).forEach((recruit) -> {
             DebugEvents.handleMessage(id, recruit, context.getSender());
-            recruit.setCustomName(Component.literal(NetworkSecurity.cleanText(name, 32)));
+            String cleaned = NetworkSecurity.cleanText(name, 32);
+            // empty field: no custom name, the translated type name is shown ("Noble Villager", ...)
+            recruit.setCustomName(cleaned.isEmpty() ? null : Component.literal(cleaned));
         });
     }
 

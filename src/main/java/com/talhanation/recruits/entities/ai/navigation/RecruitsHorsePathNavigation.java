@@ -4,6 +4,7 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.recruits.pathfinding.AsyncPathfinder;
 import com.talhanation.recruits.pathfinding.NodeEvaluatorGenerator;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.level.Level;
@@ -39,7 +40,8 @@ public class RecruitsHorsePathNavigation extends AsyncGroundPathNavigation {
     }
 
     public boolean moveTo(double x, double y, double z, double speed) {
-        ((RecruitsPathNodeEvaluator) this.nodeEvaluator).setTarget((int) x, (int) y, (int) z);
+        BlockPos target = BlockPos.containing(x, y, z);
+        ((RecruitsPathNodeEvaluator) this.nodeEvaluator).setTarget(target.getX(), target.getY(), target.getZ());
         return this.moveTo(this.createPathAsync(x, y, z, 0), speed);
     }
 }

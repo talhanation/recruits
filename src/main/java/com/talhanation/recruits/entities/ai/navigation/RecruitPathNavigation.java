@@ -46,6 +46,14 @@ public class RecruitPathNavigation extends AsyncGroundPathNavigation {
         return new PathFinder(this.nodeEvaluator, range);
     }
 
+    /** On a ladder, steered by the climb goal, or hanging right above the top of a ladder. */
+    public boolean isClimbing() {
+        if (this.climbControlled || this.mob.onClimbable()) return true;
+        if (this.mob.onGround()) return false;
+        BlockPos feet = this.mob.blockPosition();
+        return ClimbableBlocks.get().canClimbAt(this.level, feet.getX(), feet.getY() - 1, feet.getZ());
+    }
+
     public void setClimbControlled(boolean climbControlled) {
         this.climbControlled = climbControlled;
     }
@@ -63,7 +71,16 @@ public class RecruitPathNavigation extends AsyncGroundPathNavigation {
 
     public boolean moveTo(double x, double y, double z, double speed) {
         this.recruit.setMaxFallDistance(1);
-        ((RecruitsPathNodeEvaluator) this.nodeEvaluator).setTarget((int) x, (int) y, (int) z);
-        return this.moveTo(this.createPath(new BlockPos((int) x, (int) y, (int) z), 0), speed);
+        // no new path in the middle of a climb when the target did not change: the goals repath every
+        // 10 ticks, and every new (async) path made the recruit stop, or start again from the ladder bottom
+        if (this.isClimbing() && this.path != null && !this.path.isDone() && this.path.getTarget() != null
+                && this.path.getTarget().distSqr(BlockPos.containing(x, y, z)) <= 4.0D) {
+            this.speedModifier = speed;
+            return true;
+        }
+        // floor, not (int): (int) -3.5 = -3 would send the recruit one block off in negative coordinates
+        BlockPos target = BlockPos.containing(x, y, z);
+        ((RecruitsPathNodeEvaluator) this.nodeEvaluator).setTarget(target.getX(), target.getY(), target.getZ());
+        return this.moveTo(this.createPath(target, 0), speed);
     }
 }

@@ -5,26 +5,27 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.governor.GovernorSnapshot;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.commandscreen.GovernorCategory;
+import com.talhanation.recruits.client.gui.component.UnitIcons;
+import com.talhanation.recruits.client.gui.widgets.PanelList;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.client.gui.widgets.SelectedClaimWidget;
-import com.talhanation.recruits.world.RecruitsClaim;
-import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.governor.ClaimGovernorData;
 import com.talhanation.recruits.governor.GovernorPost;
 import com.talhanation.recruits.governor.GovernorUnitType;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.world.NobleReputation;
+import com.talhanation.recruits.world.RecruitsClaim;
+import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsGroup;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
@@ -49,21 +50,31 @@ public class GovernorScreen extends RecruitsScreenBase {
     private static final int HEIGHT = 274;
     /** Height of the header row with the Governor name and the claim widget. */
     private static final int HEADER = 24;
+    /** Top of the tab content. */
+    private static final int CONTENT = HEADER + 34;
     private static final int TEXT = 0x404040;
     private static final int RED = 0xB02020;
     private static final int GREEN = 0x207020;
-    private static final int ORDER_ROWS = 12;
-    private static final String[] SLOT_KEYS = {"mainhand", "offhand", "head", "chest", "legs", "feet"};
+    private static final int MAP_SIZE = 140;
+    private static final int LIST_WIDTH = WIDTH - 16 - 10;
 
     private static Tab lastTab = Tab.INFO;
 
     private GovernorSnapshot snapshot;
     private Tab tab;
-    private int orderScroll;
     @Nullable
     private RecruitsGroup selectedGroup;
     @Nullable
     private ScrollDropDownMenu<RecruitsGroup> groupDropDown;
+    @Nullable
+    private PanelList<UnitEntry> unitList;
+    @Nullable
+    private PanelList<PostEntry> postList;
+    /** Scroll positions survive the rebuild after every snapshot. */
+    private double unitScroll;
+    private double postScroll;
+    @Nullable
+    private ClaimMapView mapView;
 
     @Nullable
     private final UUID governorId;
@@ -80,6 +91,10 @@ public class GovernorScreen extends RecruitsScreenBase {
     @Nullable
     public UUID getClaimId() {
         return snapshot.claim;
+    }
+
+    public GovernorSnapshot getSnapshot() {
+        return snapshot;
     }
 
     /** Snapshots of this Governor, or of his claim. */
@@ -99,6 +114,15 @@ public class GovernorScreen extends RecruitsScreenBase {
         rebuild();
     }
 
+    @Override
+    public void removed() {
+        super.removed();
+        if (mapView != null) {
+            mapView.close();
+            mapView = null;
+        }
+    }
+
     private void setTab(Tab tab) {
         this.tab = tab;
         lastTab = tab;
@@ -106,8 +130,12 @@ public class GovernorScreen extends RecruitsScreenBase {
     }
 
     private void rebuild() {
+        if (unitList != null) unitScroll = unitList.getScrollAmount();
+        if (postList != null) postScroll = postList.getScrollAmount();
         clearWidgets();
         groupDropDown = null;
+        unitList = null;
+        postList = null;
         buildClaimWidget();
         if (!snapshot.hasClaim()) return;
         if (tab == Tab.VILLAGE && !snapshot.village) tab = Tab.INFO;
@@ -181,44 +209,38 @@ public class GovernorScreen extends RecruitsScreenBase {
 
     // ------------------------------------------------------------------ garrison tab
 
+    private int budgetY() {
+        return guiTop + CONTENT;
+    }
+
+    private int unitListTop() {
+        return guiTop + CONTENT + 54;
+    }
+
+    private int unitListBottom() {
+        return guiTop + HEIGHT - 28;
+    }
+
     private void buildGarrison() {
-        int top = guiTop + HEADER + 50;
-        int left = guiLeft + 8;
-        int maxQuota = Math.max(0, snapshot.cap);
-
-        for (GovernorUnitType type : GovernorUnitType.values()) {
-            int row = type.getIndex();
-            int y = top + row * 21;
-            int quota = snapshot.quota[type.getIndex()];
-
-            ExtendedButton minus = new ExtendedButton(left + 112, y + 2, 14, 14, Component.literal("-"), b -> {
-                int step = Screen.hasShiftDown() ? 10 : 1;
-                sendQuota(type, Math.max(0, quota - step));
-            });
-            minus.active = quota > 0;
-            addRenderableWidget(minus);
-
-            ExtendedButton plus = new ExtendedButton(left + 128, y + 2, 14, 14, Component.literal("+"), b -> {
-                int step = Screen.hasShiftDown() ? 10 : 1;
-                sendQuota(type, quota + step);
-            });
-            plus.active = snapshot.getTotalQuota() < maxQuota;
-            plus.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.quota")));
-            addRenderableWidget(plus);
-
-            for (int slot = 0; slot < ClaimGovernorData.LOADOUT_SLOTS; slot++) {
-                addRenderableWidget(new LoadoutSlotButton(left + 150 + slot * 20, y, type, slot));
-            }
-        }
-
-        int budgetY = top + GovernorUnitType.COUNT * 21 + 4;
+        // 1. budget first
+        int budgetY = budgetY();
         int bx = guiLeft + 110;
         addRenderableWidget(new ExtendedButton(bx, budgetY, 24, 14, Component.literal("-10"), b -> sendBudget(snapshot.budget - 10)));
         addRenderableWidget(new ExtendedButton(bx + 26, budgetY, 18, 14, Component.literal("-1"), b -> sendBudget(snapshot.budget - 1)));
         addRenderableWidget(new ExtendedButton(bx + 82, budgetY, 18, 14, Component.literal("+1"), b -> sendBudget(snapshot.budget + 1)));
         addRenderableWidget(new ExtendedButton(bx + 102, budgetY, 24, 14, Component.literal("+10"), b -> sendBudget(snapshot.budget + 10)));
 
-        int groupY = budgetY + 20;
+        // 2. the unit types as a list
+        int top = unitListTop();
+        unitList = new PanelList<>(guiLeft + 8, top, LIST_WIDTH, unitListBottom() - top, 34);
+        List<UnitEntry> entries = new ArrayList<>();
+        for (GovernorUnitType type : GovernorUnitType.values()) entries.add(new UnitEntry(type));
+        unitList.setEntries(entries);
+        unitList.setScrollAmount(unitScroll);
+        addRenderableWidget(unitList);
+
+        // 3. hand over a group
+        int groupY = guiTop + HEIGHT - 22;
         List<RecruitsGroup> groups = new ArrayList<>();
         for (RecruitsGroup group : ClientManager.groups) {
             if (!group.removed) groups.add(group);
@@ -242,61 +264,69 @@ public class GovernorScreen extends RecruitsScreenBase {
         addRenderableWidget(assign);
     }
 
-    private void sendQuota(GovernorUnitType type, int amount) {
-        Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorSetQuota(snapshot.claim, type, amount));
-    }
-
     private void sendBudget(int budget) {
         Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorSetBudget(snapshot.claim, Math.max(0, budget)));
     }
 
-    /** Ghost slot: click sets the item in your main hand as template (not consumed), empty hand clears it. */
-    private class LoadoutSlotButton extends ExtendedButton {
+    private void openUnitEdit(GovernorUnitType type) {
+        if (minecraft == null) return;
+        minecraft.setScreen(new GovernorUnitEditScreen(this, snapshot, type));
+    }
+
+    private static ItemStack stackOf(@Nullable String id) {
+        if (id == null || id.isEmpty()) return ItemStack.EMPTY;
+        ResourceLocation location = ResourceLocation.tryParse(id);
+        if (location == null) return ItemStack.EMPTY;
+        Item item = ForgeRegistries.ITEMS.getValue(location);
+        return item == null ? ItemStack.EMPTY : new ItemStack(item);
+    }
+
+    /** One unit type: icon, name, equipment template, present / wanted, Edit. */
+    private class UnitEntry extends PanelList.Entry<UnitEntry> {
         private final GovernorUnitType type;
-        private final int slot;
+        private final ExtendedButton edit;
 
-        LoadoutSlotButton(int x, int y, GovernorUnitType type, int slot) {
-            super(x, y, 18, 18, Component.empty(), b -> {
-            });
+        UnitEntry(GovernorUnitType type) {
             this.type = type;
-            this.slot = slot;
-            ItemStack stack = getStack();
-            Component tooltip = stack.isEmpty()
-                    ? Component.translatable("gui.recruits.governor.tooltip.slot_empty", Component.translatable("gui.recruits.governor.slot." + SLOT_KEYS[slot]))
-                    : Component.translatable("gui.recruits.governor.tooltip.slot_set", Component.translatable("gui.recruits.governor.slot." + SLOT_KEYS[slot]), stack.getHoverName());
-            this.setTooltip(Tooltip.create(tooltip));
-        }
-
-        private ItemStack getStack() {
-            String id = snapshot.loadout[type.getIndex()][slot];
-            if (id == null || id.isEmpty()) return ItemStack.EMPTY;
-            ResourceLocation location = ResourceLocation.tryParse(id);
-            if (location == null) return ItemStack.EMPTY;
-            Item item = ForgeRegistries.ITEMS.getValue(location);
-            return item == null ? ItemStack.EMPTY : new ItemStack(item);
+            this.edit = new ExtendedButton(0, 0, 56, 16, Component.translatable("gui.recruits.governor.unit.edit"), b -> openUnitEdit(type));
+            this.edit.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.unit_edit", type.getDisplayName())));
+            this.children.add(edit);
         }
 
         @Override
-        public void onPress() {
-            Player player = Minecraft.getInstance().player;
-            if (player == null) return;
-            ItemStack hand = player.getMainHandItem();
-            String id = "";
-            if (!hand.isEmpty()) {
-                ResourceLocation key = ForgeRegistries.ITEMS.getKey(hand.getItem());
-                id = key == null ? "" : key.toString();
+        protected PanelList<UnitEntry> getList() {
+            return unitList;
+        }
+
+        @Override
+        protected void renderContent(GuiGraphics g, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float partialTick) {
+            UnitIcons.render(g, UnitIcons.of(type), left + 4, top + (height - UnitIcons.SIZE) / 2);
+            g.drawString(font, type.getDisplayName(), left + 30, top + 3, PanelList.TEXT_COLOR, false);
+
+            boolean any = false;
+            for (int slot = 0; slot < ClaimGovernorData.LOADOUT_SLOTS; slot++) {
+                ItemStack stack = stackOf(snapshot.loadout[type.getIndex()][slot]);
+                int ix = left + 30 + slot * 17;
+                int iy = top + 13;
+                if (stack.isEmpty()) {
+                    g.fill(ix + 3, iy + 3, ix + 13, iy + 13, 0x40FFFFFF);
+                } else {
+                    g.renderItem(stack, ix, iy);
+                    any = true;
+                }
             }
-            Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorSetLoadout(snapshot.claim, type, slot, id));
-        }
+            if (!any) {
+                g.drawString(font, Component.translatable("gui.recruits.governor.unit.no_template"), left + 30 + 6 * 17 + 4, top + 17, PanelList.TEXT_GRAY, false);
+            }
 
-        @Override
-        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            int color = isHovered() ? 0xFF9A9A9A : 0xFF8B8B8B;
-            guiGraphics.fill(getX(), getY(), getX() + width, getY() + height, 0xFF373737);
-            guiGraphics.fill(getX() + 1, getY() + 1, getX() + width, getY() + height, 0xFFFFFFFF);
-            guiGraphics.fill(getX() + 1, getY() + 1, getX() + width - 1, getY() + height - 1, color);
-            ItemStack stack = getStack();
-            if (!stack.isEmpty()) guiGraphics.renderItem(stack, getX() + 1, getY() + 1);
+            int present = snapshot.counts[type.getIndex()];
+            int wanted = snapshot.quota[type.getIndex()];
+            String count = present + " / " + wanted;
+            int countX = left + width - 66 - font.width(count);
+            g.drawString(font, count, countX, top + (height - 8) / 2, present < wanted ? PanelList.TEXT_RED : PanelList.TEXT_COLOR, false);
+
+            edit.setX(left + width - 60);
+            edit.setY(top + (height - 16) / 2);
         }
     }
 
@@ -309,32 +339,67 @@ public class GovernorScreen extends RecruitsScreenBase {
     }
 
     private void buildOrder() {
-        List<GovernorPost> posts = sortedPosts();
-        orderScroll = Math.max(0, Math.min(orderScroll, Math.max(0, posts.size() - ORDER_ROWS)));
-        int top = guiTop + HEADER + 46;
-        for (int i = 0; i < ORDER_ROWS && orderScroll + i < posts.size(); i++) {
-            GovernorPost post = posts.get(orderScroll + i);
-            ExtendedButton delete = new ExtendedButton(guiLeft + WIDTH - 36, top + i * 15, 14, 13, Component.literal("x"),
+        int top = guiTop + CONTENT + 2;
+        postList = new PanelList<>(guiLeft + 8, top, LIST_WIDTH, guiTop + HEIGHT - 8 - top, 24);
+        List<PostEntry> entries = new ArrayList<>();
+        for (GovernorPost post : sortedPosts()) entries.add(new PostEntry(post));
+        postList.setEntries(entries);
+        postList.setScrollAmount(postScroll);
+        addRenderableWidget(postList);
+    }
+
+    /** One post: colour of its type, name and position, who holds it, delete. */
+    private class PostEntry extends PanelList.Entry<PostEntry> {
+        private final GovernorPost post;
+        private final ExtendedButton delete;
+
+        PostEntry(GovernorPost post) {
+            this.post = post;
+            this.delete = new ExtendedButton(0, 0, 14, 14, Component.literal("x"),
                     b -> Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorRemovePost(snapshot.claim, post.getId())));
-            delete.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.delete_post")));
-            addRenderableWidget(delete);
+            this.delete.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.delete_post")));
+            this.children.add(delete);
         }
-        if (posts.size() > ORDER_ROWS) {
-            addRenderableWidget(new ExtendedButton(guiLeft + WIDTH - 20, top, 14, 13, Component.literal("^"), b -> {
-                orderScroll = Math.max(0, orderScroll - 1);
-                rebuild();
-            }));
-            addRenderableWidget(new ExtendedButton(guiLeft + WIDTH - 20, top + (ORDER_ROWS - 1) * 15, 14, 13, Component.literal("v"), b -> {
-                orderScroll++;
-                rebuild();
-            }));
+
+        @Override
+        protected PanelList<PostEntry> getList() {
+            return postList;
+        }
+
+        @Override
+        protected void renderContent(GuiGraphics g, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float partialTick) {
+            int color = GovernorCategory.colorOf(post.getType());
+            g.fill(left + 4, top + 4, left + 16, top + height - 4, 0xFF000000);
+            g.fill(left + 5, top + 5, left + 15, top + height - 5, 0xFF000000 | color);
+
+            int textY = top + (height - 8) / 2;
+            g.drawString(font, post.getLabel(), left + 22, textY, PanelList.TEXT_COLOR, false);
+            g.drawString(font, post.getCoordinateString(), left + 100, textY, PanelList.TEXT_GRAY, false);
+
+            if (post.getType().isGuardPost()) {
+                String assigned = snapshot.assignedNames.get(post.getId());
+                String text = assigned != null ? assigned : Component.translatable("gui.recruits.governor.order.unassigned").getString();
+                text = font.plainSubstrByWidth(text, width - 190);
+                g.drawString(font, text, left + 180, textY, assigned != null ? PanelList.TEXT_GREEN : PanelList.TEXT_RED, false);
+            }
+
+            delete.setX(left + width - 18);
+            delete.setY(top + (height - 14) / 2);
         }
     }
 
     // ------------------------------------------------------------------ village tab
 
+    private int villageTaxY() {
+        return guiTop + CONTENT + 62;
+    }
+
+    private int villageQuestY() {
+        return guiTop + CONTENT + 132;
+    }
+
     private void buildVillage() {
-        int top = guiTop + HEADER + 100;
+        int top = villageTaxY();
         for (int level = 0; level <= 3; level++) {
             int taxLevel = level;
             ExtendedButton button = new ExtendedButton(guiLeft + 10 + level * 74, top, 70, 18,
@@ -343,6 +408,17 @@ public class GovernorScreen extends RecruitsScreenBase {
             button.active = snapshot.taxLevel != level;
             button.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.tax",
                     level * snapshot.taxBase, snapshot.taxPenalty[level])));
+            addRenderableWidget(button);
+        }
+
+        int questTop = villageQuestY();
+        for (int mode = 0; mode < ClaimGovernorData.QUEST_MODES; mode++) {
+            int questMode = mode;
+            ExtendedButton button = new ExtendedButton(guiLeft + 10 + mode * 74, questTop, 70, 18,
+                    Component.translatable("gui.recruits.governor.quest_mode." + mode), b ->
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorSetQuestMode(snapshot.claim, questMode)));
+            button.active = snapshot.questMode != mode;
+            button.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.quest_mode." + mode)));
             addRenderableWidget(button);
         }
     }
@@ -367,11 +443,6 @@ public class GovernorScreen extends RecruitsScreenBase {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (groupDropDown != null && groupDropDown.mouseScrolled(mouseX, mouseY, delta)) return true;
-        if (tab == Tab.ORDER) {
-            orderScroll = Math.max(0, orderScroll + (delta > 0 ? -1 : 1));
-            rebuild();
-            return true;
-        }
         return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
@@ -400,7 +471,7 @@ public class GovernorScreen extends RecruitsScreenBase {
         }
 
         switch (tab) {
-            case INFO -> renderInfo(guiGraphics);
+            case INFO -> renderInfo(guiGraphics, mouseX, mouseY);
             case GARRISON -> renderGarrison(guiGraphics);
             case ORDER -> renderOrder(guiGraphics);
             case VILLAGE -> renderVillage(guiGraphics);
@@ -413,7 +484,7 @@ public class GovernorScreen extends RecruitsScreenBase {
         int x = guiLeft + 8;
         int y = guiTop + HEADER + 14;
         line(g, Component.translatable("gui.recruits.governor.office.none"), x, y, RED);
-        List<net.minecraft.util.FormattedCharSequence> lines = font.split(Component.translatable("gui.recruits.governor.office.hint"), WIDTH - 16);
+        List<FormattedCharSequence> lines = font.split(Component.translatable("gui.recruits.governor.office.hint"), WIDTH - 16);
         for (int i = 0; i < lines.size(); i++) {
             g.drawString(font, lines.get(i), x, y + 16 + i * 10, TEXT, false);
         }
@@ -423,114 +494,172 @@ public class GovernorScreen extends RecruitsScreenBase {
         g.drawString(font, text, x, y, color, false);
     }
 
-    private void renderInfo(GuiGraphics g) {
-        int x = guiLeft + 8;
-        int y = guiTop + HEADER + 48;
-        int step = 12;
+    /** Draws the text cut to the width; returns the next y. */
+    private int fitLine(GuiGraphics g, Component text, int x, int y, int maxWidth, int color) {
+        String s = text.getString();
+        if (font.width(s) > maxWidth) s = font.plainSubstrByWidth(s, maxWidth - font.width("…")) + "…";
+        g.drawString(font, s, x, y, color, false);
+        return y + 12;
+    }
 
-        line(g, Component.translatable("gui.recruits.governor.info.claim", snapshot.claimName, snapshot.chunkCount), x, y, TEXT);
-        line(g, Component.translatable("gui.recruits.governor.info.owner", snapshot.ownerName), x, y += step, TEXT);
-        line(g, Component.translatable("gui.recruits.governor.info.faction", snapshot.factionName), x, y += step, TEXT);
+    /** Draws the text wrapped to the width; returns the next y. */
+    private int wrapLines(GuiGraphics g, Component text, int x, int y, int maxWidth, int color, int maxLines) {
+        List<FormattedCharSequence> lines = font.split(text, maxWidth);
+        for (int i = 0; i < Math.min(maxLines, lines.size()); i++) {
+            g.drawString(font, lines.get(i), x, y, color, false);
+            y += 10;
+        }
+        return y + 2;
+    }
+
+    private Component garrisonLimitText() {
+        int bonus = snapshot.cap - snapshot.capBase;
+        if (bonus > 0) {
+            return Component.translatable("gui.recruits.governor.info.cap_bonus", snapshot.cap, snapshot.capBase, bonus, snapshot.governorLevel);
+        }
+        return Component.translatable("gui.recruits.governor.info.cap_next", snapshot.cap, snapshot.bonusFromLevel, snapshot.bonusPerLevel);
+    }
+
+    private Component recruitStatusText() {
+        String key = snapshot.recruitStatus == null || snapshot.recruitStatus.isEmpty() ? "idle" : snapshot.recruitStatus;
+        Object arg = snapshot.recruitStatusArg;
+        if (key.equals("hiring") || key.equals("hired")) {
+            // the server sends the unit type index, the name is translated here
+            try {
+                arg = GovernorUnitType.fromIndex(Integer.parseInt(snapshot.recruitStatusArg)).getDisplayName();
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return Component.translatable("gui.recruits.governor.recruit_status." + key, arg);
+    }
+
+    private int recruitStatusColor() {
+        return switch (snapshot.recruitStatus == null ? "" : snapshot.recruitStatus) {
+            case "hiring", "hired", "quota_met" -> GREEN;
+            case "idle", "no_quota" -> TEXT;
+            default -> RED;
+        };
+    }
+
+    private void renderInfo(GuiGraphics g, int mouseX, int mouseY) {
+        int x = guiLeft + 8;
+        int y = guiTop + CONTENT + 2;
+        int textWidth = WIDTH - 16 - MAP_SIZE - 8;
+
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.claim", snapshot.claimName, snapshot.chunkCount), x, y, textWidth, TEXT);
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.owner", snapshot.ownerName), x, y, textWidth, TEXT);
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.faction", snapshot.factionName), x, y, textWidth, TEXT);
         Component status;
         if (snapshot.ruling && snapshot.self != null && !snapshot.selfInClaim) status = Component.translatable("gui.recruits.governor.status.travelling");
         else if (snapshot.ruling) status = Component.translatable("gui.recruits.governor.status.ruling");
         else status = Component.translatable("gui.recruits.governor.status." + snapshot.status);
-        line(g, Component.translatable("gui.recruits.governor.info.governor", snapshot.governorName, status), x, y += step, snapshot.ruling ? GREEN : RED);
-        line(g, Component.translatable("gui.recruits.governor.info.garrison", snapshot.garrisonTotal, snapshot.getTotalQuota(), snapshot.cap), x, y += step, TEXT);
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.governor", snapshot.governorName, status), x, y, textWidth, snapshot.ruling ? GREEN : RED);
+        if (snapshot.governorLevel > 0) y = fitLine(g, Component.translatable("gui.recruits.governor.info.level", snapshot.governorLevel), x, y, textWidth, TEXT);
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.garrison", snapshot.garrisonTotal, snapshot.getTotalQuota(), snapshot.cap), x, y, textWidth, TEXT);
+        y = wrapLines(g, garrisonLimitText(), x, y, textWidth, 0x606060, 2);
 
         Component coins;
         if (!snapshot.hasTreasury) coins = Component.translatable("gui.recruits.governor.info.no_treasury");
         else if (snapshot.treasuryMissing) coins = Component.translatable("gui.recruits.governor.info.treasury_missing");
         else if (snapshot.coins < 0) coins = Component.literal("?");
         else coins = Component.literal(String.valueOf(snapshot.coins));
-        line(g, Component.translatable("gui.recruits.governor.info.treasury", coins), x, y += step, TEXT);
-        line(g, Component.translatable("gui.recruits.governor.info.spent", snapshot.spentToday, snapshot.budget), x, y += step, TEXT);
-        if (snapshot.purse > 0) line(g, Component.translatable("gui.recruits.governor.info.purse", snapshot.purse), x, y += step, TEXT);
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.treasury", coins), x, y, textWidth, TEXT);
+        y = fitLine(g, Component.translatable("gui.recruits.governor.info.spent", snapshot.spentToday, snapshot.budget), x, y, textWidth, TEXT);
+        if (snapshot.purse > 0) y = fitLine(g, Component.translatable("gui.recruits.governor.info.purse", snapshot.purse), x, y, textWidth, TEXT);
+        y = wrapLines(g, recruitStatusText(), x, y + 2, textWidth, recruitStatusColor(), 3);
 
-        y += step + 4;
-        if (!snapshot.hasTreasury || snapshot.treasuryMissing) line(g, Component.translatable("gui.recruits.governor.warn.treasury"), x, y += step, RED);
-        if (snapshot.upkeepMissing) line(g, Component.translatable("gui.recruits.governor.warn.upkeep"), x, y += step, RED);
-        if (snapshot.underSiege) line(g, Component.translatable("gui.recruits.governor.warn.siege"), x, y += step, RED);
-        if (!snapshot.ruling) line(g, Component.translatable("gui.recruits.governor.warn.not_ruling"), x, y += step, RED);
+        y += 2;
+        if (!snapshot.hasTreasury || snapshot.treasuryMissing) y = wrapLines(g, Component.translatable("gui.recruits.governor.warn.treasury"), x, y, textWidth, RED, 2);
+        if (snapshot.upkeepMissing) y = wrapLines(g, Component.translatable("gui.recruits.governor.warn.upkeep"), x, y, textWidth, RED, 2);
+        if (snapshot.underSiege) y = wrapLines(g, Component.translatable("gui.recruits.governor.warn.siege"), x, y, textWidth, RED, 2);
+        if (!snapshot.ruling) wrapLines(g, Component.translatable("gui.recruits.governor.warn.not_ruling"), x, y, textWidth, RED, 2);
 
-        renderMap(g, guiLeft + WIDTH - 128, guiTop + HEADER + 48, 118);
+        if (mapView == null) mapView = new ClaimMapView();
+        int mapX = guiLeft + WIDTH - 8 - MAP_SIZE;
+        int mapY = guiTop + CONTENT + 2;
+        GovernorPost hovered = mapView.render(g, font, mapX, mapY, MAP_SIZE, MAP_SIZE, snapshot.chunks, snapshot.posts, mouseX, mouseY);
+        renderMapLegend(g, mapX, mapY + MAP_SIZE + 4);
+        if (hovered != null) {
+            List<Component> tooltip = new ArrayList<>();
+            tooltip.add(hovered.getLabel());
+            tooltip.add(Component.literal(hovered.getCoordinateString()).withStyle(ChatFormatting.GRAY));
+            String assigned = snapshot.assignedNames.get(hovered.getId());
+            if (assigned != null) tooltip.add(Component.literal(assigned).withStyle(ChatFormatting.GREEN));
+            g.renderComponentTooltip(font, tooltip, mouseX, mouseY);
+        }
     }
 
-    /** Small cut-out of the claim: chunks as squares, posts as coloured dots. */
-    private void renderMap(GuiGraphics g, int x, int y, int size) {
-        if (snapshot.chunks.isEmpty()) return;
-        int minX = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-        for (ChunkPos chunk : snapshot.chunks) {
-            minX = Math.min(minX, chunk.x);
-            minZ = Math.min(minZ, chunk.z);
-            maxX = Math.max(maxX, chunk.x);
-            maxZ = Math.max(maxZ, chunk.z);
-        }
-        int chunksWide = Math.max(maxX - minX + 1, maxZ - minZ + 1);
-        int cell = Math.max(2, size / chunksWide);
-
-        g.fill(x - 1, y - 1, x + size + 1, y + size + 1, 0xFF373737);
-        g.fill(x, y, x + size, y + size, 0xFF6F8F5F);
-        for (ChunkPos chunk : snapshot.chunks) {
-            int cx = x + (chunk.x - minX) * cell;
-            int cz = y + (chunk.z - minZ) * cell;
-            g.fill(cx, cz, cx + cell - 1, cz + cell - 1, 0xFF9DC48A);
-        }
-        double scale = cell / 16D;
-        for (GovernorPost post : snapshot.posts) {
-            int px = x + (int) ((post.getPos().getX() - minX * 16) * scale);
-            int pz = y + (int) ((post.getPos().getZ() - minZ * 16) * scale);
-            g.fill(px - 1, pz - 1, px + 2, pz + 2, GovernorCategory.colorOf(post.getType()));
+    /** Colours of the post types under the map, two columns. */
+    private void renderMapLegend(GuiGraphics g, int x, int y) {
+        GovernorPost.Type[] types = GovernorPost.Type.values();
+        for (int i = 0; i < types.length; i++) {
+            int lx = x + (i % 2) * (MAP_SIZE / 2);
+            int ly = y + (i / 2) * 10;
+            g.fill(lx, ly + 1, lx + 6, ly + 7, 0xFF000000 | GovernorCategory.colorOf(types[i]));
+            Component name = Component.translatable("gui.recruits.governor.post." + types[i].name().toLowerCase(java.util.Locale.ROOT));
+            g.drawString(font, font.plainSubstrByWidth(name.getString(), MAP_SIZE / 2 - 10), lx + 9, ly, TEXT, false);
         }
     }
 
     private void renderGarrison(GuiGraphics g) {
-        int top = guiTop + HEADER + 50;
         int left = guiLeft + 8;
-        line(g, Component.translatable("gui.recruits.governor.garrison.header", snapshot.garrisonTotal, snapshot.getTotalQuota(), snapshot.cap), left, guiTop + HEADER + 40, TEXT);
-        for (GovernorUnitType type : GovernorUnitType.values()) {
-            int y = top + type.getIndex() * 21;
-            g.drawString(font, type.getDisplayName(), left, y + 5, TEXT, false);
-            String count = snapshot.counts[type.getIndex()] + "/" + snapshot.quota[type.getIndex()];
-            g.drawString(font, count, left + 80, y + 5, snapshot.counts[type.getIndex()] < snapshot.quota[type.getIndex()] ? RED : TEXT, false);
-        }
-        int budgetY = top + GovernorUnitType.COUNT * 21 + 4;
+        int budgetY = budgetY();
         line(g, Component.translatable("gui.recruits.governor.budget"), left, budgetY + 3, TEXT);
         g.drawCenteredString(font, String.valueOf(snapshot.budget), guiLeft + 110 + 63, budgetY + 3, 0xFFFFFF);
-        line(g, Component.translatable("gui.recruits.governor.assign"), left, budgetY + 23, TEXT);
+        line(g, Component.translatable("gui.recruits.governor.garrison.spent", snapshot.spentToday), guiLeft + 242, budgetY + 3, TEXT);
+
+        int y = budgetY + 20;
+        line(g, Component.translatable("gui.recruits.governor.garrison.header", snapshot.garrisonTotal, snapshot.getTotalQuota(), snapshot.cap), left, y, TEXT);
+        fitLine(g, recruitStatusText(), left, y + 12, WIDTH - 16, recruitStatusColor());
+        fitLine(g, garrisonLimitText(), left, y + 24, WIDTH - 16, 0x606060);
+
+        line(g, Component.translatable("gui.recruits.governor.assign"), left, guiTop + HEIGHT - 19, TEXT);
     }
 
     private void renderOrder(GuiGraphics g) {
-        List<GovernorPost> posts = sortedPosts();
-        int top = guiTop + HEADER + 46;
-        int left = guiLeft + 8;
-        if (posts.isEmpty()) {
-            line(g, Component.translatable("gui.recruits.governor.order.empty"), left, top + 2, TEXT);
-            return;
-        }
-        for (int i = 0; i < ORDER_ROWS && orderScroll + i < posts.size(); i++) {
-            GovernorPost post = posts.get(orderScroll + i);
-            int y = top + i * 15 + 3;
-            g.fill(left, y - 1, left + 6, y + 6, GovernorCategory.colorOf(post.getType()));
-            g.drawString(font, post.getLabel().getString() + " " + post.getCoordinateString(), left + 10, y, TEXT, false);
-            String assigned = snapshot.assignedNames.get(post.getId());
-            if (post.getType().isGuardPost()) {
-                String text = assigned != null ? assigned : Component.translatable("gui.recruits.governor.order.unassigned").getString();
-                g.drawString(font, text, left + 175, y, assigned != null ? TEXT : RED, false);
+        if (snapshot.posts.isEmpty()) {
+            List<FormattedCharSequence> lines = font.split(Component.translatable("gui.recruits.governor.order.empty"), WIDTH - 32);
+            int y = guiTop + CONTENT + 20;
+            for (FormattedCharSequence lineText : lines) {
+                g.drawCenteredString(font, lineText, guiLeft + WIDTH / 2, y, 0xFFFFFF);
+                y += 10;
             }
         }
     }
 
     private void renderVillage(GuiGraphics g) {
         int x = guiLeft + 8;
-        int y = guiTop + HEADER + 48;
-        line(g, Component.translatable("gui.recruits.governor.village.inhabitants", snapshot.inhabitants), x, y, TEXT);
+        int y = guiTop + CONTENT + 2;
+        Component villages = snapshot.villages > 1
+                ? Component.translatable("gui.recruits.governor.village.inhabitants_villages", snapshot.inhabitants, snapshot.villages)
+                : Component.translatable("gui.recruits.governor.village.inhabitants", snapshot.inhabitants);
+        line(g, villages, x, y, TEXT);
         line(g, Component.translatable("gui.recruits.governor.village.tax_level",
                 Component.translatable("gui.recruits.governor.tax." + snapshot.taxLevel)), x, y + 12, TEXT);
         line(g, Component.translatable("gui.recruits.governor.village.tax_today", snapshot.taxToday), x, y + 24, TEXT);
         line(g, Component.translatable("gui.recruits.governor.village.expected",
                 (snapshot.inhabitants / 10) * snapshot.taxLevel * snapshot.taxBase), x, y + 36, TEXT);
-        line(g, Component.translatable("gui.recruits.governor.village.note").withStyle(ChatFormatting.ITALIC), x, guiTop + HEADER + 130, TEXT);
-        line(g, Component.translatable("gui.recruits.governor.village.workers").withStyle(ChatFormatting.GRAY), x, guiTop + HEADER + 150, 0x707070);
+        line(g, Component.translatable("gui.recruits.governor.village.taxes"), x, villageTaxY() - 12, TEXT);
+        line(g, Component.translatable("gui.recruits.governor.village.note").withStyle(ChatFormatting.ITALIC), x, villageTaxY() + 22, TEXT);
+
+        // reputation and quests
+        int ry = villageTaxY() + 38;
+        if (snapshot.repActive) {
+            NobleReputation.Tier tier = NobleReputation.Tier.values()[Math.max(0, Math.min(NobleReputation.Tier.values().length - 1, snapshot.repTier))];
+            line(g, Component.translatable("gui.recruits.governor.village.reputation", NobleReputation.format(snapshot.reputation),
+                    tier.getName().copy().withStyle(tier.getColor())), x, ry, TEXT);
+        }
+        line(g, Component.translatable("gui.recruits.governor.village.quests"), x, villageQuestY() - 12, TEXT);
+
+        int qy = villageQuestY() + 24;
+        if (snapshot.questText != null) {
+            Component progress = snapshot.questDone
+                    ? Component.translatable("gui.recruits.governor.village.quest_done")
+                    : Component.translatable("gui.recruits.governor.village.quest_progress", snapshot.questProgress, snapshot.questCount);
+            qy = wrapLines(g, Component.translatable("gui.recruits.governor.village.quest_active", snapshot.questText, progress), x, qy, WIDTH - 16, TEXT, 2);
+            if (!snapshot.questHere) wrapLines(g, Component.translatable("gui.recruits.governor.village.quest_elsewhere"), x, qy, WIDTH - 16, 0x707070, 2);
+        } else {
+            wrapLines(g, Component.translatable("gui.recruits.governor.village.quest_none"), x, qy, WIDTH - 16, 0x707070, 2);
+        }
     }
 }

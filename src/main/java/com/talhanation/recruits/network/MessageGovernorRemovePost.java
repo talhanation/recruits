@@ -37,7 +37,9 @@ public class MessageGovernorRemovePost implements Message<MessageGovernorRemoveP
 
         // the recruit of a removed guard post is free again and walks to the nearest reserve
         data.removePost(post);
-        data.patrols.removeIf(patrol -> patrol.pointId.equals(post));
+        // patrols skip the removed point; a patrol without points left returns to the reserve
+        data.patrols.forEach(patrol -> patrol.removeMissingPoints(data));
+        data.patrols.removeIf(patrol -> patrol.getCurrentPoint() == null);
         GovernorPackets.sendUpdate(player, claim);
     }
 

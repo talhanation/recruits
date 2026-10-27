@@ -216,9 +216,18 @@ public class RecruitsPathNodeEvaluator extends NodeEvaluator {
         super.done();
     }
 
+    private boolean isJustAboveClimbable() {
+        if (this.mob.onGround() || this.mob.isInWater()) return false;
+        BlockPos feet = this.mob.blockPosition();
+        return this.climbable.canClimbAt(this.level, feet.getX(), feet.getY() - 1, feet.getZ())
+                && this.mob.getY() - feet.getY() < 0.5D;
+    }
+
     public Node getStart() {
-        // on a ladder the code below would search downwards for the ground - start where we hang instead
-        if (this.climbable != null && this.mob.onClimbable()) {
+        // on a ladder the code below would search downwards for the ground - start where we hang instead.
+        // Same right above the top of a ladder (feet just left it while stepping over): otherwise the search
+        // goes down through the ladder column and the new path starts at its bottom - pulling the recruit back.
+        if (this.climbable != null && (this.mob.onClimbable() || this.isJustAboveClimbable())) {
             return this.getStartNode(this.mob.blockPosition());
         }
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();

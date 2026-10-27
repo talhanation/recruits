@@ -1,6 +1,7 @@
 package com.talhanation.recruits.entities.ai;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.governor.GovernorGarrison;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -10,8 +11,9 @@ import javax.annotation.Nullable;
 
 /**
  * Upkeep at the container, paced like the deposit order: the recruit stands at the container and
- * takes one slot per second - first better equipment / ammunition / captain material, then food
- * (one item per step, up to {@link #MAX_FOOD_ITEMS}). Shared by the block and the entity upkeep goal.
+ * takes one slot per second - first the Governor's equipment template (garrison recruits), then better
+ * equipment / ammunition / captain material, then food (one item per step, up to {@link #MAX_FOOD_ITEMS}).
+ * Shared by the block and the entity upkeep goal.
  */
 public class UpkeepSession {
 
@@ -43,6 +45,11 @@ public class UpkeepSession {
         slotTimer = 0;
 
         if (!equipmentDone) {
+            // garrison: swap a slot to the template item, the old one goes into the chest
+            if (recruit.isGarrison() && GovernorGarrison.applyLoadoutStep(recruit, container)) {
+                feedback();
+                return Result.RUNNING;
+            }
             if (recruit.upkeepTakeOne(container)) {
                 feedback();
                 return Result.RUNNING;

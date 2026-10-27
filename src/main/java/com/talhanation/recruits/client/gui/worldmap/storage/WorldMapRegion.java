@@ -259,6 +259,15 @@ public final class WorldMapRegion {
         }
     }
 
+    /**
+     * Copy of the 16x16 map colours of one chunk (row by row, ABGR like a NativeImage pixel), null if this chunk
+     * was never mapped. Used for small map cut-outs that draw single chunks (Governor screen).
+     */
+    public int[] copyChunkPixels(int chunkXInRegion, int chunkZInRegion) {
+        WorldMapRegionPixels regionPixels = pixels;
+        return regionPixels == null ? null : regionPixels.copyChunkPixels(chunkXInRegion, chunkZInRegion);
+    }
+
     public int getRegionX() {
         return regionX;
     }

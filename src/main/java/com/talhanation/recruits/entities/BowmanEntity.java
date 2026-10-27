@@ -179,12 +179,9 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
                                                 //angle   = 0.196F           //force     //accuracy 0 = 100%
             arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
-            if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-                int k = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, this.getMainHandItem());
-                if (k == 0) {
-                    this.consumeArrow();
-                    arrow.pickup = AbstractArrow.Pickup.ALLOWED;
-                }
+            int k = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, this.getMainHandItem());
+            if (this.consumeShotArrow(itemstack, k > 0)) {
+                arrow.pickup = AbstractArrow.Pickup.ALLOWED;
             }
 
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
@@ -228,8 +225,8 @@ public class BowmanEntity extends AbstractRecruitEntity implements IRangedRecrui
             this.playSound(SoundEvents.ARROW_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
             this.getCommandSenderWorld().addFreshEntity(arrow);
 
-            if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-                this.consumeArrow();
+            int infinity = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, this.getMainHandItem());
+            if (this.consumeShotArrow(itemstack, infinity > 0)) {
                 arrow.pickup = AbstractArrow.Pickup.ALLOWED;
             }
 

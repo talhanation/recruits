@@ -7,6 +7,7 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.compat.workers.IVillagerWorker;
 import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
+import com.talhanation.recruits.client.gui.component.UnitIcons;
 import com.talhanation.recruits.entities.*;
 import com.talhanation.recruits.inventory.RecruitInventoryMenu;
 import com.talhanation.recruits.network.*;
@@ -492,54 +493,23 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int fnt2 = recruit.getListen() ? fontColor : 16733525;
         guiGraphics.drawString(font, listen, k + 15, l + 56 + 28, fnt2, false);
 
-        ItemStack profItem1 = null;
-        ItemStack profItem2 = null;
-
-        if (this.recruit instanceof IVillagerWorker worker) {
-            profItem1 = worker.getCustomProfessionItem();
-            profItem2 = worker.getCustomProfessionItem2();
-        }
-        else if(this.recruit instanceof HorsemanEntity){
-            profItem1 = Items.IRON_SWORD.getDefaultInstance();
-            profItem2 = Items.SADDLE.getDefaultInstance();
-        }
-        else if(this.recruit instanceof NomadEntity){
-            profItem1 = Items.BOW.getDefaultInstance();
-            profItem2 = Items.SADDLE.getDefaultInstance();
-        }
-        else if(this.recruit instanceof RecruitShieldmanEntity){
-            profItem1 = Items.IRON_SWORD.getDefaultInstance();
-            profItem2 = Items.SHIELD.getDefaultInstance();
-        }
-        else if(this.recruit instanceof BowmanEntity){
-            profItem1 = Items.BOW.getDefaultInstance();
-        }
-        else if(this.recruit instanceof CrossBowmanEntity){
-            profItem1 = Items.CROSSBOW.getDefaultInstance();
-        }
-        else if(this.recruit instanceof MessengerEntity){
-            profItem1 = Items.FEATHER.getDefaultInstance();
-            profItem2 = Items.PAPER.getDefaultInstance();
-        }
-        else if(this.recruit instanceof CommanderEntity){
-            profItem1 = Items.IRON_SWORD.getDefaultInstance();
-            profItem2 = Items.GOAT_HORN.getDefaultInstance();
-        }
-        else if(this.recruit instanceof CaptainEntity){
-            profItem1 = SmallShipsBridge.getShipItem();
-        }
-        else if(this.recruit instanceof RecruitEntity){
-            profItem1 = Items.IRON_SWORD.getDefaultInstance();
-        }
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.8F, 0.8F, 1F);
 
-        if(profItem2 != null){
-            guiGraphics.renderFakeItem(profItem2, 90, 4);
+        if (this.recruit instanceof IVillagerWorker worker) {
+            // workers of the Workers mod keep their own profession items
+            ItemStack profItem1 = worker.getCustomProfessionItem();
+            ItemStack profItem2 = worker.getCustomProfessionItem2();
+            if(profItem2 != null){
+                guiGraphics.renderFakeItem(profItem2, 90, 4);
+            }
+            if(profItem1 != null){
+                guiGraphics.renderFakeItem(profItem1, 80, 4);
+            }
         }
-
-        if(profItem1 != null){
-            guiGraphics.renderFakeItem(profItem1, 80, 4);
+        else {
+            // icon of the unit type, in the style of the group icons
+            UnitIcons.render(guiGraphics, UnitIcons.of(this.recruit), 82, 2);
         }
         guiGraphics.pose().popPose();
     }

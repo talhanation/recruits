@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.AbstractHurtingProjectile;
 import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -134,7 +135,12 @@ public class CrossbowWeapon implements IWeapon {
 
     @Override
     public void performRangedAttackIWeapon(AbstractRecruitEntity shooter, double x, double y, double z, float projectileSpeed) {
-        AbstractArrow projectileEntity = this.getProjectileArrow(shooter);
+        // the arrow from the inventory: tipped and spectral arrows keep their effect
+        ItemStack arrowStack = shooter.getProjectile(shooter.getMainHandItem());
+        AbstractArrow projectileEntity = arrowStack.getItem() instanceof ArrowItem arrowItem
+                ? arrowItem.createArrow(shooter.getCommandSenderWorld(), arrowStack, shooter)
+                : this.getProjectileArrow(shooter);
+        projectileEntity.setShotFromCrossbow(true);
 		
         int i = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.PIERCING, shooter.getMainHandItem());
         if (i > 0) {
@@ -151,8 +157,7 @@ public class CrossbowWeapon implements IWeapon {
         shooter.playSound(this.getShootSound(), 1.0F, 1.0F / (shooter.getRandom().nextFloat() * 0.4F + 0.8F));
         shooter.getCommandSenderWorld().addFreshEntity(projectileEntity);
 
-        if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
-            shooter.consumeArrow();
+        if (shooter.consumeShotArrow(arrowStack, false)) {
             projectileEntity.pickup = AbstractArrow.Pickup.ALLOWED;
         }
 

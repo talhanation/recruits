@@ -16,6 +16,8 @@ public class NobleVillageInfo {
     public UUID nobleId;
     public boolean hasVillage;
     public int inhabitants;
+    /** Jobless villagers of the village (without village: around the noble) that can be hired. */
+    public int joblessVillagers;
 
     /** Ruf ist aktiv: Config an und der Noble gehört zu einem Dorf. */
     public boolean reputationActive;
@@ -57,6 +59,7 @@ public class NobleVillageInfo {
         buf.writeUUID(nobleId);
         buf.writeBoolean(hasVillage);
         buf.writeVarInt(inhabitants);
+        buf.writeVarInt(joblessVillagers);
 
         buf.writeBoolean(reputationActive);
         buf.writeInt(playerReputation);
@@ -87,6 +90,7 @@ public class NobleVillageInfo {
         info.nobleId = buf.readUUID();
         info.hasVillage = buf.readBoolean();
         info.inhabitants = buf.readVarInt();
+        info.joblessVillagers = buf.readVarInt();
 
         info.reputationActive = buf.readBoolean();
         info.playerReputation = buf.readInt();

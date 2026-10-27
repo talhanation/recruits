@@ -8,6 +8,8 @@ import com.talhanation.recruits.governor.GovernorManager;
 import com.talhanation.recruits.network.MessageOpenSpecialScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -19,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
@@ -36,7 +39,9 @@ import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -58,6 +63,10 @@ public class GovernorEntity extends AbstractRecruitEntity implements ICompanion 
     public final GovernorController controller;
     /** Currency the Governor carries between treasury and noble / village bell. */
     private int purse;
+    /** Items the Governor carries from the treasury to a noble (delivery quests). */
+    private final List<ItemStack> carried = new ArrayList<>();
+    /** Day on which the Governor last got his daily experience for governing. */
+    private long lastXpDay = -1;
     @Nullable
     private BlockPos homePos;
 
@@ -91,6 +100,16 @@ public class GovernorEntity extends AbstractRecruitEntity implements ICompanion 
     /** Self-defence only: no active target search. Retaliation comes from the hurt-by-target goals. */
     @Override
     public void searchForTargets() {
+    }
+
+    /**
+     * While he governs, the Governor only fights whoever attacked him. Calls for help of the owner or the
+     * team (alertTeam, owner-hurt goals) are ignored, so he never leaves his post to join a fight.
+     */
+    @Override
+    public void setTarget(@Nullable LivingEntity target) {
+        if (target != null && this.isRuling() && target != this.getLastHurtByMob()) return;
+        super.setTarget(target);
     }
 
     @Override
@@ -138,6 +157,8 @@ public class GovernorEntity extends AbstractRecruitEntity implements ICompanion 
                 left -= size;
             }
             this.purse = 0;
+            for (ItemStack stack : this.carried) this.spawnAtLocation(stack);
+            this.carried.clear();
         }
         super.die(dmg);
     }
@@ -148,6 +169,12 @@ public class GovernorEntity extends AbstractRecruitEntity implements ICompanion 
         nbt.putString("OwnerName", this.getOwnerName());
         if (this.getGovernedClaim() != null) nbt.putUUID("GovernedClaim", this.getGovernedClaim());
         nbt.putInt("Purse", this.purse);
+        nbt.putLong("LastXpDay", this.lastXpDay);
+        ListTag carriedTag = new ListTag();
+        for (ItemStack stack : this.carried) {
+            if (!stack.isEmpty()) carriedTag.add(stack.save(new CompoundTag()));
+        }
+        nbt.put("Carried", carriedTag);
         if (this.homePos != null) {
             nbt.putInt("HomeX", homePos.getX());
             nbt.putInt("HomeY", homePos.getY());
@@ -161,6 +188,13 @@ public class GovernorEntity extends AbstractRecruitEntity implements ICompanion 
         this.setOwnerName(nbt.getString("OwnerName"));
         this.setGovernedClaim(nbt.hasUUID("GovernedClaim") ? nbt.getUUID("GovernedClaim") : null);
         this.purse = nbt.getInt("Purse");
+        this.lastXpDay = nbt.contains("LastXpDay") ? nbt.getLong("LastXpDay") : -1;
+        this.carried.clear();
+        ListTag carriedTag = nbt.getList("Carried", Tag.TAG_COMPOUND);
+        for (int i = 0; i < carriedTag.size(); i++) {
+            ItemStack stack = ItemStack.of(carriedTag.getCompound(i));
+            if (!stack.isEmpty()) this.carried.add(stack);
+        }
         if (nbt.contains("HomeX")) {
             this.homePos = new BlockPos(nbt.getInt("HomeX"), nbt.getInt("HomeY"), nbt.getInt("HomeZ"));
         }
@@ -243,6 +277,31 @@ public class GovernorEntity extends AbstractRecruitEntity implements ICompanion 
 
     public void setPurse(int purse) {
         this.purse = Math.max(0, purse);
+    }
+
+    /** Items carried from the treasury (delivery quests); live list. */
+    public List<ItemStack> getCarried() {
+        return carried;
+    }
+
+    public boolean hasCarried() {
+        for (ItemStack stack : carried) if (!stack.isEmpty()) return true;
+        return false;
+    }
+
+    public long getLastXpDay() {
+        return lastXpDay;
+    }
+
+    public void setLastXpDay(long day) {
+        this.lastXpDay = day;
+    }
+
+    /** Experience for governing (taxes, hiring, quests, every day in office). */
+    public void addGovernorXp(int xp) {
+        if (xp <= 0) return;
+        this.addXp(xp);
+        this.checkLevel();
     }
 
     @Nullable

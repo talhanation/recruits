@@ -11,7 +11,8 @@ import org.jetbrains.annotations.Nullable;
  * Body collision of one recruit. Server side only, nothing is saved.
  * <ul>
  *     <li>Recruits are solid for each other ({@link #collides}), but only sideways: a recruit standing in a
- *     narrow passage blocks the others, nobody can stand on another recruit. Players and other mobs are not affected.</li>
+ *     narrow passage blocks the others, nobody can stand on another recruit. Not on ladders. Players and other
+ *     mobs are not affected.</li>
  *     <li>Deadlock breaker: a recruit pressed against another recruit without progress for
  *     {@link #BLOCKED_TICKS_UNTIL_PASS} ticks may pass through recruits for {@link #PASS_THROUGH_TICKS} ticks.</li>
  *     <li>{@link #tryJumpOverTerrain()}: only jumps if that actually clears a block in front -
@@ -54,6 +55,10 @@ public class RecruitCollision {
                 && !self.isPassenger()
                 && !other.isPassenger()
                 && !other.isDeadOrDying()
+                // nobody blocks a ladder: a recruit on it (or one standing in the way at its top or bottom)
+                // can not step aside, so on ladders recruits pass through each other
+                && !self.onClimbable()
+                && !other.onClimbable()
                 && verticalOverlap(self.getBoundingBox(), other.getBoundingBox()) > Math.max(self.getStepHeight(), other.getStepHeight()) + 0.01D;
     }
 

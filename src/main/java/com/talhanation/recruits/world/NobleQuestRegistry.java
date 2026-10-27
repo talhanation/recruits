@@ -1,10 +1,13 @@
 package com.talhanation.recruits.world;
 
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -44,6 +47,21 @@ public class NobleQuestRegistry {
             new Entry("minecraft:skeleton", 4, 8),
             new Entry("minecraft:spider", 3, 6)
     );
+
+    /** A monster hunt for zombies also counts husks, drowned and zombie villagers, and so on. */
+    private static final Map<String, Set<String>> MONSTER_FAMILIES = Map.of(
+            "minecraft:zombie", Set.of("minecraft:zombie", "minecraft:husk", "minecraft:drowned", "minecraft:zombie_villager"),
+            "minecraft:skeleton", Set.of("minecraft:skeleton", "minecraft:stray"),
+            "minecraft:spider", Set.of("minecraft:spider", "minecraft:cave_spider")
+    );
+
+    public static boolean matchesMonster(String target, EntityType<?> type) {
+        if (target == null) return false;
+        String id = EntityType.getKey(type).toString();
+        if (id.equals(target)) return true;
+        Set<String> family = MONSTER_FAMILIES.get(target);
+        return family != null && family.contains(id);
+    }
 
     public static NobleQuest createDelivery(RandomSource random, @Nullable String excludeTarget) {
         List<Entry> pool = new ArrayList<>(DELIVERIES);

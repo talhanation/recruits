@@ -12,6 +12,7 @@ import com.talhanation.recruits.world.RecruitsHireTrade;
 import com.talhanation.recruits.world.RecruitsHireTradesRegistry;
 import com.talhanation.recruits.world.NobleReputation;
 import com.talhanation.recruits.world.NobleVillageInfo;
+import com.talhanation.recruits.world.RecruitsVillageManager;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
@@ -21,8 +22,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.widget.ExtendedButton;
@@ -31,11 +30,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 
 import javax.annotation.Nullable;
-import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.talhanation.recruits.client.ClientManager.currency;
 
@@ -44,6 +41,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private static final Component TITLE = Component.translatable("gui.recruits.villager_noble");
     private static final Component HIRE_BUTTON = Component.translatable("gui.recruits.villager_noble.hire");
     private static final Component TEXT_VILLAGERS = Component.translatable("gui.recruits.villager_noble.villagers");
+    private static final Component TEXT_VILLAGERS_NEARBY = Component.translatable("gui.recruits.villager_noble.villagers_nearby");
     private static final Component INVENTORY_BUTTON = Component.translatable("gui.recruits.inv.openInventory");
     private static final Component ERROR_NOT_ENOUGH_VILLAGERS = Component.translatable("gui.recruits.villager_noble.error_no_villagers");
     private static final Component ERROR_NO_USES = Component.translatable("gui.recruits.villager_noble.error_no_uses");
@@ -56,7 +54,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     private TradeList tradeList;
     private RecruitsHireTrade selection;
     private Button hireButton;
-    private List<Villager> villagerList;
     private RecruitsMultiLineEditBox descriptionBox;
     private Component description = Component.empty();
     private Component tradeTitle = Component.empty();
@@ -106,16 +103,9 @@ public class NobleTradeScreen extends RecruitsScreenBase {
 
         this.hireButton = this.addRenderableWidget(new ExtendedButton(guiLeft + 97, guiTop + 53, 75, 20, HIRE_BUTTON,
             btn -> {
-                if(ClientManager.configValueNobleNeedsVillagers){
-                    if (selection != null && villagerList != null && !villagerList.isEmpty()) {
-                        Villager villager = villagerList.get(0);
-                        Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), villager.getUUID(), selection, group, true, false));
-
-                        this.selection.uses -= 1;
-                    }
-                }
-                else {
-                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, group, false, false));
+                // the server takes a jobless villager of the noble's village
+                if (selection != null) {
+                    Main.SIMPLE_CHANNEL.sendToServer(new MessageHireFromNobleVillager(villagerNoble.getUUID(), UUID.randomUUID(), selection, group, ClientManager.configValueNobleNeedsVillagers, false));
                     this.selection.uses -= 1;
                 }
             }
@@ -205,9 +195,6 @@ public class NobleTradeScreen extends RecruitsScreenBase {
     @Override
     public void tick() {
         super.tick();
-        if(this.player.tickCount % 20 == 0){
-            this.findVillagers();
-        }
         if(this.descriptionBox != null) descriptionBox.tick();
         this.loadTrades();
         this.updateHireButtonState();
@@ -244,13 +231,16 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         }
         return copy;
     }
-    private void findVillagers() {
-        this.villagerList = this.player.getCommandSenderWorld()
-                .getEntitiesOfClass(Villager.class, this.player.getBoundingBox().inflate(32))
-                .stream()
-                .filter(v -> v.getVillagerData().getProfession().equals(VillagerProfession.NONE) && !v.isBaby())
-                .sorted(Comparator.comparing(v -> v.distanceTo(this.player)))
-                .collect(Collectors.toList());
+    /** Jobless villagers of the noble's village (from the server), -1 if unknown. */
+    private int getJoblessVillagers() {
+        NobleVillageInfo info = getInfo();
+        return info != null ? info.joblessVillagers : -1;
+    }
+
+    private boolean hasEnoughVillagers() {
+        int jobless = getJoblessVillagers();
+        // unknown: the server checks anyway
+        return jobless < 0 || jobless >= RecruitsVillageManager.MIN_JOBLESS_FOR_HIRE;
     }
 
     @Override
@@ -292,17 +282,19 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         RenderSystem.setShaderTexture(0, TEXTURE);
         guiGraphics.blit(TEXTURE, guiLeft, guiTop, 0, 0, xSize, ySize);
     }
-    int v = 0;
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
         guiGraphics.drawString(font, TITLE, guiLeft + 10, guiTop + 7, FONT_COLOR, false);
         guiGraphics.drawString(font, Component.literal("Lvl: " + villagerNoble.getTraderLevel()), guiLeft + TRADE_TITLE_X, guiTop + 7, FONT_COLOR, false);
 
-        if(villagerList != null) v = villagerList.size();
-        else v = 0;
-
-        if(ClientManager.configValueNobleNeedsVillagers)
-            guiGraphics.drawString(font, Component.literal(TEXT_VILLAGERS.getString() + ": " + v), guiLeft + TRADE_TITLE_X, guiTop + 30, FONT_COLOR, false);
+        if(ClientManager.configValueNobleNeedsVillagers){
+            NobleVillageInfo info = getInfo();
+            int jobless = getJoblessVillagers();
+            Component label = info != null && !info.hasVillage ? TEXT_VILLAGERS_NEARBY : TEXT_VILLAGERS;
+            String count = jobless < 0 ? "?" : String.valueOf(jobless);
+            guiGraphics.drawString(font, Component.literal(label.getString() + ": " + count), guiLeft + TRADE_TITLE_X, guiTop + 30,
+                    hasEnoughVillagers() ? FONT_COLOR : 0xAA0000, false);
+        }
 
         if (selection != null) {
             int x = guiLeft + TRADE_TITLE_X ;
@@ -335,7 +327,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         boolean hasVillager = true;
 
         if(ClientManager.configValueNobleNeedsVillagers){
-            hasVillager = villagerList != null && villagerList.size() > 2;
+            hasVillager = hasEnoughVillagers();
         }
 
         this.hireButton.active = selection.uses > 0 && hasMoney && hasVillager && ClientManager.canPlayerHire && !isLocked(selection);
@@ -487,7 +479,7 @@ public class NobleTradeScreen extends RecruitsScreenBase {
         List<HireError> errorList = new ArrayList<>();
         if(!ClientManager.canPlayerHire) errorList.add(HireError.HIRE_LIMIT_REACHED);
         
-        if(ClientManager.configValueNobleNeedsVillagers && (villagerList == null || villagerList.size() < 2)){
+        if(ClientManager.configValueNobleNeedsVillagers && !hasEnoughVillagers()){
             errorList.add(HireError.NOT_ENOUGH_VILLAGERS_NEARBY);
         }
         else if(selection != null){

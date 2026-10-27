@@ -62,6 +62,7 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
 
     /** Altes Default-Custom-Name aus initSpawn; wird bei bestehenden Nobles entfernt. */
     private static final String LEGACY_DEFAULT_NAME = "Noble Villager";
+    private static final String BROKEN_DEFAULT_NAME = "Name";
     private static final int VILLAGE_CHECK_INTERVAL = 200;
 
     @Nullable
@@ -189,7 +190,9 @@ public class VillagerNobleEntity extends AbstractRecruitEntity implements ICanTr
         this.homeBed = nbt.contains("HomeBed") ? NbtUtils.readBlockPos(nbt.getCompound("HomeBed")) : null;
 
         // Früher bekam jeder Noble den festen englischen Custom-Name. Jetzt kommt der Name aus der Übersetzung.
-        if(this.getCustomName() != null && LEGACY_DEFAULT_NAME.equals(this.getCustomName().getString())){
+        // "Name" came from the empty name field of the debug / promote screen
+        if(this.getCustomName() != null && (LEGACY_DEFAULT_NAME.equals(this.getCustomName().getString())
+                || BROKEN_DEFAULT_NAME.equals(this.getCustomName().getString()) || this.getCustomName().getString().isBlank())){
             this.setCustomName(null);
         }
     }

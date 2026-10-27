@@ -7,6 +7,8 @@ import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.inventory.RecruitSimpleContainer;
 import com.talhanation.recruits.pathfinding.AsyncPathfinderMob;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Container;
@@ -341,7 +343,16 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
            return this.getItemBySlot(equipmentslot).isEmpty() && !hasSameTypeOfItem(itemStack) && canEquipItem(itemStack);
        }
        else
-           return itemStack.isEdible();
+           return itemStack.isEdible() && !isBlacklistedFood(itemStack);
+    }
+
+    /**
+     * Food of the config FoodBlackList (spider eyes, poisonous potatoes, ...): never eaten, so it is also not picked up.
+     * A recruit carrying only such food counts as "without food" and goes to the upkeep.
+     */
+    public static boolean isBlacklistedFood(ItemStack stack) {
+        ResourceLocation location = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        return location != null && RecruitsServerConfig.FoodBlackList.get().contains(location.toString());
     }
     @NotNull
     public static EquipmentSlot getEquipmentSlotForItem(ItemStack itemStack) {
@@ -456,6 +467,40 @@ public abstract class AbstractInventoryEntity extends AsyncPathfinderMob {
             itemHandler = null;
             oldHandler.invalidate();
         }
+    }
+
+    /**
+     * The arrow a bow or crossbow shoots: the first arrow in the inventory, tipped and spectral arrows included
+     * (they are shot with their effect). Without arrows a plain one, like before.
+     */
+    @Override
+    public @NotNull ItemStack getProjectile(@NotNull ItemStack weapon) {
+        if (!(weapon.getItem() instanceof ProjectileWeaponItem)) return ItemStack.EMPTY;
+        for (ItemStack stack : this.inventory.items) {
+            if (!stack.isEmpty() && stack.getItem() instanceof ArrowItem) return stack;
+        }
+        return new ItemStack(Items.ARROW);
+    }
+
+    /**
+     * Takes the shot arrow (from {@link #getProjectile}) out of the inventory. Plain arrows only when the config
+     * wants arrows and the bow has no Infinity, tipped and spectral arrows always - otherwise they would be endless.
+     *
+     * @return true if an arrow was used up (it may then be picked up again)
+     */
+    public boolean consumeShotArrow(ItemStack shot, boolean infinity) {
+        boolean needArrows = RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get();
+        boolean plain = shot.isEmpty() || shot.is(Items.ARROW);
+        if (plain && (!needArrows || infinity)) return false;
+        for (ItemStack stack : this.inventory.items) {
+            if (stack == shot) {
+                stack.shrink(1);
+                return true;
+            }
+        }
+        if (!needArrows) return false;
+        consumeArrow();
+        return true;
     }
 
     public void consumeArrow(){

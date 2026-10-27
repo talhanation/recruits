@@ -48,7 +48,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
     @Nullable
     public final Path createPathAsync(double p_26525_, double p_26526_, double p_26527_, int p_26528_) {
-        return this.createPath(new BlockPos((int) p_26525_, (int) p_26526_, (int) p_26527_), p_26528_);
+        return this.createPath(BlockPos.containing(p_26525_, p_26526_, p_26527_), p_26528_);
     }
 
     @Nullable
@@ -130,7 +130,7 @@ public abstract class AsyncPathNavigation extends PathNavigation {
 
     @Override
     public boolean moveTo(double p_26520_, double p_26521_, double p_26522_, double p_26523_) {
-        Path path = this.createPath(new BlockPos((int) p_26520_, (int) p_26521_, (int) p_26522_), 1);
+        Path path = this.createPath(BlockPos.containing(p_26520_, p_26521_, p_26522_), 1);
         return this.moveTo(path, p_26523_);
     }
 

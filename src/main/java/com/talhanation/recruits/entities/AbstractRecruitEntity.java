@@ -1337,6 +1337,12 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(isPlayerTarget) return InteractionResult.PASS;
 
+        // garrison recruits are commanded by their Governor: a normal right-click is not taken (crouch opens the inventory)
+        if (this.isGarrison() && !player.isCrouching() && this.isOwned() && player.getUUID().equals(this.getOwnerUUID())
+                && !(player.isCreative() && player.getItemInHand(hand).getItem().equals(ModItems.RECRUIT_SPAWN_EGG.get()))) {
+            return InteractionResult.PASS;
+        }
+
         if (this.getCommandSenderWorld().isClientSide) {
             boolean flag = this.isOwnedBy(player) || !this.canBeHired();
             return flag ? InteractionResult.CONSUME : InteractionResult.PASS;
@@ -1355,11 +1361,6 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 if (player.isCrouching()) {
                     this.openGUI(player);
                     this.navigation.stop();
-                    return InteractionResult.SUCCESS;
-                }
-                if(!player.isCrouching() && this.isGarrison()) {
-                    // garrison recruits are commanded by their Governor; open the inventory to release them
-                    player.sendSystemMessage(Component.translatable("chat.recruits.governor.garrison_info", name));
                     return InteractionResult.SUCCESS;
                 }
                 if(!player.isCrouching()) {
@@ -1715,10 +1716,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return (upkeepInProgress || forcedUpkeep || (!hasFood && timer == 0 && needsToEat) && (isChest || isEntity)) && !getShouldProtect();
     }
 
+    /** Food this recruit will really eat - blacklisted food (spider eyes, ...) does not count, otherwise he never goes to the upkeep. */
     public boolean hasFoodInInv(){
         return this.getInventory().items
                 .stream()
-                .anyMatch(ItemStack::isEdible);
+                .anyMatch(this::canEatItemStack);
     }
 
     public boolean needsToEat(){
@@ -2312,7 +2314,8 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             if(itemstack.isEmpty()) continue;
 
             if(!this.canEatItemStack(itemstack) && this.wantsToPickUp(itemstack)){
-                if (this.canEquipItem(itemstack)) {
+                // garrison recruits wear what the Governor's template says; slots without template stay as they are
+                if (!this.isGarrison() && this.canEquipItem(itemstack)) {
                     ItemStack equipment = itemstack.copy();
                     equipment.setCount(1);
                     this.equipItem(equipment);
@@ -2475,9 +2478,7 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
 
     public boolean canEatItemStack(ItemStack stack){
-        ResourceLocation location = ForgeRegistries.ITEMS.getKey(stack.getItem());
-
-        if(RecruitsServerConfig.FoodBlackList.get().contains(location.toString())){
+        if(stack.isEmpty() || isBlacklistedFood(stack)){
             return false;
         }
         return stack.isEdible();

@@ -81,7 +81,8 @@ public class RecruitUpkeepPosGoal extends Goal {
             }
             if(chestPos != null){
                 double distance = this.recruit.position().distanceToSqr(Vec3.atCenterOf(chestPos));
-                if(distance > 10000){
+                // garrison recruits use the upkeep chests of their claim, which can be farther away in a big claim
+                if(distance > 10000 && !recruit.isGarrison()){
                     if(recruit.getOwner() != null && messageNotInRange){
                         recruit.getOwner().sendSystemMessage(TEXT_NOT_IN_RANGE(recruit.getName().getString()));
                         messageNotInRange = false;

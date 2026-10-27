@@ -28,6 +28,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
     private boolean resetClaims = true;
     private boolean syncComplete = true;
     private boolean blockPlacingBreakingOnlyWhenClaimed;
+    private int chunkRefund;
 
     public MessageToClientUpdateClaims() {
     }
@@ -59,6 +60,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.syncComplete = syncComplete;
         // constructors only run on the server side, so the server config is available here
         this.blockPlacingBreakingOnlyWhenClaimed = RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get();
+        this.chunkRefund = MessageUpdateClaim.getChunkRefund();
     }
 
     @Override
@@ -84,6 +86,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         ClientManager.configValueIsClaimingAllowed = this.allowClaiming;
         ClientManager.configFogOfWarEnabled = this.fogOfWarEnabled;
         ClientManager.configValueBlockPlacingBreakingOnlyWhenClaimed = this.blockPlacingBreakingOnlyWhenClaimed;
+        ClientManager.configValueChunkRefund = this.chunkRefund;
 
         if (syncComplete) {
             ClientManager.rebuildActiveSieges();
@@ -103,6 +106,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         this.resetClaims = buf.readBoolean();
         this.syncComplete = buf.readBoolean();
         this.blockPlacingBreakingOnlyWhenClaimed = buf.readBoolean();
+        this.chunkRefund = buf.readVarInt();
         return this;
     }
 
@@ -119,6 +123,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
         buf.writeBoolean(this.resetClaims);
         buf.writeBoolean(this.syncComplete);
         buf.writeBoolean(this.blockPlacingBreakingOnlyWhenClaimed);
+        buf.writeVarInt(this.chunkRefund);
     }
 
 }

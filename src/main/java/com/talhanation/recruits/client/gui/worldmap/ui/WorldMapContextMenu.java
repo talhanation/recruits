@@ -59,6 +59,9 @@ public class WorldMapContextMenu {
         this.worldMapScreen = worldMapScreen;
         ItemStack itemStackClaimChunk = new ItemStack(ClientManager.currencyItemStack.getItem());
         itemStackClaimChunk.setCount(ClientManager.configValueChunkCost);
+        // refund for removing a chunk (shown like the price of claiming one)
+        ItemStack itemStackChunkRefund = new ItemStack(ClientManager.currencyItemStack.getItem());
+        itemStackChunkRefund.setCount(ClientManager.configValueChunkRefund);
         ItemStack itemStackClaimArea = new ItemStack(ClientManager.currencyItemStack.getItem());
         itemStackClaimArea.setCount(worldMapScreen.getClaimCost(ClientManager.ownFaction));
 
@@ -135,7 +138,9 @@ public class WorldMapContextMenu {
                         screen.clearSelectedChunk();
                         Main.SIMPLE_CHANNEL.sendToServer(new MessageUpdateClaim(screen.selectedClaim()));
                     }
-                }
+                },
+                itemStackChunkRefund,
+                ""
         );
 
         addEntry(TEXT_CENTER_MAP, WorldMapScreen::centerOnPlayer);

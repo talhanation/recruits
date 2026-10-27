@@ -25,4 +25,9 @@ public interface ICommandCategory {
     /** Called every client tick while this category is selected. */
     default void tick(CommandScreen screen, Player player) {
     }
+
+    /** Mouse wheel over the screen; return true if the category used it (then the category is not switched). */
+    default boolean mouseScrolled(CommandScreen screen, double mouseX, double mouseY, double delta) {
+        return false;
+    }
 }

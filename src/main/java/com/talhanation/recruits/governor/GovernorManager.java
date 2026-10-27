@@ -3,6 +3,7 @@ package com.talhanation.recruits.governor;
 import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
+import com.talhanation.recruits.VillageEvents;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.GovernorEntity;
@@ -10,6 +11,10 @@ import com.talhanation.recruits.network.MessageToClientGovernorData;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
+import com.talhanation.recruits.world.NobleQuestProgress;
+import com.talhanation.recruits.world.NobleReputation;
+import com.talhanation.recruits.world.RecruitsVillage;
+import com.talhanation.recruits.world.RecruitsVillageManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -163,8 +168,25 @@ public class GovernorManager {
         return faction != null && player.equals(faction.getTeamLeaderUUID());
     }
 
+    /**
+     * Garrison limit of the claim: {@code GovernorRecruitsPerChunk} per chunk, plus
+     * {@code GovernorGarrisonBonusPerLevel} for every Governor level from {@code GovernorGarrisonBonusFromLevel} on.
+     */
     public static int getGarrisonCap(RecruitsClaim claim) {
+        GovernorManager manager = get();
+        ClaimGovernorData data = manager == null ? null : manager.getData(claim.getUUID());
+        int level = data == null || !data.hasGovernor() ? 0 : data.getGovernorLevel();
+        return getBaseGarrisonCap(claim) + getLevelBonus(level);
+    }
+
+    public static int getBaseGarrisonCap(RecruitsClaim claim) {
         return claim.getClaimedChunks().size() * RecruitsServerConfig.GovernorRecruitsPerChunk.get();
+    }
+
+    public static int getLevelBonus(int governorLevel) {
+        int from = RecruitsServerConfig.GovernorGarrisonBonusFromLevel.get();
+        if (governorLevel < from) return 0;
+        return (governorLevel - from + 1) * RecruitsServerConfig.GovernorGarrisonBonusPerLevel.get();
     }
 
     /** Bounding box of all claimed chunks, full build height, inflated horizontally. */
@@ -226,9 +248,27 @@ public class GovernorManager {
 
     // ------------------------------------------------------------------ village
 
-    public static List<Villager> findVillagers(ServerLevel level, RecruitsClaim claim) {
-        return level.getEntitiesOfClass(Villager.class, getClaimBox(level, claim, 0),
-                villager -> villager.isAlive() && !villager.isBaby() && isInClaim(claim, villager.blockPosition()));
+    /** Villages of the noble system whose centre lies in the claim. */
+    public static List<RecruitsVillage> getVillages(RecruitsClaim claim) {
+        if (VillageEvents.villageManager == null) return new ArrayList<>();
+        return VillageEvents.villageManager.getVillagesInClaim(claim);
+    }
+
+    /** Inhabitants of the claim, counted like the nobles count them (villagers with a bed in the village + nobles). */
+    public static int getInhabitants(ServerLevel level, RecruitsClaim claim) {
+        if (VillageEvents.villageManager == null) return 0;
+        return VillageEvents.villageManager.getInhabitants(claim, level.getDayTime() / 24000L);
+    }
+
+    /** The village of the claim with the most inhabitants (for the reputation shown in the Village tab). */
+    @Nullable
+    public static RecruitsVillage getMainVillage(ServerLevel level, RecruitsClaim claim) {
+        long day = level.getDayTime() / 24000L;
+        RecruitsVillage best = null;
+        for (RecruitsVillage village : getVillages(claim)) {
+            if (best == null || village.getInhabitants(day) > best.getInhabitants(day)) best = village;
+        }
+        return best;
     }
 
     /** Village bells (meeting points) inside the claim. */
@@ -245,6 +285,36 @@ public class GovernorManager {
                 net.minecraft.world.entity.ai.village.poi.PoiManager.Occupancy.ANY
         ).forEach(pos -> bells.add(pos.immutable()));
         return bells;
+    }
+
+    /** Reputation of the claim owner in the main village and the owner's active quest, for the Village tab. */
+    private static void writeVillageReputation(CompoundTag tag, ServerLevel level, RecruitsClaim claim, ClaimGovernorData data) {
+        RecruitsVillageManager villageManager = VillageEvents.villageManager;
+        UUID owner = data.getGovernorOwner() != null ? data.getGovernorOwner() : getClaimOwner(claim);
+        if (villageManager == null || owner == null) return;
+
+        RecruitsVillage village = getMainVillage(level, claim);
+        tag.putBoolean("repActive", village != null && RecruitsVillageManager.isReputationEnabled());
+        if (village != null) {
+            String faction = RecruitsVillageManager.getFactionOf(level.getServer(), owner);
+            int reputation = villageManager.getEffectiveReputation(village, owner, faction);
+            tag.putInt("reputation", reputation);
+            tag.putInt("repTier", NobleReputation.getTier(reputation).ordinal());
+        }
+
+        NobleQuestProgress progress = villageManager.getActiveQuest(owner);
+        if (progress != null && !progress.isExpired(level.getGameTime())) {
+            boolean here = false;
+            for (RecruitsVillage claimVillage : getVillages(claim)) {
+                if (claimVillage.getId().equals(progress.villageId)) here = true;
+            }
+            tag.putString("questText", Component.Serializer.toJson(progress.quest.getDescription()));
+            tag.putInt("questProgress", progress.progress);
+            tag.putInt("questCount", progress.quest.count);
+            tag.putBoolean("questDone", progress.completed);
+            tag.putBoolean("questHere", here);
+            tag.putLong("questTicksLeft", progress.expiresAt - level.getGameTime());
+        }
     }
 
     // ------------------------------------------------------------------ notifications
@@ -322,6 +392,12 @@ public class GovernorManager {
         tag.putString("factionName", faction != null ? faction.getTeamDisplayName() : "");
         tag.putInt("chunkCount", claim.getClaimedChunks().size());
         tag.putInt("cap", getGarrisonCap(claim));
+        tag.putInt("capBase", getBaseGarrisonCap(claim));
+        tag.putInt("governorLevel", data.hasGovernor() ? data.getGovernorLevel() : 0);
+        tag.putInt("bonusFromLevel", RecruitsServerConfig.GovernorGarrisonBonusFromLevel.get());
+        tag.putInt("bonusPerLevel", RecruitsServerConfig.GovernorGarrisonBonusPerLevel.get());
+        tag.putString("recruitStatus", data.recruitStatus == null ? "idle" : data.recruitStatus);
+        tag.putString("recruitStatusArg", data.recruitStatusArg == null ? "" : data.recruitStatusArg);
         tag.putBoolean("underSiege", claim.isUnderSiege);
 
         ListTag chunks = new ListTag();
@@ -410,10 +486,13 @@ public class GovernorManager {
         tag.putInt("budget", data.getBudgetPerDay());
         tag.putInt("spentToday", data.getSpentToday(day));
 
-        // village
-        List<BlockPos> bells = findBells(level, claim);
-        tag.putBoolean("village", !bells.isEmpty());
-        tag.putInt("inhabitants", bells.isEmpty() ? 0 : findVillagers(level, claim).size());
+        // village: the same villages and inhabitants as the nobles
+        List<RecruitsVillage> villages = getVillages(claim);
+        tag.putBoolean("village", !villages.isEmpty());
+        tag.putInt("villages", villages.size());
+        tag.putInt("inhabitants", getInhabitants(level, claim));
+        tag.putInt("questMode", data.getQuestMode());
+        writeVillageReputation(tag, level, claim, data);
         tag.putInt("taxLevel", data.getTaxLevel());
         tag.putInt("taxToday", data.getTaxToday(day));
         tag.putIntArray("taxPenalty", new int[]{0,

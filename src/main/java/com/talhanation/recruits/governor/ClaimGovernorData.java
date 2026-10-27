@@ -38,6 +38,12 @@ public class ClaimGovernorData {
     private int taxToday;
     private long lastTaxDay = -1;
 
+    /** When the Governor takes village quests for his owner, see {@link #wantsQuest(int)}. 0 = never. */
+    private int questMode;
+    private long lastQuestDay = -1;
+    /** Level of the Governor in office, for the garrison limit while he is not loaded. */
+    private int governorLevel;
+
     // one-time notifications ("einmal melden")
     public boolean treasuryMissingNotified;
     public boolean upkeepMissingNotified;
@@ -46,10 +52,12 @@ public class ClaimGovernorData {
     // runtime only
     public final transient List<Patrol> patrols = new ArrayList<>();
     @Nullable
-    public transient UUID lastPatrolPoint;
     public transient int lastKnownTreasury = -1;
     public transient boolean treasuryMissing;
     public transient boolean upkeepMissing;
+    /** Why the Governor does (not) recruit right now, shown in the Info tab. Key below gui.recruits.governor.recruit_status. */
+    public transient String recruitStatus = "idle";
+    public transient String recruitStatusArg = "";
 
     public ClaimGovernorData(UUID claimId) {
         this.claimId = claimId;
@@ -85,6 +93,7 @@ public class ClaimGovernorData {
 
     public void clearGovernor() {
         setGovernor(null, null, "");
+        this.governorLevel = 0;
     }
 
     public boolean hasGovernor() {
@@ -249,6 +258,46 @@ public class ClaimGovernorData {
         this.taxToday = amount;
     }
 
+    // ------------------------------------------------------------------ village quests
+
+    public static final int QUEST_MODES = 4;
+    /** Reputation thresholds of the quest modes: below this effective reputation the Governor takes quests. */
+    private static final int[] QUEST_THRESHOLDS = {Integer.MIN_VALUE, 0, 25, 75};
+
+    public int getQuestMode() {
+        return questMode;
+    }
+
+    public void setQuestMode(int mode) {
+        this.questMode = Math.max(0, Math.min(QUEST_MODES - 1, mode));
+    }
+
+    /** True if the Governor should take a quest at this effective reputation of his owner. */
+    public boolean wantsQuest(int reputation) {
+        return questMode > 0 && reputation < QUEST_THRESHOLDS[questMode];
+    }
+
+    public long getLastQuestDay() {
+        return lastQuestDay;
+    }
+
+    public void setLastQuestDay(long day) {
+        this.lastQuestDay = day;
+    }
+
+    public int getGovernorLevel() {
+        return governorLevel;
+    }
+
+    public void setGovernorLevel(int level) {
+        this.governorLevel = Math.max(0, level);
+    }
+
+    public void setRecruitStatus(String status, Object arg) {
+        this.recruitStatus = status;
+        this.recruitStatusArg = arg == null ? "" : String.valueOf(arg);
+    }
+
     // ------------------------------------------------------------------ NBT
 
     public CompoundTag toNBT() {
@@ -280,6 +329,9 @@ public class ClaimGovernorData {
         tag.putInt("taxLevel", taxLevel);
         tag.putInt("taxToday", taxToday);
         tag.putLong("lastTaxDay", lastTaxDay);
+        tag.putInt("questMode", questMode);
+        tag.putLong("lastQuestDay", lastQuestDay);
+        tag.putInt("governorLevel", governorLevel);
         tag.putBoolean("treasuryNotified", treasuryMissingNotified);
         tag.putBoolean("upkeepNotified", upkeepMissingNotified);
         tag.putBoolean("siegeNotified", siegeNotified);
@@ -316,25 +368,63 @@ public class ClaimGovernorData {
         data.taxLevel = tag.getInt("taxLevel");
         data.taxToday = tag.getInt("taxToday");
         data.lastTaxDay = tag.contains("lastTaxDay") ? tag.getLong("lastTaxDay") : -1;
+        data.setQuestMode(tag.getInt("questMode"));
+        data.lastQuestDay = tag.contains("lastQuestDay") ? tag.getLong("lastQuestDay") : -1;
+        data.governorLevel = tag.getInt("governorLevel");
         data.treasuryMissingNotified = tag.getBoolean("treasuryNotified");
         data.upkeepMissingNotified = tag.getBoolean("upkeepNotified");
         data.siegeNotified = tag.getBoolean("siegeNotified");
         return data;
     }
 
-    /** A group of reserve recruits that walks to a random patrol point and comes back. Runtime only. */
+    /**
+     * A few reserve recruits that walk through all patrol points of the claim (route in any order,
+     * nearest point next), stay a moment at each and then return to the reserve. Runtime only.
+     */
     public static class Patrol {
         public final List<UUID> members = new ArrayList<>();
-        public final UUID pointId;
-        public final BlockPos point;
+        /** Patrol points still to visit, the first one is the current target. */
+        public final List<UUID> route = new ArrayList<>();
+        public final List<BlockPos> routePos = new ArrayList<>();
         public int dwellLeft;
         public boolean arrived;
-        public int ageTicks;
+        /** Ticks on the way to the current point (to skip a point nobody can reach). */
+        public int legTicks;
 
-        public Patrol(UUID pointId, BlockPos point, int dwell) {
-            this.pointId = pointId;
-            this.point = point;
-            this.dwellLeft = dwell;
+        public Patrol(List<UUID> route, List<BlockPos> routePos) {
+            this.route.addAll(route);
+            this.routePos.addAll(routePos);
+        }
+
+        @Nullable
+        public BlockPos getCurrentPoint() {
+            return routePos.isEmpty() ? null : routePos.get(0);
+        }
+
+        /** Next point of the route; false if the route is done. */
+        public boolean advance() {
+            if (!route.isEmpty()) {
+                route.remove(0);
+                routePos.remove(0);
+            }
+            arrived = false;
+            dwellLeft = 0;
+            legTicks = 0;
+            return !route.isEmpty();
+        }
+
+        /** Removes points that were deleted meanwhile. */
+        public void removeMissingPoints(ClaimGovernorData data) {
+            for (int i = route.size() - 1; i >= 0; i--) {
+                if (data.getPost(route.get(i)) == null) {
+                    if (i == 0) {
+                        arrived = false;
+                        legTicks = 0;
+                    }
+                    route.remove(i);
+                    routePos.remove(i);
+                }
+            }
         }
     }
 }

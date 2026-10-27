@@ -98,6 +98,10 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         if (this.currentCategory != null) this.currentCategory.tick(this, player);
     }
 
+    public ICommandCategory getCurrentCategory() {
+        return currentCategory;
+    }
+
     /** Rebuilds all buttons, e.g. after new Governor data arrived. */
     public void refreshButtons() {
         if (this.currentCategory == null || !this.currentCategory.isAvailable(this, player)) {
@@ -473,6 +477,16 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         return null;
     }
 
+    /** The container screen does not pass dragging to its widgets; lists need it for their scrollbar. */
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.getFocused() != null && this.isDragging() && button == 0
+                && this.getFocused().mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
     @Override
     public boolean mouseClicked(double x, double y, int id) {
         if(id == 1){
@@ -484,6 +498,8 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
 
     @Override
     public boolean mouseScrolled(double p_94686_, double p_94687_, double p_94688_) {
+        // a list of the category (e.g. the Governor posts) scrolls instead of switching the category
+        if (currentCategory != null && currentCategory.mouseScrolled(this, p_94686_, p_94687_, p_94688_)) return true;
         List<ICommandCategory> available = getAvailableCategories();
         int index = available.indexOf(currentCategory);
         if(index >= 0){

@@ -144,18 +144,30 @@ public final class GovernorGarrison {
     // ------------------------------------------------------------------ loadout
 
     /**
-     * Called by the upkeep goal when a garrison recruit stands at an upkeep chest:
-     * swaps every managed slot to the template item (matched by item type only, enchantments ignored).
-     * If the template item is not in the chest, the recruit keeps what it has.
+     * Swaps all managed slots of a garrison recruit to the template items at once
+     * (matched by item type only, enchantments ignored). See {@link #applyLoadoutStep}.
      */
     public static void applyLoadout(AbstractRecruitEntity recruit, Container container) {
-        if (!recruit.isGarrison() || recruit.getCommandSenderWorld().isClientSide()) return;
+        for (int guard = 0; guard < LOADOUT_SLOTS.length && applyLoadoutStep(recruit, container); guard++) {
+        }
+    }
+
+    /**
+     * Called by the upkeep session when a garrison recruit stands at an upkeep chest: swaps ONE slot to its
+     * template item. The old item is put into the chest (dropped next to it if the chest is full).
+     * Slots without template ("keep") are left as they are; if the template item is not in the chest,
+     * the recruit keeps what he has.
+     *
+     * @return true if a slot was swapped (the session waits a moment and calls again)
+     */
+    public static boolean applyLoadoutStep(AbstractRecruitEntity recruit, Container container) {
+        if (!recruit.isGarrison() || recruit.getCommandSenderWorld().isClientSide()) return false;
         GovernorManager manager = GovernorManager.get();
-        if (manager == null) return;
+        if (manager == null) return false;
         ClaimGovernorData data = manager.getData(recruit.getGarrisonClaim());
-        if (data == null) return;
+        if (data == null) return false;
         GovernorUnitType type = GovernorUnitType.of(recruit);
-        if (type == null) return;
+        if (type == null) return false;
 
         for (int i = 0; i < LOADOUT_SLOTS.length; i++) {
             Item wanted = getItem(data.getLoadout(type, i));
@@ -181,8 +193,10 @@ public final class GovernorGarrison {
             }
             recruit.setItemSlot(slot, replacement);
             recruit.inventory.setItem(recruit.getInventorySlotIndex(slot), replacement);
+            container.setChanged();
+            return true;
         }
-        container.setChanged();
+        return false;
     }
 
     /** True if the recruit's equipment differs from its template and the chest can fix it. */
@@ -194,6 +208,8 @@ public final class GovernorGarrison {
             if (wanted == null) continue;
             ItemStack current = recruit.getItemBySlot(LOADOUT_SLOTS[i]);
             if (!needsSwap(current, wanted)) continue;
+            // an item this unit can not hold (a bow for a swordsman) would send him to the chest again and again
+            if (!recruit.canGarrisonHold(new ItemStack(wanted))) continue;
             if (container == null || findUsable(container, wanted) >= 0) return true;
         }
         return false;

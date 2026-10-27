@@ -232,7 +232,9 @@ public class Main {
                 MessageGovernorAssignGroup.class,
                 MessageGovernorRequestData.class,
                 MessageToClientGovernorData.class,
-                MessageGovernorSetClaim.class
+                MessageGovernorSetClaim.class,
+                MessageGovernorSetQuestMode.class,
+                MessageGovernorSetUnit.class
         };
 
 
@@ -269,6 +271,7 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
         MinecraftForge.EVENT_BUS.register(new ClientClaimProtectionEvents());
         MinecraftForge.EVENT_BUS.register(new ClaimOverlayManager());
+        MinecraftForge.EVENT_BUS.register(new com.talhanation.recruits.client.events.GovernorPostRenderer());
 
         CommandCategoryManager.register(new MovementCategory(), -2);
         CommandCategoryManager.register(new CombatCategory(), -3);

@@ -10,8 +10,11 @@ import com.talhanation.recruits.world.RecruitsFaction;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.PlayerTeam;
@@ -221,7 +224,32 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
         } else {
             acceptedClaim.setCenter(calculateCenter(chunkSet(acceptedClaim)));
         }
+        refundChunk(sender);
         return acceptedClaim;
+    }
+
+    /** Part of the chunk price back (config ChunkRefundPercent, default 50 %). Creative players paid nothing. */
+    private static void refundChunk(ServerPlayer sender) {
+        if (sender.isCreative()) return;
+        int refund = getChunkRefund();
+        if (refund <= 0) return;
+        giveCurrency(sender, refund);
+        sender.sendSystemMessage(Component.translatable("chat.recruits.claim.chunk_refund", refund, FactionEvents.getCurrency().getHoverName()));
+    }
+
+    public static int getChunkRefund() {
+        return RecruitsServerConfig.ChunkCost.get() * RecruitsServerConfig.ChunkRefundPercent.get() / 100;
+    }
+
+    private static void giveCurrency(ServerPlayer player, int amount) {
+        Item currency = FactionEvents.getCurrency().getItem();
+        int left = amount;
+        while (left > 0) {
+            int size = Math.min(left, currency.getMaxStackSize());
+            ItemStack stack = new ItemStack(currency, size);
+            if (!player.getInventory().add(stack)) player.drop(stack, false);
+            left -= size;
+        }
     }
 
     private static boolean takePayment(ServerPlayer sender, int cost) {

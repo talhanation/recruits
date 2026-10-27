@@ -5,6 +5,7 @@ import com.talhanation.recruits.compat.corpse.LootableCorpses;
 import com.talhanation.recruits.compat.musketmod.IWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.GovernorEntity;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
@@ -67,6 +68,8 @@ public class RecruitFieldLootGoal extends Goal {
             return false;
         }
         if ((recruit.tickCount + recruit.getId()) % SEARCH_INTERVAL != 0) return false;
+        // a governing Governor stays at his post
+        if (recruit instanceof GovernorEntity governor && governor.isRuling()) return false;
         if (!RecruitsServerConfig.RecruitsFieldLooting.get() || !LootableCorpses.isAnyCorpseModLoaded()) return false;
         if (!isCalm()) return false;
 

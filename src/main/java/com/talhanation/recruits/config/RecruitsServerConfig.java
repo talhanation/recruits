@@ -59,6 +59,9 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyLow;
     public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyMedium;
     public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyHigh;
+    public static ForgeConfigSpec.IntValue GovernorGarrisonBonusFromLevel;
+    public static ForgeConfigSpec.IntValue GovernorGarrisonBonusPerLevel;
+    public static ForgeConfigSpec.IntValue ChunkRefundPercent;
     public static ForgeConfigSpec.BooleanValue ShouldRecruitPatrolsSpawn;
     public static ForgeConfigSpec.BooleanValue ShouldPillagerPatrolsSpawn;
     public static ForgeConfigSpec.DoubleValue RecruitPatrolsSpawnChance;
@@ -904,6 +907,13 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .defineInRange("ChunkCost", 15, 0, 1453);
 
+        ChunkRefundPercent = BUILDER.comment("""
+                        How many percent of the chunk price (ChunkCost) are paid back when a chunk is removed from a claim on the world map.
+                        \t(takes effect after restart)
+                        \tdefault: 50""")
+                .worldRestart()
+                .defineInRange("ChunkRefundPercent", 50, 0, 100);
+
         MaxClaimChunks = BUILDER.comment("""
                         The maximum amount of chunks a single claim territory can contain.
                         The default claim area is 5x5 chunks, so values below 25 are not allowed.
@@ -968,9 +978,24 @@ public class RecruitsServerConfig {
         GovernorRecruitsPerChunk = BUILDER.comment("""
                         How many garrison recruits a Governor may command per claimed chunk.
                         \t(takes effect after restart)
-                        \tdefault: 3""")
+                        \tdefault: 2""")
                 .worldRestart()
-                .defineInRange("GovernorRecruitsPerChunk", 3, 0, 64);
+                .defineInRange("GovernorRecruitsPerChunk", 2, 0, 64);
+
+        GovernorGarrisonBonusFromLevel = BUILDER.comment("""
+                        From this level on, every level of the Governor adds extra garrison places (see GovernorGarrisonBonusPerLevel).
+                        With the defaults a Governor of level 7 has 10 extra places, level 8 has 20, and so on.
+                        \t(takes effect after restart)
+                        \tdefault: 7""")
+                .worldRestart()
+                .defineInRange("GovernorGarrisonBonusFromLevel", 7, 1, 1453);
+
+        GovernorGarrisonBonusPerLevel = BUILDER.comment("""
+                        Extra garrison places per Governor level, counted from GovernorGarrisonBonusFromLevel on.
+                        \t(takes effect after restart)
+                        \tdefault: 10""")
+                .worldRestart()
+                .defineInRange("GovernorGarrisonBonusPerLevel", 10, 0, 1453);
 
         GovernorTickInterval = BUILDER.comment("""
                         Interval in ticks in which the Governor distributes his garrison, checks chests and recruits.
@@ -980,7 +1005,7 @@ public class RecruitsServerConfig {
                 .defineInRange("GovernorTickInterval", 40, 20, 1200);
 
         GovernorPatrolInterval = BUILDER.comment("""
-                        Interval in ticks in which the Governor may send recruits of the reserve to a random patrol point.
+                        Interval in ticks in which the Governor may send a few recruits of the reserve on a patrol through all patrol points.
                         \t(takes effect after restart)
                         \tdefault: 600""")
                 .worldRestart()
@@ -994,7 +1019,7 @@ public class RecruitsServerConfig {
                 .defineInRange("GovernorMaxPatrols", 2, 0, 16);
 
         GovernorPatrolDwellTicks = BUILDER.comment("""
-                        How long in ticks a patrol stays at a patrol point before returning to the reserve.
+                        How long in ticks a patrol stays at each patrol point before walking on to the next one.
                         \t(takes effect after restart)
                         \tdefault: 100""")
                 .worldRestart()
@@ -1008,21 +1033,21 @@ public class RecruitsServerConfig {
                 .defineInRange("GovernorTaxPer10Inhabitants", 1, 0, 1453);
 
         GovernorTaxReputationPenaltyLow = BUILDER.comment("""
-                        Daily reputation loss of the claim owner in the village at tax level 1 (used once the reputation system exists).
+                        Daily reputation loss of the claim owner in every village of the claim at tax level 1.
                         \t(takes effect after restart)
                         \tdefault: 0""")
                 .worldRestart()
                 .defineInRange("GovernorTaxReputationPenaltyLow", 0, 0, 100);
 
         GovernorTaxReputationPenaltyMedium = BUILDER.comment("""
-                        Daily reputation loss of the claim owner in the village at tax level 2 (used once the reputation system exists).
+                        Daily reputation loss of the claim owner in every village of the claim at tax level 2.
                         \t(takes effect after restart)
                         \tdefault: 1""")
                 .worldRestart()
                 .defineInRange("GovernorTaxReputationPenaltyMedium", 1, 0, 100);
 
         GovernorTaxReputationPenaltyHigh = BUILDER.comment("""
-                        Daily reputation loss of the claim owner in the village at tax level 3 (used once the reputation system exists).
+                        Daily reputation loss of the claim owner in every village of the claim at tax level 3.
                         \t(takes effect after restart)
                         \tdefault: 3""")
                 .worldRestart()

@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -40,6 +41,14 @@ public class GovernorSnapshot {
     public String factionName = "";
     public int chunkCount;
     public int cap;
+    /** Garrison limit from the chunks alone; cap - capBase comes from the Governor's level. */
+    public int capBase;
+    public int governorLevel;
+    public int bonusFromLevel;
+    public int bonusPerLevel;
+    /** Why the Governor does (not) recruit right now, see gui.recruits.governor.recruit_status.*. */
+    public String recruitStatus = "idle";
+    public String recruitStatusArg = "";
     public boolean underSiege;
     public final List<ChunkPos> chunks = new ArrayList<>();
 
@@ -66,7 +75,20 @@ public class GovernorSnapshot {
     public int spentToday;
 
     public boolean village;
+    public int villages;
     public int inhabitants;
+    public int questMode;
+    public boolean repActive;
+    public int reputation;
+    public int repTier;
+    /** Active quest of the claim owner, null if none. */
+    @Nullable
+    public Component questText;
+    public int questProgress;
+    public int questCount;
+    public boolean questDone;
+    public boolean questHere;
+    public long questTicksLeft;
     public int taxLevel;
     public int taxToday;
     public int[] taxPenalty = new int[4];
@@ -94,6 +116,12 @@ public class GovernorSnapshot {
         s.factionName = tag.getString("factionName");
         s.chunkCount = tag.getInt("chunkCount");
         s.cap = tag.getInt("cap");
+        s.capBase = tag.contains("capBase") ? tag.getInt("capBase") : s.cap;
+        s.governorLevel = tag.getInt("governorLevel");
+        s.bonusFromLevel = tag.getInt("bonusFromLevel");
+        s.bonusPerLevel = tag.getInt("bonusPerLevel");
+        s.recruitStatus = tag.contains("recruitStatus") ? tag.getString("recruitStatus") : "idle";
+        s.recruitStatusArg = tag.getString("recruitStatusArg");
         s.underSiege = tag.getBoolean("underSiege");
         ListTag chunkList = tag.getList("chunks", Tag.TAG_LONG);
         for (Tag chunk : chunkList) {
@@ -133,7 +161,24 @@ public class GovernorSnapshot {
         s.spentToday = tag.getInt("spentToday");
 
         s.village = tag.getBoolean("village");
+        s.villages = tag.getInt("villages");
         s.inhabitants = tag.getInt("inhabitants");
+        s.questMode = tag.getInt("questMode");
+        s.repActive = tag.getBoolean("repActive");
+        s.reputation = tag.getInt("reputation");
+        s.repTier = tag.getInt("repTier");
+        if (tag.contains("questText")) {
+            try {
+                s.questText = Component.Serializer.fromJson(tag.getString("questText"));
+            } catch (Exception ignored) {
+                s.questText = null;
+            }
+        }
+        s.questProgress = tag.getInt("questProgress");
+        s.questCount = tag.getInt("questCount");
+        s.questDone = tag.getBoolean("questDone");
+        s.questHere = tag.getBoolean("questHere");
+        s.questTicksLeft = tag.getLong("questTicksLeft");
         s.taxLevel = tag.getInt("taxLevel");
         s.taxToday = tag.getInt("taxToday");
         copy(tag.getIntArray("taxPenalty"), s.taxPenalty);
