@@ -3,6 +3,8 @@ package com.talhanation.recruits.items;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.RecruitEvents;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -16,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ForgeSpawnEggItem;
+import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.minecraft.world.phys.Vec3;
 
 import net.minecraft.world.scores.PlayerTeam;
@@ -27,7 +29,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 
-public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
+public class RecruitsSpawnEgg extends DeferredSpawnEggItem {
     private final Supplier<? extends EntityType<? extends AbstractRecruitEntity>> entityType;
 
     public RecruitsSpawnEgg(Supplier<? extends EntityType<? extends AbstractRecruitEntity>> entityType, int primaryColor, int secondaryColor, Properties properties) {
@@ -35,10 +37,10 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         this.entityType = entityType;
     }
     @Override
-    public @NotNull EntityType<?> getType(CompoundTag compound){
+    public @NotNull EntityType<?> getType(ItemStack stack){
+        CompoundTag compound = stack.getOrDefault(DataComponents.ENTITY_DATA, CustomData.EMPTY).copyTag();
         if(compound != null && compound.contains("EntityTag", 10)) {
             CompoundTag entityTag = compound.getCompound("EntityTag");
-
             if(entityTag.contains("id", 8)) {
                 return EntityType.byString(entityTag.getString("id")).orElse(this.entityType.get());
             }
@@ -55,11 +57,11 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
         else{
             ItemStack stack = context.getItemInHand();
             BlockPos pos = context.getClickedPos();
-            EntityType<?> entitytype = this.getType(stack.getTag());
+            EntityType<?> entitytype = this.getType(stack);
             Entity entity = entitytype.create(world);
 
 
-            CompoundTag entityTag = stack.getTag();
+            CompoundTag entityTag = stack.getOrDefault(DataComponents.ENTITY_DATA, CustomData.EMPTY).copyTag();
             if(entity instanceof AbstractRecruitEntity recruit && entityTag != null && !entityTag.isEmpty()) {
 
                 fillRecruit(recruit, entityTag, pos);
@@ -189,20 +191,20 @@ public class RecruitsSpawnEgg extends ForgeSpawnEggItem {
             CompoundTag compoundnbt = listnbt.getCompound(i);
             int j = compoundnbt.getByte("Slot") & 255;
             if (j < recruit.inventory.getContainerSize()) {
-                recruit.inventory.setItem(j, ItemStack.of(compoundnbt));
+                recruit.inventory.setItem(j, ItemStack.parseOptional(recruit.registryAccess(), compoundnbt));
             }
         }
 
         ListTag armorItems = nbt.getList("ArmorItems", 10);
         for (int i = 0; i < recruit.armorItems.size(); ++i) {
-            int index = recruit.getInventorySlotIndex(Mob.getEquipmentSlotForItem(ItemStack.of(armorItems.getCompound(i))));
-            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(armorItems.getCompound(i)));
+            int index = recruit.getInventorySlotIndex(com.talhanation.recruits.entities.AbstractInventoryEntity.getEquipmentSlotForRecruit(ItemStack.parseOptional(recruit.registryAccess(), armorItems.getCompound(i))));
+            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.parseOptional(recruit.registryAccess(), armorItems.getCompound(i)));
         }
 
         ListTag handItems = nbt.getList("HandItems", 10);
         for (int i = 0; i < recruit.handItems.size(); ++i) {
             int index = i == 0 ? 5 : 4; //5 = mainhand 4 = offhand
-            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.of(handItems.getCompound(i)));
+            recruit.setItemSlot(recruit.getEquipmentSlotIndex(index), ItemStack.parseOptional(recruit.registryAccess(), handItems.getCompound(i)));
         }
 
         recruit.setPos(pos.getX() + 0.5, pos.getY() + 1 , pos.getZ() + 0.5);

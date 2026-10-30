@@ -1,18 +1,22 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.MessengerEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
 
+    public static final CustomPacketPayload.Type<MessageAnswerMessenger> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageanswermessenger"));
     private UUID recruit;
     public MessageAnswerMessenger() {
     }
@@ -20,22 +24,22 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
         this.recruit = recruit;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        ServerPlayer player = context.getSender();
-        List<MessengerEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(
+    public void executeServerSide(IPayloadContext context){
+        ServerPlayer player = ((ServerPlayer) context.player());
+        List<MessengerEntity> list = Objects.requireNonNull(((ServerPlayer) context.player())).getCommandSenderWorld().getEntitiesOfClass(
                 MessengerEntity.class,
-                context.getSender().getBoundingBox().inflate(16D)
+                ((ServerPlayer) context.player()).getBoundingBox().inflate(16D)
         );
         for (MessengerEntity messenger : list){
 
             if (messenger.getUUID().equals(this.recruit)){
 
                 messenger.teleportWaitTimer = 100;
-                context.getSender().sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());
+                ((ServerPlayer) context.player()).sendSystemMessage(messenger.MESSENGER_INFO_ON_MY_WAY());
                 messenger.giveDeliverItem(player);
 
                 messenger.setMessengerState(MessengerEntity.MessengerState.TELEPORT_BACK);
@@ -43,12 +47,17 @@ public class MessageAnswerMessenger implements Message<MessageAnswerMessenger> {
         }
 
     }
-    public MessageAnswerMessenger fromBytes(FriendlyByteBuf buf) {
+    public MessageAnswerMessenger fromBytes(RegistryFriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(recruit);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAnswerMessenger> type() {
+        return TYPE;
     }
 }

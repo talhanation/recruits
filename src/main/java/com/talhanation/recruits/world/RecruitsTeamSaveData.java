@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import net.minecraft.core.HolderLookup;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -17,10 +18,10 @@ public class RecruitsTeamSaveData extends SavedData {
 
     public static RecruitsTeamSaveData get(ServerLevel level) {
         DimensionDataStorage storage = level.getDataStorage();
-        return storage.computeIfAbsent(RecruitsTeamSaveData::load, RecruitsTeamSaveData::new, FILE_ID);
+        return storage.computeIfAbsent(new SavedData.Factory<>(RecruitsTeamSaveData::new, RecruitsTeamSaveData::load), FILE_ID);
     }
 
-    public static RecruitsTeamSaveData load(CompoundTag nbt) {
+    public static RecruitsTeamSaveData load(CompoundTag nbt, HolderLookup.Provider provider) {
         RecruitsTeamSaveData data = new RecruitsTeamSaveData();
         if (nbt.contains("Teams", 9)) {
             data.teams = loadTeams(nbt.getList("Teams", 10));
@@ -60,7 +61,7 @@ public class RecruitsTeamSaveData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
         nbt.put("Teams", saveTeams());
         return nbt;
     }

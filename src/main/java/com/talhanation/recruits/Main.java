@@ -19,29 +19,37 @@ import com.talhanation.recruits.init.ModScreens;
 import com.talhanation.recruits.init.*;
 import com.talhanation.recruits.network.*;
 import de.maxhenkel.corelib.CommonRegistry;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import com.talhanation.recruits.entities.AbstractChunkLoaderEntity;
+import com.talhanation.recruits.entities.AbstractInventoryEntity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.*;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.*;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @Mod(Main.MOD_ID)
 public class Main {
     public static final String MOD_ID = "recruits";
-    public static SimpleChannel SIMPLE_CHANNEL;
+    public static final SimpleChannel SIMPLE_CHANNEL = new SimpleChannel();
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static boolean isMusketModLoaded;
     public static boolean isSmallShipsLoaded;
@@ -52,20 +60,21 @@ public class Main {
     public static boolean isCorpseLoaded;
     public static boolean isRPGZLoaded;
 
-    public Main() {
-        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public Main(IEventBus modEventBus, ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.SERVER);
+        // the client config is also read on the server side (like the manual loadConfig in 1.20.1)
+        modContainer.registerConfig(FMLEnvironment.dist.isClient() ? ModConfig.Type.CLIENT : ModConfig.Type.COMMON, RecruitsClientConfig.CLIENT, "recruits-client.toml");
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, RecruitsServerConfig.SERVER);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, RecruitsClientConfig.CLIENT);
-        RecruitsClientConfig.loadConfig(RecruitsClientConfig.CLIENT, FMLPaths.CONFIGDIR.get().resolve("recruits-client.toml"));
-
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-                    FMLJavaModLoadingContext.get().getModEventBus().addListener(Main.this::clientSetup);
-                    FMLJavaModLoadingContext.get().getModEventBus().addListener(ModShortcuts::registerBindings);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+                    modEventBus.addListener(Main.this::clientSetup);
+                    modEventBus.addListener(ModShortcuts::registerBindings);
+                    modEventBus.addListener(ModScreens::registerMenus);
                 }
-        );
 
         modEventBus.addListener(this::setup);
+        modEventBus.addListener(this::registerPayloads);
+        modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(AbstractChunkLoaderEntity::registerTicketController);
         ModBlocks.BLOCKS.register(modEventBus);
         ModPois.POIS.register(modEventBus);
         ModProfessions.PROFESSIONS.register(modEventBus);
@@ -73,10 +82,10 @@ public class Main {
         ModItems.ITEMS.register(modEventBus);
         ModEntityTypes.ENTITY_TYPES.register(modEventBus);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::addCreativeTabs);
+        modEventBus.addListener(this::addCreativeTabs);
 
         //ModSounds.SOUNDS.register(modEventBus);
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(this);
     }
 
     @SubscribeEvent
@@ -87,20 +96,20 @@ public class Main {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void setup(final FMLCommonSetupEvent event) {
-        MinecraftForge.EVENT_BUS.register(new RecruitEvents());
-        MinecraftForge.EVENT_BUS.register(new VillagerEvents());
-        MinecraftForge.EVENT_BUS.register(new PillagerEvents());
-        MinecraftForge.EVENT_BUS.register(new CommandEvents());
-        MinecraftForge.EVENT_BUS.register(new DebugEvents());
-        MinecraftForge.EVENT_BUS.register(new FactionEvents());
-        MinecraftForge.EVENT_BUS.register(new DamageEvent());
-        MinecraftForge.EVENT_BUS.register(new UpdateChecker());
-        MinecraftForge.EVENT_BUS.register(new ClaimEvents());
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(new RecruitEvents());
+        NeoForge.EVENT_BUS.register(new VillagerEvents());
+        NeoForge.EVENT_BUS.register(new PillagerEvents());
+        NeoForge.EVENT_BUS.register(new CommandEvents());
+        NeoForge.EVENT_BUS.register(new FactionEvents());
+        NeoForge.EVENT_BUS.register(new DamageEvent());
+        NeoForge.EVENT_BUS.register(new UpdateChecker());
+        NeoForge.EVENT_BUS.register(new ClaimEvents());
+        NeoForge.EVENT_BUS.register(this);
 
-        SIMPLE_CHANNEL = CommonRegistry.registerChannel(Main.MOD_ID, "default");
+        checkLoadedMods();
+    }
 
-        Class[] messages = {
+    private static final Class[] messages = {
                 MessageAggro.class,
                 MessageAggroGui.class,
                 MessageAssassinate.class,
@@ -212,10 +221,22 @@ public class Main {
         };
 
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void registerPayloads(final RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar("1");
         for (int i = 0; i < messages.length; i++){
-            CommonRegistry.registerMessage(SIMPLE_CHANNEL, i, messages[i]);
+            CommonRegistry.registerMessage(registrar, messages[i]);
         }
+    }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        for (DeferredHolder<EntityType<?>, ? extends EntityType<?>> holder : ModEntityTypes.ENTITY_TYPES.getEntries()) {
+            event.registerEntity(Capabilities.ItemHandler.ENTITY, (EntityType) holder.get(), (entity, context) -> ((AbstractInventoryEntity) entity).getItemHandler());
+        }
+    }
+
+    private void checkLoadedMods() {
 
         isMusketModLoaded = ModList.get().isLoaded("musketmod");//MusketMod
         isSmallShipsLoaded = ModList.get().isLoaded("smallships");//small ships
@@ -237,13 +258,11 @@ public class Main {
         }
     }
 
-    @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public void clientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(ModScreens::registerMenus);
-        MinecraftForge.EVENT_BUS.register(new KeyEvents());
-        MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
-        MinecraftForge.EVENT_BUS.register(new ClaimOverlayManager());
+        NeoForge.EVENT_BUS.register(new KeyEvents());
+        NeoForge.EVENT_BUS.register(new ClientPlayerEvents());
+        NeoForge.EVENT_BUS.register(new ClaimOverlayManager());
 
         CommandCategoryManager.register(new MovementCategory(), -2);
         CommandCategoryManager.register(new CombatCategory(), -3);
@@ -290,5 +309,12 @@ public class Main {
             if (cmp != 0) return cmp > 0;
         }
         return true;
+    }
+
+    // Forge SimpleChannel replacement, so all Main.SIMPLE_CHANNEL.sendToServer(...) calls stay as they are
+    public static class SimpleChannel {
+        public void sendToServer(CustomPacketPayload message) {
+            PacketDistributor.sendToServer(message);
+        }
     }
 }

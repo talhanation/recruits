@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 
 public class SiegeEngineerScreen extends RecruitsScreenBase {
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.more_screen.title");
     private static final MutableComponent TEXT_PRIO_CLOSEST_ENEMY = Component.translatable("gui.recruits.inv.text.prioClosestEnemy");
     private static final MutableComponent TOOLTIP_PRIO_CLOSEST_ENEMY = Component.translatable("gui.recruits.inv.tooltip.prioClosestEnemy");

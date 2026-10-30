@@ -42,7 +42,7 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
     }
 
     protected boolean canUpdatePath() {
-        return this.mob.onGround() || this.isInLiquid() || this.mob.isPassenger();
+        return this.mob.onGround() || this.mob.isInLiquid() || this.mob.isPassenger();
     }
 
     protected @NotNull Vec3 getTempMobPos() {
@@ -119,13 +119,13 @@ public class AsyncGroundPathNavigation extends AsyncPathNavigation {
 
     }
 
-    protected boolean hasValidPathType(BlockPathTypes p_26467_) {
-        if (p_26467_ == BlockPathTypes.WATER) {
+    protected boolean hasValidPathType(PathType p_26467_) {
+        if (p_26467_ == PathType.WATER) {
             return false;
-        } else if (p_26467_ == BlockPathTypes.LAVA) {
+        } else if (p_26467_ == PathType.LAVA) {
             return false;
         } else {
-            return p_26467_ != BlockPathTypes.OPEN;
+            return p_26467_ != PathType.OPEN;
         }
     }
 

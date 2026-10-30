@@ -1,17 +1,21 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAggroGui implements Message<MessageAggroGui> {
 
+    public static final CustomPacketPayload.Type<MessageAggroGui> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageaggrogui"));
     private int state;
     private UUID uuid;
 
@@ -23,12 +27,12 @@ public class MessageAggroGui implements Message<MessageAggroGui> {
         this.uuid = uuid;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         player.getCommandSenderWorld().getEntitiesOfClass(
                 AbstractRecruitEntity.class,
                 player.getBoundingBox().inflate(16.0D),
@@ -36,14 +40,19 @@ public class MessageAggroGui implements Message<MessageAggroGui> {
         ).forEach((recruit) -> recruit.setAggroState(this.state));
     }
 
-    public MessageAggroGui fromBytes(FriendlyByteBuf buf) {
+    public MessageAggroGui fromBytes(RegistryFriendlyByteBuf buf) {
         this.state = buf.readInt();
         this.uuid = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeInt(state);
         buf.writeUUID(uuid);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAggroGui> type() {
+        return TYPE;
     }
 }

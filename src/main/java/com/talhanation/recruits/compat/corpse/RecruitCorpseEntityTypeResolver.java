@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
@@ -17,15 +17,15 @@ import java.util.zip.CRC32;
 
 public final class RecruitCorpseEntityTypeResolver {
 
-    private static final ResourceLocation DEFAULT_RECRUIT_ID = new ResourceLocation(Main.MOD_ID, "recruit");
-    private static final ResourceLocation DEFAULT_SCOUT_ID = new ResourceLocation(Main.MOD_ID, "scout");
+    private static final ResourceLocation DEFAULT_RECRUIT_ID = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "recruit");
+    private static final ResourceLocation DEFAULT_SCOUT_ID = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "scout");
     private static final Map<Integer, EntityType<? extends AbstractRecruitEntity>> RESOLVED_TYPES = new ConcurrentHashMap<>();
 
     private RecruitCorpseEntityTypeResolver() {
     }
 
     public static int getEntityTypeHash(AbstractRecruitEntity recruit) {
-        ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(recruit.getType());
+        ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(recruit.getType());
         return id == null ? 0 : stableHash(id);
     }
 
@@ -37,7 +37,7 @@ public final class RecruitCorpseEntityTypeResolver {
                 return cached;
             }
 
-            for (Map.Entry<ResourceKey<EntityType<?>>, EntityType<?>> entry : ForgeRegistries.ENTITY_TYPES.getEntries()) {
+            for (Map.Entry<ResourceKey<EntityType<?>>, EntityType<?>> entry : BuiltInRegistries.ENTITY_TYPE.entrySet()) {
                 ResourceLocation id = entry.getKey().location();
                 if (!Main.MOD_ID.equals(id.getNamespace()) || stableHash(id) != hash) {
                     continue;
@@ -55,7 +55,7 @@ public final class RecruitCorpseEntityTypeResolver {
         }
 
         ResourceLocation fallbackId = companionFallback ? DEFAULT_SCOUT_ID : DEFAULT_RECRUIT_ID;
-        EntityType<?> fallbackType = ForgeRegistries.ENTITY_TYPES.getValue(fallbackId);
+        EntityType<?> fallbackType = BuiltInRegistries.ENTITY_TYPE.get(fallbackId);
         if (fallbackType == null) {
             return null;
         }

@@ -215,7 +215,7 @@ public class WorldMapScreen extends Screen {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         camera.animate();
         refreshSelectedClaim();
-        renderBackground(guiGraphics);
+        renderMapBackground(guiGraphics);
 
         guiGraphics.enableScissor(0, 0, width, height);
 
@@ -309,7 +309,12 @@ public class WorldMapScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics) {
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // 1.20.2+: Screen#render calls renderBackground itself. The background is drawn at the start of
+        // render() (renderMapBackground), it must not be painted again over the map.
+    }
+
+    private void renderMapBackground(GuiGraphics guiGraphics) {
         guiGraphics.fill(0, 0, width, height, DARK_GRAY_BG);
     }
 
@@ -611,7 +616,7 @@ public class WorldMapScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
         if (routeNamePopup.isVisible() || routeEditPopup.isVisible() || waypointEditPopup.isVisible())
             return true;
         if (settingsPanel.isMouseBlocking(mouseX, mouseY, width, height)) return true;
@@ -673,8 +678,8 @@ public class WorldMapScreen extends Screen {
                 case GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_S -> camera.panByScreenDelta(0.0, -moveSpeed);
                 case GLFW.GLFW_KEY_LEFT, GLFW.GLFW_KEY_A -> camera.panByScreenDelta(moveSpeed, 0.0);
                 case GLFW.GLFW_KEY_RIGHT, GLFW.GLFW_KEY_D -> camera.panByScreenDelta(-moveSpeed, 0.0);
-                case GLFW.GLFW_KEY_EQUAL -> mouseScrolled(width / 2.0, height / 2.0, 1);
-                case GLFW.GLFW_KEY_MINUS -> mouseScrolled(width / 2.0, height / 2.0, -1);
+                case GLFW.GLFW_KEY_EQUAL -> mouseScrolled(width / 2.0, height / 2.0, 0, 1);
+                case GLFW.GLFW_KEY_MINUS -> mouseScrolled(width / 2.0, height / 2.0, 0, -1);
                 case GLFW.GLFW_KEY_C -> centerOnPlayer();
                 case GLFW.GLFW_KEY_R -> resetZoom();
             }

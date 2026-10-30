@@ -1,4 +1,8 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.api.ClientClaimEvent;
@@ -6,13 +10,13 @@ import com.talhanation.recruits.client.gui.worldmap.claim.WorldMapClaimIndex;
 import com.talhanation.recruits.network.codec.ClaimNetworkCodec;
 import com.talhanation.recruits.world.RecruitsClaim;
 import de.maxhenkel.corelib.net.Message;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
 public class MessageToClientUpdateClaim implements Message<MessageToClientUpdateClaim> {
+    public static final CustomPacketPayload.Type<MessageToClientUpdateClaim> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientupdateclaim"));
     private RecruitsClaim claim;
 
     public MessageToClientUpdateClaim() {
@@ -23,13 +27,13 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         this.updateOrAddClaim(claim);
     }
 
@@ -58,7 +62,7 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
 
                 ClientManager.updateActiveSiege(newClaim);
 
-                MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
+                NeoForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(newClaim, isCurrentClaim));
                 return;
             }
         }
@@ -66,7 +70,7 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
         ClientManager.recruitsClaims.add(newClaim);
         WorldMapClaimIndex.invalidate();
         ClientManager.updateActiveSiege(newClaim);
-        MinecraftForge.EVENT_BUS.post(
+        NeoForge.EVENT_BUS.post(
                 new ClientClaimEvent.DataUpdated(newClaim, false));
     }
 
@@ -83,17 +87,22 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
         }
 
         WorldMapClaimIndex.invalidate();
-        MinecraftForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(removedClaim, wasCurrentClaim));
+        NeoForge.EVENT_BUS.post(new ClientClaimEvent.DataUpdated(removedClaim, wasCurrentClaim));
     }
 
     @Override
-    public MessageToClientUpdateClaim fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateClaim fromBytes(RegistryFriendlyByteBuf buf) {
         this.claim = ClaimNetworkCodec.readNullableClaim(buf);
 
         return this;
     }
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         ClaimNetworkCodec.writeNullableClaim(buf, this.claim);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientUpdateClaim> type() {
+        return TYPE;
     }
 }

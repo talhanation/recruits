@@ -1,4 +1,5 @@
 package com.talhanation.recruits;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 
 import java.util.Optional;
 
@@ -48,7 +49,7 @@ public class AssassinEvents {
 
             BlockPos blockpos1 = new BlockPos(d0, d1, d2);
 
-            if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, target.level, blockpos1, ModEntityTypes.ASSASSIN.get())) {
+            if (SpawnPlacementTypes.ON_GROUND.isSpawnPositionOk(target.level, blockpos1, ModEntityTypes.ASSASSIN.get())) {
                 blockPos = blockpos1;
                 break;
             }
@@ -71,7 +72,7 @@ public class AssassinEvents {
         int playerEmeralds = 0;
         String str = RecruitsModConfig.RecruitCurrency.get();
         ItemStack currencyItemStack;
-        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+        Optional<Holder.Reference<Item>> holder = BuiltInRegistries.ITEM.getHolder(ResourceLocation.tryParse(str));
 
         if (holder.isPresent()){
             currencyItemStack = holder.get().value().getDefaultInstance();

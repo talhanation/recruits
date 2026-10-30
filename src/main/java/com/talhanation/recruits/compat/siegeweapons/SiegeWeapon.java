@@ -7,7 +7,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -180,6 +180,6 @@ public abstract class SiegeWeapon {
 
     @Nullable
     public static ItemStack getSiegeWeaponItem() {
-        return ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("siegeweapons:catapult")).get().getDefaultInstance();
+        return BuiltInRegistries.ITEM.get(ResourceLocation.tryParse("siegeweapons:catapult")).getDefaultInstance();
     }
 }

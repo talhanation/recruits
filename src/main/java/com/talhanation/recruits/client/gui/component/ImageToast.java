@@ -6,8 +6,8 @@ import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
@@ -29,7 +29,7 @@ public class ImageToast implements Toast {
 
     @Override
     public Visibility render(GuiGraphics guiGraphics, ToastComponent toastComponent, long deltaTime) {
-        guiGraphics.blit(TEXTURE, 0, 0, 0, 0, this.width(), this.height());
+        guiGraphics.blitSprite(ResourceLocation.withDefaultNamespace("toast/advancement"), 0, 0, this.width(), this.height());
 
         if (image != null) {
             guiGraphics.blit(this.image, 5, 5, 0, 0, 21, 21, 21, 21);

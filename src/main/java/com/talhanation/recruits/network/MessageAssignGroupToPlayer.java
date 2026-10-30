@@ -1,4 +1,8 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.RecruitEvents;
@@ -8,12 +12,10 @@ import com.talhanation.recruits.world.RecruitsGroup;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,6 +23,8 @@ import java.util.UUID;
 
 public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToPlayer> {
 
+    public static final CustomPacketPayload.Type<MessageAssignGroupToPlayer> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messageassigngrouptoplayer"));
     private UUID owner;
     private CompoundTag tag;
     private UUID groupUUID;
@@ -35,12 +39,12 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
         this.groupUUID = groupUUID;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
         RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
         ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();
         if(group == null) return;
@@ -67,16 +71,21 @@ public class MessageAssignGroupToPlayer implements Message<MessageAssignGroupToP
         FactionEvents.notifyPlayer(serverLevel, newOwner, 2, group.getName());
     }
 
-    public MessageAssignGroupToPlayer fromBytes(FriendlyByteBuf buf) {
+    public MessageAssignGroupToPlayer fromBytes(RegistryFriendlyByteBuf buf) {
         this.owner = buf.readUUID();
         this.tag = buf.readNbt();
         this.groupUUID = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(owner);
         buf.writeNbt(tag);
         buf.writeUUID(groupUUID);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageAssignGroupToPlayer> type() {
+        return TYPE;
     }
 }

@@ -26,11 +26,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -437,7 +436,7 @@ public class CommandEvents {
 
     public static void openCommandScreen(Player player) {
         if (player instanceof ServerPlayer) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            ((ServerPlayer) player).openMenu(new MenuProvider() {
 
                 @Override
                 public @NotNull Component getDisplayName() {
@@ -453,9 +452,14 @@ public class CommandEvents {
             Main.SIMPLE_CHANNEL.sendToServer(new MessageCommandScreen(player));
         }
     }
+    // Forge fired the phase-less tick event twice per tick (START and END), keep that
     @SubscribeEvent
-    public void onServerPlayerTick(TickEvent.PlayerTickEvent event){
-        if(event.player instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
+    public void onServerPlayerTickPre(PlayerTickEvent.Pre event){ onServerPlayerTick(event); }
+    @SubscribeEvent
+    public void onServerPlayerTickPost(PlayerTickEvent.Post event){ onServerPlayerTick(event); }
+
+    public void onServerPlayerTick(PlayerTickEvent event){
+        if(event.getEntity() instanceof ServerPlayer serverPlayer && serverPlayer.tickCount % 20 == 0){
             int formation = getSavedFormation(serverPlayer);
 
             if(formation > 0){
@@ -492,7 +496,6 @@ public class CommandEvents {
         }
     }
 
-    @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         CompoundTag playerData = event.getEntity().getPersistentData();
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
@@ -601,7 +604,7 @@ public class CommandEvents {
         int playerEmeralds = 0;
 
         String str = RecruitsServerConfig.RecruitCurrency.get();
-        Optional<Holder<Item>> holder = ForgeRegistries.ITEMS.getHolder(ResourceLocation.tryParse(str));
+        Optional<Holder.Reference<Item>> holder = BuiltInRegistries.ITEM.getHolder(ResourceLocation.tryParse(str));
 
         ItemStack currencyItemStack = holder.map(itemHolder -> itemHolder.value().getDefaultInstance()).orElseGet(Items.EMERALD::getDefaultInstance);
 

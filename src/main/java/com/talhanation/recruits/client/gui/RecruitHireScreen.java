@@ -21,15 +21,15 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.widget.ExtendedButton;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import java.text.DecimalFormat;
 
 @OnlyIn(Dist.CLIENT)
 public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
-    private static final ResourceLocation RESOURCE_LOCATION = new ResourceLocation(Main.MOD_ID,"textures/gui/hire_gui.png");
+    private static final ResourceLocation RESOURCE_LOCATION = ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/gui/hire_gui.png");
 
     private static final MutableComponent TEXT_HIRE = Component.translatable("gui.recruits.hire_gui.text.hire");
 
@@ -101,9 +101,9 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         return super.mouseClicked(mouseX, mouseY, button);
     }
     @Override
-    public boolean mouseScrolled(double x, double y, double d) {
-        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,d);
-        return super.mouseScrolled(x, y, d);
+    public boolean mouseScrolled(double x, double y, double scrollX, double d) {
+        if(groupSelectionDropDownMenu != null) groupSelectionDropDownMenu.mouseScrolled(x,y,0,d);
+        return super.mouseScrolled(x, y, scrollX, d);
     }
 
     @Override
@@ -173,8 +173,8 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics,i + 30, j + 60, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
-        if(recruit.getVehicle() instanceof AbstractHorse horse) InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 30, j + 72, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, horse);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i, j + 20, i + 60, j + 100, 15, 0.0625F, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        if(recruit.getVehicle() instanceof AbstractHorse horse) InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i, j + 32, i + 60, j + 112, 15, 0.0625F, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, horse);
     }
 
 }

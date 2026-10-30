@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
@@ -8,7 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
@@ -107,14 +108,12 @@ public class RecruitsTreatyManager {
 
         List<ServerPlayer> playersA = FactionEvents.recruitsFactionManager.getPlayersInTeam(factionAId, level);
         for (ServerPlayer player : playersA) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                    new MessageToClientSetDiplomaticToast(toastId, factionB));
+            NetUtils.sendTo(player, new MessageToClientSetDiplomaticToast(toastId, factionB));
         }
 
         List<ServerPlayer> playersB = FactionEvents.recruitsFactionManager.getPlayersInTeam(factionBId, level);
         for (ServerPlayer player : playersB) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                    new MessageToClientSetDiplomaticToast(toastId, factionA));
+            NetUtils.sendTo(player, new MessageToClientSetDiplomaticToast(toastId, factionA));
         }
     }
 
@@ -125,15 +124,13 @@ public class RecruitsTreatyManager {
     public void broadcastTreatiesToAll(ServerLevel level) {
         if (level == null) return;
         for (ServerPlayer player : level.players()) {
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                    new MessageToClientUpdateTreaties(treaties));
+            NetUtils.sendTo(player, new MessageToClientUpdateTreaties(treaties));
         }
     }
 
     public void broadcastTreatiesToPlayer(ServerPlayer player) {
         if (player == null) return;
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new MessageToClientUpdateTreaties(treaties));
+        NetUtils.sendTo(player, new MessageToClientUpdateTreaties(treaties));
     }
 
     public static CompoundTag mapToNbt(Map<String, Long> treaties) {

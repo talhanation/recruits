@@ -2,14 +2,14 @@ package com.talhanation.recruits;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.Event;
 
 import javax.annotation.Nullable;
 
 /**
  * Events für individuelle Recruits. Alle Sub-Events werden auf dem
- * {@code MinecraftForge.EVENT_BUS} gepostet und sind server-side only.
+ * {@code NeoForge.EVENT_BUS} gepostet und sind server-side only.
  *
  * <pre>
  *   {@code @SubscribeEvent}
@@ -39,8 +39,7 @@ public abstract class RecruitEvent extends Event {
      * <p>Cancelable: {@code setCanceled(true)} verhindert das Anheuern.</p>
      * <p>Der zugehörige Spieler ist immer gesetzt.</p>
      */
-    @Cancelable
-    public static class Hired extends RecruitEvent {
+    public static class Hired extends RecruitEvent implements ICancellableEvent {
         private final Player player;
 
         public Hired(AbstractRecruitEntity recruit, Player player) {
@@ -60,8 +59,7 @@ public abstract class RecruitEvent extends Event {
      *
      * @see AbstractRecruitEntity#disband(Player, boolean, boolean)
      */
-    @Cancelable
-    public static class Dismissed extends RecruitEvent {
+    public static class Dismissed extends RecruitEvent implements ICancellableEvent {
 
         @Nullable
         private final Player player;
@@ -114,8 +112,7 @@ public abstract class RecruitEvent extends Event {
      *
      * @see RecruitEvents#promoteRecruit(AbstractRecruitEntity, int, String, net.minecraft.server.level.ServerPlayer)
      */
-    @Cancelable
-    public static class Promoted extends RecruitEvent {
+    public static class Promoted extends RecruitEvent implements ICancellableEvent {
         private final int newProfession;
         private final String newName;
         private final net.minecraft.server.level.ServerPlayer promotingPlayer;

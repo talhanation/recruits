@@ -20,7 +20,7 @@ public class ClaimOverlayRenderer {
     private static final int PANEL_HEIGHT_FULL = 45;
     private static final int PANEL_HEIGHT_COMPACT = 15;
     private static final int BACKGROUND_ALPHA = 0x0F;
-    private static final ResourceLocation SIEGE_ICON = new ResourceLocation("recruits:textures/gui/image/enemy.png");
+    private static final ResourceLocation SIEGE_ICON = ResourceLocation.parse("recruits:textures/gui/image/enemy.png");
 
     private boolean dataChanged = true;
 

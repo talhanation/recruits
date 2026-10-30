@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import net.minecraft.core.HolderLookup;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -22,18 +23,17 @@ public class RecruitsWorldSaveData extends SavedData {
 
     public static RecruitsWorldSaveData get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(
-                RecruitsWorldSaveData::load,
-                RecruitsWorldSaveData::new,
+                new SavedData.Factory<>(() -> new RecruitsWorldSaveData(null), RecruitsWorldSaveData::load),
                 FILE_ID);
     }
 
-    public static RecruitsWorldSaveData load(CompoundTag nbt) {
+    public static RecruitsWorldSaveData load(CompoundTag nbt, HolderLookup.Provider provider) {
         UUID worldId = nbt.hasUUID("WorldId") ? nbt.getUUID("WorldId") : null;
         return new RecruitsWorldSaveData(worldId);
     }
 
     @Override
-    public CompoundTag save(CompoundTag nbt) {
+    public CompoundTag save(CompoundTag nbt, HolderLookup.Provider provider) {
         nbt.putUUID("WorldId", worldId);
         return nbt;
     }

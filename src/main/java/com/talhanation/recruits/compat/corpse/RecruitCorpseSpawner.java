@@ -41,7 +41,7 @@ public final class RecruitCorpseSpawner {
         try {
             byte poseType = selectPoseType(recruitEntity);
             CompoundTag deathTag = createDeathTag(recruitEntity, poseType);
-            Death death = Death.fromNBT(deathTag);
+            Death death = Death.fromNBT(level.registryAccess(), deathTag);
 
             CorpseEntity corpse = new CorpseEntity(level);
             ((CorpseEntityAccessor) corpse).recruits$setDeath(death);
@@ -85,7 +85,7 @@ public final class RecruitCorpseSpawner {
         ListTag items = new ListTag();
         // Corpse reads equipment by list index instead of the Slot tag, so empty positions must be preserved.
         for (int slot : EQUIPMENT_SLOTS) {
-            items.add(saveEquipmentItem(recruit.getInventory().getItem(slot)));
+            items.add(saveEquipmentItem(recruit, recruit.getInventory().getItem(slot)));
         }
         nbt.put("Equipment", items);
     }
@@ -96,7 +96,7 @@ public final class RecruitCorpseSpawner {
         for (int index = 0; index < slots.length; index++) {
             int inventorySlot = slots[index];
             int corpseSlot = index;
-            Optional<CompoundTag> itemTag = saveItem(recruit.getInventory().getItem(inventorySlot));
+            Optional<CompoundTag> itemTag = saveItem(recruit, recruit.getInventory().getItem(inventorySlot));
             itemTag.ifPresent(tag -> {
                 tag.putInt("Slot", corpseSlot);
                 items.add(tag);
@@ -106,30 +106,27 @@ public final class RecruitCorpseSpawner {
         nbt.put(key, items);
     }
 
-    private static Optional<CompoundTag> saveItem(ItemStack stack) {
+    private static Optional<CompoundTag> saveItem(AbstractRecruitEntity recruit, ItemStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
 
-        CompoundTag itemTag = new CompoundTag();
-        stack.save(itemTag);
+        CompoundTag itemTag = (CompoundTag) stack.save(recruit.registryAccess(), new CompoundTag());
         if (!itemTag.contains("id")) {
             return Optional.empty();
         }
         return Optional.of(itemTag);
     }
 
-    private static CompoundTag saveEquipmentItem(ItemStack stack) {
+    private static CompoundTag saveEquipmentItem(AbstractRecruitEntity recruit, ItemStack stack) {
         if (!stack.isEmpty()) {
-            return saveItem(stack).orElseGet(RecruitCorpseSpawner::emptyItemTag);
+            return saveItem(recruit, stack).orElseGet(RecruitCorpseSpawner::emptyItemTag);
         }
         return emptyItemTag();
     }
 
     private static CompoundTag emptyItemTag() {
         CompoundTag itemTag = new CompoundTag();
-        itemTag.putString("id", "minecraft:air");
-        itemTag.putByte("Count", (byte) 0);
         return itemTag;
     }
 

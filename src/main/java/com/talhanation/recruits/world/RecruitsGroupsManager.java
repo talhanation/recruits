@@ -1,4 +1,5 @@
 package com.talhanation.recruits.world;
+import de.maxhenkel.corelib.net.NetUtils;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -6,7 +7,7 @@ import com.talhanation.recruits.network.MessageToClientUpdateGroups;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -163,8 +164,7 @@ public class RecruitsGroupsManager {
     public void broadCastGroupsToPlayer(Player player) {
         if (player == null) return;
 
-        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player),
-                new MessageToClientUpdateGroups(
+        NetUtils.sendTo((ServerPlayer) player, new MessageToClientUpdateGroups(
                         RecruitsGroup.listToNbt(getPlayerGroupsForClient(player))
                 ));
     }

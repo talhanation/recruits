@@ -1,15 +1,18 @@
 package com.talhanation.recruits.network;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.client.gui.MessengerScreen;
 import com.talhanation.recruits.world.RecruitsPlayerInfo;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.network.NetworkEvent;
-
-
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.api.distmarker.Dist;
 public class MessageToClientUpdateMessengerScreen implements Message<MessageToClientUpdateMessengerScreen> {
+    public static final CustomPacketPayload.Type<MessageToClientUpdateMessengerScreen> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagetoclientupdatemessengerscreen"));
     public String message;
     public CompoundTag nbt;
     public MessageToClientUpdateMessengerScreen() {
@@ -24,12 +27,12 @@ public class MessageToClientUpdateMessengerScreen implements Message<MessageToCl
     }
 
     @Override
-    public Dist getExecutingSide() {
-        return Dist.CLIENT;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.CLIENTBOUND;
     }
 
     @Override
-    public void executeClientSide(NetworkEvent.Context context) {
+    public void executeClientSide(IPayloadContext context) {
         //MessengerScreen.message = this.message;
 
         if(nbt != null){
@@ -38,7 +41,7 @@ public class MessageToClientUpdateMessengerScreen implements Message<MessageToCl
     }
 
     @Override
-    public MessageToClientUpdateMessengerScreen fromBytes(FriendlyByteBuf buf) {
+    public MessageToClientUpdateMessengerScreen fromBytes(RegistryFriendlyByteBuf buf) {
         this.message = buf.readUtf();
 
         if(nbt != null){
@@ -49,7 +52,7 @@ public class MessageToClientUpdateMessengerScreen implements Message<MessageToCl
     }
 
     @Override
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUtf(message);
 
         if(nbt != null){
@@ -57,4 +60,9 @@ public class MessageToClientUpdateMessengerScreen implements Message<MessageToCl
         }
     }
 
+
+    @Override
+    public CustomPacketPayload.Type<MessageToClientUpdateMessengerScreen> type() {
+        return TYPE;
+    }
 }

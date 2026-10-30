@@ -38,8 +38,9 @@ public abstract class RecruitsScreenBase extends Screen{
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        renderBackground(guiGraphics);
-        renderBackground(guiGraphics, mouseX, mouseY, delta);
+        // 1.20.1 drew the dimmed background (renderBackground(GuiGraphics)) and then the screen texture.
+        // Since 1.20.2 Screen#render calls renderBackground(GuiGraphics, int, int, float) (the texture) itself.
+        renderTransparentBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, delta);
         renderForeground(guiGraphics, mouseX, mouseY, delta);
     }

@@ -1,4 +1,10 @@
 package com.talhanation.recruits.network;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.events.RecruitsOnWriteSpawnEggEvent;
@@ -6,21 +12,21 @@ import com.talhanation.recruits.init.ModItems;
 import de.maxhenkel.corelib.net.Message;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.Team;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.network.NetworkEvent;
-
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.common.NeoForge;
 import java.util.Objects;
 import java.util.UUID;
 
 public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
+    public static final CustomPacketPayload.Type<MessageWriteSpawnEgg> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("recruits", "messagewritespawnegg"));
     public UUID recruit;
 
     public MessageWriteSpawnEgg() {
@@ -30,13 +36,13 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         this.recruit = recruit;
     }
 
-    public Dist getExecutingSide() {
-        return Dist.DEDICATED_SERVER;
+    public PacketFlow getExecutingSide() {
+        return PacketFlow.SERVERBOUND;
     }
 
-    public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(64.0D),
+    public void executeServerSide(IPayloadContext context) {
+        ServerPlayer player = Objects.requireNonNull(((ServerPlayer) context.player()));
+        player.getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, ((ServerPlayer) context.player()).getBoundingBox().inflate(64.0D),
                 (recruit) -> recruit.getUUID().equals(this.recruit)
         ).forEach((recruitEntity) -> {
             EntityType<?> type = recruitEntity.getType();
@@ -51,7 +57,8 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
             itemTag.put("EntityTag", entityTag);
 
             if (itemStack != null && !itemStack.isEmpty() && player.getMainHandItem().isEmpty()) {
-                itemStack.setTag(itemTag);
+                itemTag.putString("id", EntityType.getKey(type).toString()); // 1.21: ENTITY_DATA needs the entity id
+                itemStack.set(DataComponents.ENTITY_DATA, CustomData.of(itemTag));
                 player.setItemInHand(InteractionHand.MAIN_HAND, itemStack);
             }
         });
@@ -129,7 +136,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
             if (!itemstack.isEmpty()) {
                 CompoundTag compoundnbt = new CompoundTag();
                 compoundnbt.putByte("Slot", (byte) i);
-                itemstack.save(compoundnbt);
+                compoundnbt = (CompoundTag) itemstack.save(recruitEntity.registryAccess(), compoundnbt);
                 listnbt.add(compoundnbt);
             }
         }
@@ -139,7 +146,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         for (ItemStack itemstack : recruitEntity.armorItems) {
             CompoundTag compoundtag = new CompoundTag();
             if (!itemstack.isEmpty()) {
-                itemstack.save(compoundtag);
+                compoundtag = (CompoundTag) itemstack.save(recruitEntity.registryAccess(), compoundtag);
             }
 
             listtag.add(compoundtag);
@@ -151,7 +158,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         for (ItemStack itemstack1 : recruitEntity.handItems) {
             CompoundTag compoundtag1 = new CompoundTag();
             if (!itemstack1.isEmpty()) {
-                itemstack1.save(compoundtag1);
+                compoundtag1 = (CompoundTag) itemstack1.save(recruitEntity.registryAccess(), compoundtag1);
             }
 
             listtag1.add(compoundtag1);
@@ -159,7 +166,7 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
 
         entityTag.put("HandItems", listtag1);
 
-        MinecraftForge.EVENT_BUS.post(new RecruitsOnWriteSpawnEggEvent(recruitEntity, entityTag));
+        NeoForge.EVENT_BUS.post(new RecruitsOnWriteSpawnEggEvent(recruitEntity, entityTag));
 
         return entityTag;
     }
@@ -183,12 +190,17 @@ public class MessageWriteSpawnEgg implements Message<MessageWriteSpawnEgg> {
         return itemStack;
     }
 
-    public MessageWriteSpawnEgg fromBytes(FriendlyByteBuf buf) {
+    public MessageWriteSpawnEgg fromBytes(RegistryFriendlyByteBuf buf) {
         this.recruit = buf.readUUID();
         return this;
     }
 
-    public void toBytes(FriendlyByteBuf buf) {
+    public void toBytes(RegistryFriendlyByteBuf buf) {
         buf.writeUUID(this.recruit);
+    }
+
+    @Override
+    public CustomPacketPayload.Type<MessageWriteSpawnEgg> type() {
+        return TYPE;
     }
 }

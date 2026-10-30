@@ -24,26 +24,26 @@ import net.minecraft.world.item.UseAnim;
 public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, HumanoidModel<AbstractRecruitEntity>> {
 
     private static final ResourceLocation[] TEXTURE = {
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_0.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_1.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_2.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_3.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_4.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_5.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_6.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_7.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_8.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_9.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_10.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_11.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_12.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_13.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_14.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_15.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_16.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_17.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_18.png"),
-            new ResourceLocation(Main.MOD_ID,"textures/entity/human/human_19.png")
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_0.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_1.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_2.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_3.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_4.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_5.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_6.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_7.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_8.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_9.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_10.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_11.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_12.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_13.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_14.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_15.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_16.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_17.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_18.png"),
+            ResourceLocation.fromNamespaceAndPath(Main.MOD_ID,"textures/entity/human/human_19.png")
     };
 
     @Override
@@ -118,7 +118,7 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Hum
                 return HumanoidModel.ArmPose.CROSSBOW_HOLD;
             }
 
-            HumanoidModel.ArmPose forgeArmPose = net.minecraftforge.client.extensions.common.IClientItemExtensions.of(itemstack).getArmPose(recruit, hand, itemstack);
+            HumanoidModel.ArmPose forgeArmPose = net.neoforged.neoforge.client.extensions.common.IClientItemExtensions.of(itemstack).getArmPose(recruit, hand, itemstack);
             if (forgeArmPose != null) return forgeArmPose;
 
             return HumanoidModel.ArmPose.ITEM;

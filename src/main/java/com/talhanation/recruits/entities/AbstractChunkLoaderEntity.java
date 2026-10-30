@@ -8,7 +8,9 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.world.ForgeChunkManager;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -90,8 +92,15 @@ public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
 
     ////////////////////////////////////SET////////////////////////////////////
 
+    // NeoForge replacement for ForgeChunkManager.forceChunk(level, Main.MOD_ID, entity, ...)
+    public static final TicketController CHUNK_LOADER = new TicketController(ResourceLocation.fromNamespaceAndPath(Main.MOD_ID, "chunk_loader"));
+
+    public static void registerTicketController(RegisterTicketControllersEvent event) {
+        event.register(CHUNK_LOADER);
+    }
+
     private void setForceChunk(RecruitsChunk chunk, boolean add) {
-        ForgeChunkManager.forceChunk((ServerLevel) this.getCommandSenderWorld(), Main.MOD_ID, this, chunk.x, chunk.z, add, false);
+        CHUNK_LOADER.forceChunk((ServerLevel) this.getCommandSenderWorld(), this, chunk.x, chunk.z, add, false);
     }
 
     public void die(DamageSource dmg) {

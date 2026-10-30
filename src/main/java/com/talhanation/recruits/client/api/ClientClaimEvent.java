@@ -1,10 +1,10 @@
 package com.talhanation.recruits.client.api;
 
 import com.talhanation.recruits.world.RecruitsClaim;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.Event;
 
 import javax.annotation.Nullable;
 
@@ -68,8 +68,7 @@ public abstract class ClientClaimEvent extends Event {
         }
     }
 
-    @Cancelable
-    public static class SiegeStarted extends ClientClaimEvent {
+    public static class SiegeStarted extends ClientClaimEvent implements ICancellableEvent {
         public SiegeStarted(RecruitsClaim claim) {
             super(claim);
         }

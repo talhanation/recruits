@@ -16,7 +16,7 @@ import net.minecraft.world.level.PathNavigationRegion;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.*;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.util.thread.SidedThreadGroups;
+import net.neoforged.fml.util.thread.SidedThreadGroups;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;

@@ -19,7 +19,7 @@ import net.minecraft.world.item.Items;
 import org.joml.Matrix4f;
 
 public final class WorldMapPlayerRenderer {
-    private static final ResourceLocation MAP_ICONS = new ResourceLocation("textures/map/map_icons.png");
+    private static final ResourceLocation MAP_ICONS = ResourceLocation.withDefaultNamespace("textures/map/decorations/player.png");
     private static final ItemStack BOAT_STACK = new ItemStack(Items.OAK_BOAT);
     private static final float PLAYER_ARROW_BASE_SCALE = 0.55F;
     private static final float PLAYER_ARROW_MIN_SCALE = 0.18F;
@@ -94,47 +94,48 @@ public final class WorldMapPlayerRenderer {
         pose.mulPose(Axis.ZP.rotationDegrees(player.getYRot()));
         pose.scale(5.0f, 5.0f, 5.0f);
         int iconIndex = 0;
-        float u0 = (iconIndex % 16) / 16f;
-        float v0 = (iconIndex / 16) / 16f;
-        float u1 = u0 + 1f / 16f;
-        float v1 = v0 + 1f / 16f;
+        // 1.21: the map_icons atlas was split into one texture per icon
+        float u0 = 0f;
+        float v0 = 0f;
+        float u1 = 1f;
+        float v1 = 1f;
         guiGraphics.flush();
         VertexConsumer consumer = guiGraphics.bufferSource().getBuffer(RenderType.text(MAP_ICONS));
         Matrix4f matrix = pose.last().pose();
         int light = 0xF000F0;
         int color = 0xFFFFFFFF;
         consumer
-                .vertex(matrix, -1f, 1f, 0f)
-                .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
-                .uv(u0, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, -1f, 1f, 0f)
+                .setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                .setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         consumer
-                .vertex(matrix, 1f, 1f, 0f)
-                .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
-                .uv(u1, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, 1f, 1f, 0f)
+                .setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                .setUv(u1, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         consumer
-                .vertex(matrix, 1f, -1f, 0f)
-                .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
-                .uv(u1, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, 1f, -1f, 0f)
+                .setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                .setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
         consumer
-                .vertex(matrix, -1f, -1f, 0f)
-                .color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
-                .uv(u0, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 0, 1)
-                .endVertex();
+                .addVertex(matrix, -1f, -1f, 0f)
+                .setColor((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, (color >> 24) & 0xFF)
+                .setUv(u0, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 0, 1)
+                ;
     }
 
     private static void renderPlayerArrowIcon(
