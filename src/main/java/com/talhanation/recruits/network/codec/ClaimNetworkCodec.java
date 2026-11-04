@@ -48,6 +48,29 @@ public final class ClaimNetworkCodec {
         return buf.readBoolean() ? ClaimPayloadCodec.read(buf) : null;
     }
 
+    // NeoForge encodes payloads later on the netty thread (Forge did it right away in send),
+    // so messages take a snapshot of the live claims when they are created
+    @Nullable
+    public static RecruitsClaim copy(@Nullable RecruitsClaim claim) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+        try {
+            writeNullableClaim(buf, claim);
+            return readNullableClaim(buf);
+        } finally {
+            buf.release();
+        }
+    }
+
+    public static List<RecruitsClaim> copyList(List<RecruitsClaim> claims) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+        try {
+            writeClaimList(buf, claims);
+            return readClaimList(buf);
+        } finally {
+            buf.release();
+        }
+    }
+
     private static List<RecruitsClaim> copyNonNullClaims(List<RecruitsClaim> claims) {
         List<RecruitsClaim> filteredClaims = new ArrayList<>();
         if (claims == null) return filteredClaims;

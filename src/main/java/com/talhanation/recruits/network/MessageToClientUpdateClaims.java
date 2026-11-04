@@ -49,7 +49,7 @@ public class MessageToClientUpdateClaims implements Message<MessageToClientUpdat
             ItemStack currencyItemStack,
             boolean resetClaims,
             boolean syncComplete) {
-        this.claims = list == null ? Collections.emptyList() : new ArrayList<>(list);
+        this.claims = list == null ? Collections.emptyList() : ClaimNetworkCodec.copyList(list);
         this.claimCost = claimCost;
         this.chunkCost = chunkCost;
         this.maxClaimChunks = maxClaimChunks;

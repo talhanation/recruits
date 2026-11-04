@@ -23,7 +23,7 @@ public class MessageToClientUpdateClaim implements Message<MessageToClientUpdate
     }
 
     public MessageToClientUpdateClaim(RecruitsClaim claim) {
-        this.claim = claim;
+        this.claim = ClaimNetworkCodec.copy(claim);
     }
 
     @Override

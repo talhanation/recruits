@@ -44,7 +44,7 @@ public class MessageUpdateClaim implements Message<MessageUpdateClaim> {
     }
 
     public MessageUpdateClaim(RecruitsClaim claim) {
-        this.claim = claim;
+        this.claim = ClaimNetworkCodec.copy(claim);
     }
 
     public PacketFlow getExecutingSide() {

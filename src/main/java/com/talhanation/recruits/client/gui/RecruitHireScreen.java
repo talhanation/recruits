@@ -10,6 +10,7 @@ import com.talhanation.recruits.network.MessageHire;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -173,8 +174,14 @@ public class RecruitHireScreen extends ScreenBase<RecruitHireMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i, j + 20, i + 60, j + 100, 15, 0.0625F, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
-        if(recruit.getVehicle() instanceof AbstractHorse horse) InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i, j + 32, i + 60, j + 112, 15, 0.0625F, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, horse);
+        renderEntityInInventoryFollowsMouse(guiGraphics,i + 30, j + 60, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        if(recruit.getVehicle() instanceof AbstractHorse horse) renderEntityInInventoryFollowsMouse(guiGraphics, i + 30, j + 72, 15, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, horse);
     }
 
+    // 1.21 replaced renderEntityInInventoryFollowsMouse(x, y, scale, relMouseX, relMouseY, entity) with a box based version,
+    // this keeps the 1.20.1 behaviour: feet at (x, y), looking at the relative mouse position
+    private static void renderEntityInInventoryFollowsMouse(GuiGraphics guiGraphics, int x, int y, int scale, float mouseX, float mouseY, LivingEntity entity) {
+        int centerY = y - Math.round(scale * (entity.getBbHeight() / 2.0F + 0.0625F));
+        InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, x - 2 * scale, centerY - 2 * scale, x + 2 * scale, centerY + 2 * scale, scale, 0.0625F, (float) Math.atan(mouseX / 40.0F), (float) Math.atan(mouseY / 40.0F), entity);
+    }
 }

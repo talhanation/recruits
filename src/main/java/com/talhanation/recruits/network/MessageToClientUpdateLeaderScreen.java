@@ -24,8 +24,8 @@ public class MessageToClientUpdateLeaderScreen implements Message<MessageToClien
     }
 
     public MessageToClientUpdateLeaderScreen(List<BlockPos> waypoints, List<ItemStack> waypointItems, int size) {
-        this.waypoints = waypoints;
-        this.waypointItems = waypointItems;
+        this.waypoints = new java.util.ArrayList<>(waypoints);
+        this.waypointItems = waypointItems.stream().map(ItemStack::copy).toList();
         this.size = size;
     }
 

@@ -44,7 +44,9 @@ public class RecruitUpkeepEntityGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        // Not throttled: canUse() only answers every 20 ticks and returned false in between, which
+        // stopped the goal (and reset the forced upkeep) one tick after it started.
+        return recruit.needsToGetFood() && recruit.getUpkeepUUID() != null;
     }
 
     private boolean isFoodInEntity(Container container) {

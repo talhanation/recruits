@@ -13,6 +13,7 @@ import com.talhanation.recruits.network.*;
 import com.talhanation.recruits.world.RecruitsGroup;
 import de.maxhenkel.corelib.inventory.ScreenBase;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -538,6 +539,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 20, j + 42, i + 80, j + 122, 30, 0.0625F, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+        renderEntityInInventoryFollowsMouse(guiGraphics, i + 50, j + 82, 30, (float)(i + 50) - mouseX, (float)(j + 75 - 50) - mouseY, this.recruit);
+    }
+
+    // 1.21 replaced renderEntityInInventoryFollowsMouse(x, y, scale, relMouseX, relMouseY, entity) with a box based version,
+    // this keeps the 1.20.1 behaviour: feet at (x, y), looking at the relative mouse position
+    private static void renderEntityInInventoryFollowsMouse(GuiGraphics guiGraphics, int x, int y, int scale, float mouseX, float mouseY, LivingEntity entity) {
+        int centerY = y - Math.round(scale * (entity.getBbHeight() / 2.0F + 0.0625F));
+        InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, x - 2 * scale, centerY - 2 * scale, x + 2 * scale, centerY + 2 * scale, scale, 0.0625F, (float) Math.atan(mouseX / 40.0F), (float) Math.atan(mouseY / 40.0F), entity);
     }
 }

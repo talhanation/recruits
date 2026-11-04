@@ -426,6 +426,19 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
     }
 
+    // 1.21: ScreenBase#render and AbstractContainerScreen#renderBackground both darken the screen, which made it far too dark.
+    // Use the background of the vanilla pause menu instead (blurred world + menu background).
+    @Override
+    public void renderTransparentBackground(GuiGraphics guiGraphics) {
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBlurredBackground(partialTicks);
+        this.renderMenuBackground(guiGraphics);
+        this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+    }
+
     @Nullable
     private BlockPos getBlockPos(){
         HitResult rayTraceResult = player.pick(200, 1F, true);

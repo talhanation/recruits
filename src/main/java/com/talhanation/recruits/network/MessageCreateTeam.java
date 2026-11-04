@@ -28,7 +28,7 @@ public class MessageCreateTeam implements Message<MessageCreateTeam> {
     public MessageCreateTeam(String name, String displayName, ItemStack banner, ChatFormatting color, int index) {
         this.teamName = name;
         this.displayName = displayName;
-        this.banner = banner;
+        this.banner = banner == null ? ItemStack.EMPTY : banner.copy(); // NeoForge encodes the payload later, the screen closes and gives the banner back before that
         this.color = color;
         this.index = index;
     }
