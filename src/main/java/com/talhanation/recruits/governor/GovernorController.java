@@ -3,6 +3,11 @@ package com.talhanation.recruits.governor;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.GovernorEvent;
 import com.talhanation.recruits.VillageEvents;
+import com.talhanation.recruits.api.governor.GovernorContext;
+import com.talhanation.recruits.api.governor.GovernorModules;
+import com.talhanation.recruits.api.governor.GovernorReport;
+import com.talhanation.recruits.api.governor.HireRequest;
+import com.talhanation.recruits.api.governor.IGovernorModule;
 import com.talhanation.recruits.compat.siegeweapons.SiegeWeapon;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
@@ -22,6 +27,8 @@ import com.talhanation.recruits.world.RecruitsVillageManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -86,6 +93,9 @@ public class GovernorController {
         @Nullable
         Task next;
         int age;
+        /** HIRE for a module: the request (entity type and callback). Null = garrison hire by unitType. */
+        @Nullable
+        HireRequest request;
         /** QUEST: the village, the offer to accept (null = turn in the active quest). */
         @Nullable
         UUID village;
@@ -111,6 +121,8 @@ public class GovernorController {
     private final Map<UUID, Long> breakCooldown = new HashMap<>();
     @Nullable
     private Task task;
+    /** Open hire requests of the modules, by key. Runtime only: modules ask again at their next daily check. */
+    private final Map<String, HireRequest> moduleHires = new LinkedHashMap<>();
     private int intervalCounter;
     private boolean wasRuling;
     private boolean travelling;
@@ -198,6 +210,8 @@ public class GovernorController {
         setSiegeEngineerPriority(level, claim, garrison);
         if (slowTick || intervalCounter == 1) manageUpkeepAndLoadout(level, claim, data, garrison);
         keepGovernorAtPost(level, data);
+
+        if (!GovernorModules.isEmpty()) runModules(level, claim, data, slowTick || intervalCounter == 1);
 
         if (task == null) planTask(level, claim, data, garrison);
     }
@@ -754,7 +768,7 @@ public class GovernorController {
                 task = current.next;
             }
             case HIRE -> {
-                boolean hired = hire(level, claim, data, current);
+                boolean hired = current.request != null ? hireForModule(level, claim, data, current) : hire(level, claim, data, current);
                 if (!hired) data.addSpent(day, -current.cost);
                 task = null;
             }
@@ -794,6 +808,7 @@ public class GovernorController {
     /** Called when the Governor is appointed or removed from office. */
     public void reset() {
         task = null;
+        moduleHires.clear();
         breaks.clear();
         breakCooldown.clear();
         wasRuling = false;
@@ -869,6 +884,9 @@ public class GovernorController {
             if (treasuryOk) task = new Task(TaskType.DEPOSIT, treasury, null, null, 0, false);
             return;
         }
+
+        // units the modules asked for (workers for new buildings) come before the garrison, the budget is shared
+        if (treasuryOk && planModuleHire(level, claim, data, day)) return;
 
         if (treasuryOk) planRecruiting(level, claim, data, garrison, day);
         else data.setRecruitStatus("no_treasury", "");
@@ -1073,6 +1091,196 @@ public class GovernorController {
         container.setChanged();
     }
 
+    // ------------------------------------------------------------------ modules of addons
+
+    /** Slow tick: onInterval. Once a day at the meeting: daily check and report. */
+    private void runModules(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, boolean slowTick) {
+        if (slowTick) {
+            GovernorModules.forEach("onInterval", module -> module.onInterval(context(level, claim, data, module)));
+        }
+
+        long dayTime = level.getDayTime();
+        long day = dayTime / 24000L;
+        long time = dayTime % 24000L;
+        if (time < MEETING_START || time >= MEETING_END || data.getLastModuleDay() == day) return;
+        data.setLastModuleDay(day);
+
+        // requests nobody could serve for too long are dropped, the modules ask again now if they still need them
+        moduleHires.values().removeIf(request -> request.getExpiresDay() < day);
+
+        GovernorModules.forEach("onDailyCheck", module -> module.onDailyCheck(context(level, claim, data, module)));
+
+        GovernorReport report = new GovernorReport();
+        GovernorModules.forEach("appendReport", module -> module.appendReport(context(level, claim, data, module), report));
+        if (!report.isEmpty()) deliverReport(level, claim, data, report);
+    }
+
+    private GovernorContext context(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, IGovernorModule module) {
+        return new GovernorContext(level, claim, data, module.id(), governor, this);
+    }
+
+    /** One message to the owner; if he is offline it waits for his next login. */
+    private void deliverReport(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, GovernorReport report) {
+        Component header = Component.translatable("chat.recruits.governor.report", governor.getName().getString(), claim.getName());
+        UUID owner = governor.getOwnerUUID();
+        if (owner != null && level.getServer().getPlayerList().getPlayer(owner) != null) {
+            GovernorManager.sendReport(level, owner, header, report.getLines());
+            data.setPendingReport(new ArrayList<>());
+        }
+        else {
+            List<String> lines = new ArrayList<>();
+            lines.add(Component.Serializer.toJson(header));
+            for (Component line : report.getLines()) lines.add(Component.Serializer.toJson(line));
+            data.setPendingReport(lines);
+        }
+    }
+
+    public void queueHire(HireRequest request, long day) {
+        request.setExpiresDay(day + request.getValidDays());
+        HireRequest old = moduleHires.put(request.getKey(), request);
+        if (old != null) request.setStatus(old.getStatus());
+    }
+
+    public void cancelHire(String key) {
+        moduleHires.remove(key);
+    }
+
+    @Nullable
+    public HireRequest getHireRequest(String key) {
+        return moduleHires.get(key);
+    }
+
+    /**
+     * The open module request with the highest priority that can be served now: a free unit of that type
+     * in the claim, or a noble who offers it. Same rules as the garrison: budget, coins, limits, reputation.
+     */
+    private boolean planModuleHire(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, long day) {
+        if (moduleHires.isEmpty()) return false;
+        UUID owner = governor.getOwnerUUID();
+        if (owner == null) return false;
+
+        List<HireRequest> requests = new ArrayList<>(moduleHires.values());
+        requests.sort(Comparator.comparingInt(HireRequest::getPriority).reversed());
+
+        if (!GovernorHiring.canOwnerTakeUnit(owner, claim.getOwnerFactionStringID())) {
+            for (HireRequest request : requests) request.setStatus("limit");
+            return false;
+        }
+        int budget = data.getRemainingBudget(day);
+        int coins = data.lastKnownTreasury;
+        if (budget <= 0 || coins <= 0) {
+            String status = budget <= 0 ? (data.getBudgetPerDay() <= 0 ? "no_budget" : "budget_spent") : "no_coins";
+            for (HireRequest request : requests) request.setStatus(status);
+            return false;
+        }
+        int limit = Math.min(budget, coins);
+
+        GovernorHiring.Sources sources = GovernorHiring.findSources(level, claim);
+        sources.freeUnits().sort(Comparator.comparingDouble(r -> r.distanceToSqr(governor)));
+
+        for (HireRequest request : requests) {
+            ResourceLocation id = request.getEntityId();
+            String status = "no_source";
+
+            for (AbstractRecruitEntity candidate : sources.freeUnits()) {
+                if (!id.equals(GovernorHiring.getEntityId(candidate))) continue;
+                if (candidate.getCost() <= limit) {
+                    startModuleHire(data, candidate.getUUID(), request, candidate.getCost(), false);
+                    return true;
+                }
+                status = "too_expensive";
+            }
+
+            for (VillagerNobleEntity noble : sources.nobles()) {
+                RecruitsHireTrade trade = GovernorHiring.findTrade(noble, id);
+                if (trade == null) continue;
+                int price = GovernorHiring.getPrice(level, owner, noble, trade);
+                if (price < 0) {
+                    if (status.equals("no_source")) status = "locked";
+                    continue;
+                }
+                if (price > limit) {
+                    status = "too_expensive";
+                    continue;
+                }
+                if (GovernorHiring.lacksVillager(level, noble)) {
+                    status = "no_villagers";
+                    continue;
+                }
+                startModuleHire(data, noble.getUUID(), request, price, true);
+                return true;
+            }
+            request.setStatus(status);
+        }
+        return false;
+    }
+
+    private void startModuleHire(ClaimGovernorData data, UUID source, HireRequest request, int cost, boolean fromNoble) {
+        request.setStatus("hiring");
+        Task withdraw = new Task(TaskType.WITHDRAW, data.getTreasuryPos(), null, null, cost, fromNoble);
+        Task hire = new Task(TaskType.HIRE, null, source, null, cost, fromNoble);
+        hire.request = request;
+        withdraw.next = hire;
+        task = withdraw;
+    }
+
+    /** Hires the unit a module asked for as a normal unit of the owner (not into the garrison), then calls the module. */
+    private boolean hireForModule(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, Task current) {
+        HireRequest request = current.request;
+        UUID owner = governor.getOwnerUUID();
+        if (request == null || owner == null || current.entity == null) return false;
+        String factionId = claim.getOwnerFactionStringID();
+        if (!GovernorHiring.canOwnerTakeUnit(owner, factionId)) {
+            request.setStatus("limit");
+            return false;
+        }
+
+        ResourceLocation id = request.getEntityId();
+        Entity source = level.getEntity(current.entity);
+        AbstractRecruitEntity unit;
+        @Nullable VillagerNobleEntity fromNoble = null;
+        @Nullable RecruitsHireTrade nobleTrade = null;
+        int paid = current.cost;
+
+        if (!current.fromNoble) {
+            if (!(source instanceof AbstractRecruitEntity free) || !free.isAlive() || free.isOwned()
+                    || !id.equals(GovernorHiring.getEntityId(free))) return false;
+            unit = free;
+        }
+        else {
+            if (!(source instanceof VillagerNobleEntity noble) || !noble.isAlive()) return false;
+            RecruitsHireTrade trade = GovernorHiring.findTrade(noble, id);
+            if (trade == null) return false;
+            int price = GovernorHiring.getPrice(level, owner, noble, trade);
+            if (price < 0 || price > governor.getPurse()) return false;
+            Optional<EntityType<?>> type = EntityType.byString(id.toString());
+            if (type.isEmpty()) return false;
+            unit = GovernorHiring.createFromNoble(level, noble, type.get());
+            if (unit == null) return false;
+            paid = price;
+            fromNoble = noble;
+            nobleTrade = trade;
+        }
+
+        GovernorHiring.hireForOwner(level, unit, owner, governor.getOwnerName(), factionId);
+        if (fromNoble != null) {
+            level.addFreshEntity(unit);
+            fromNoble.doTrade(nobleTrade.resourceLocation);
+        }
+
+        governor.setPurse(governor.getPurse() - paid);
+        if (paid < current.cost) data.addSpent(level.getDayTime() / 24000L, paid - current.cost);
+        governor.addGovernorXp(XP_HIRE);
+        moduleHires.remove(request.getKey());
+        request.setStatus("hired");
+        try {
+            request.getOnHired().accept(unit);
+        } catch (Exception e) {
+            org.apache.logging.log4j.LogManager.getLogger().error("Governor hire callback {} failed", request.getKey(), e);
+        }
+        return true;
+    }
+
     // ------------------------------------------------------------------ recruiting
 
     private void planRecruiting(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, List<AbstractRecruitEntity> garrison, long day) {
@@ -1113,21 +1321,11 @@ public class GovernorController {
         }
         int limit = Math.min(budget, coins);
         UUID owner = governor.getOwnerUUID();
-        RecruitsVillageManager villageManager = VillageEvents.villageManager;
 
-        // free recruits in the claim
-        AABB box = GovernorManager.getClaimBox(level, claim, 0);
-        List<AbstractRecruitEntity> freeRecruits = new ArrayList<>();
-        Set<VillagerNobleEntity> nobles = new LinkedHashSet<>();
-        for (AbstractRecruitEntity entity : level.getEntitiesOfClass(AbstractRecruitEntity.class, box,
-                e -> e.isAlive() && GovernorManager.isInClaim(claim, e.blockPosition()))) {
-            if (entity instanceof VillagerNobleEntity noble) nobles.add(noble);
-            else if (!entity.isOwned() && entity.canBeHired()) freeRecruits.add(entity);
-        }
-        // and the nobles of the villages of the claim (they may stand a little outside of it)
-        if (villageManager != null) {
-            for (RecruitsVillage village : GovernorManager.getVillages(claim)) nobles.addAll(villageManager.getLoadedNobles(level, village));
-        }
+        // free recruits in the claim and the nobles of its villages
+        GovernorHiring.Sources sources = GovernorHiring.findSources(level, claim);
+        List<AbstractRecruitEntity> freeRecruits = sources.freeUnits();
+        Set<VillagerNobleEntity> nobles = sources.nobles();
         freeRecruits.sort(Comparator.comparingDouble(r -> r.distanceToSqr(governor)));
 
         boolean nobleWithTrade = false;
@@ -1190,31 +1388,17 @@ public class GovernorController {
 
     /** Price for the owner: the noble's reputation price, −1 if the owner may not buy it (embargo, reputation). */
     private int getPrice(ServerLevel level, @Nullable UUID owner, VillagerNobleEntity noble, RecruitsHireTrade trade) {
-        RecruitsVillageManager villageManager = VillageEvents.villageManager;
-        if (villageManager == null || owner == null) return isEmbargoed(noble) ? -1 : trade.cost;
-        return villageManager.getHirePrice(level.getServer(), owner, noble, trade);
+        return GovernorHiring.getPrice(level, owner, noble, trade);
     }
 
     @Nullable
     private static Villager pickVillager(ServerLevel level, VillagerNobleEntity noble) {
-        RecruitsVillageManager villageManager = VillageEvents.villageManager;
-        if (villageManager == null) return null;
-        return villageManager.pickVillagerForHire(level, noble);
+        return GovernorHiring.pickVillager(level, noble);
     }
 
     @Nullable
     private static RecruitsHireTrade findTrade(VillagerNobleEntity noble, GovernorUnitType type) {
-        for (RecruitsHireTrade trade : noble.getTrades()) {
-            if (trade != null && trade.uses > 0 && type.getEntityId().equals(trade.resourceLocation)) return trade;
-        }
-        return null;
-    }
-
-    private boolean isEmbargoed(VillagerNobleEntity noble) {
-        UUID owner = governor.getOwnerUUID();
-        String nobleTeam = noble.getEmbargoTeamID();
-        if (owner == null || nobleTeam == null || nobleTeam.isEmpty() || FactionEvents.recruitsDiplomacyManager == null) return false;
-        return FactionEvents.recruitsDiplomacyManager.hasEmbargo(owner, nobleTeam);
+        return GovernorHiring.findTrade(noble, type.getEntityId());
     }
 
     private boolean hire(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, Task current) {
@@ -1242,33 +1426,9 @@ public class GovernorController {
             if (price < 0 || price > governor.getPurse()) return false;
             paid = price;
 
-            Villager villager = null;
-            if (RecruitsServerConfig.NobleVillagerNeedsVillagers.get()) {
-                villager = pickVillager(level, noble);
-                if (villager == null) return false;
-            }
-
-            recruit = current.unitType.getEntityType().create(level);
+            // from one of the noble's villagers (look, name, items) or next to the noble, see GovernorHiring
+            recruit = GovernorHiring.createFromNoble(level, noble, current.unitType.getEntityType());
             if (recruit == null) return false;
-            recruit.initSpawn();
-
-            if (villager != null) {
-                AbstractRecruitEntity.applyVariantFromVillager(recruit, villager);
-                if (villager.getCustomName() != null && !villager.getCustomName().getString().isEmpty()) {
-                    recruit.setCustomName(villager.getCustomName());
-                }
-                if (villager.isSleeping()) villager.stopSleeping();
-                recruit.copyPosition(villager);
-                for (ItemStack stack : villager.getInventory().items) {
-                    if (!stack.isEmpty()) recruit.getInventory().addItem(stack.copy());
-                }
-                if (RecruitsServerConfig.RecruitTablesPOIReleasing.get()) villager.releasePoi(MemoryModuleType.JOB_SITE);
-                villager.releasePoi(MemoryModuleType.HOME);
-                villager.releasePoi(MemoryModuleType.MEETING_POINT);
-                villager.discard();
-            } else {
-                recruit.copyPosition(noble);
-            }
 
             GovernorGarrison.hireIntoGarrison(level, recruit, owner, ownerName, factionId, claim.getUUID());
             level.addFreshEntity(recruit);

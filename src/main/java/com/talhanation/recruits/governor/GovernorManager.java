@@ -325,6 +325,42 @@ public class GovernorManager {
         if (online != null) online.sendSystemMessage(message);
     }
 
+    /** Daily report: a header and indented lines in one chat message. */
+    public static void sendReport(ServerLevel level, @Nullable UUID player, Component header, List<Component> lines) {
+        if (player == null) return;
+        Player online = level.getServer().getPlayerList().getPlayer(player);
+        if (online == null) return;
+        net.minecraft.network.chat.MutableComponent message = header.copy().withStyle(net.minecraft.ChatFormatting.GOLD);
+        for (Component line : lines) {
+            message.append(Component.literal("\n - ").withStyle(net.minecraft.ChatFormatting.GRAY)).append(line);
+        }
+        online.sendSystemMessage(message);
+    }
+
+    /** Reports that waited for the owner (he was offline at the meeting). */
+    public void deliverPendingReports(ServerPlayer player) {
+        for (ClaimGovernorData data : getAll()) {
+            if (data.getPendingReport().isEmpty() || !player.getUUID().equals(data.getGovernorOwner())) continue;
+            List<Component> lines = new ArrayList<>();
+            for (String json : data.getPendingReport()) {
+                Component line = Component.Serializer.fromJson(json);
+                if (line != null) lines.add(line);
+            }
+            data.setPendingReport(new ArrayList<>());
+            if (lines.isEmpty()) continue;
+            Component header = lines.remove(0);
+            sendReport(player.serverLevel(), player.getUUID(), header, lines);
+        }
+    }
+
+    /** Context for a module hook outside the Governor's own tick (snapshot, owner change). */
+    public static com.talhanation.recruits.api.governor.GovernorContext moduleContext(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data,
+                                                                                     com.talhanation.recruits.api.governor.IGovernorModule module,
+                                                                                     @Nullable GovernorEntity governor) {
+        return new com.talhanation.recruits.api.governor.GovernorContext(level, claim, data, module.id(), governor,
+                governor != null ? governor.controller : null);
+    }
+
     // ------------------------------------------------------------------ client snapshot
 
     /** Snapshot of a claim (command screen tab, answers to edits). Includes its Governor if he is loaded. */
@@ -500,6 +536,18 @@ public class GovernorManager {
                 RecruitsServerConfig.GovernorTaxReputationPenaltyMedium.get(),
                 RecruitsServerConfig.GovernorTaxReputationPenaltyHigh.get()});
         tag.putInt("taxBase", RecruitsServerConfig.GovernorTaxPer10Inhabitants.get());
+
+        // data of the addon modules for their tabs, only if there is something to show
+        if (!com.talhanation.recruits.api.governor.GovernorModules.isEmpty()) {
+            GovernorEntity ruling = data.getGovernorId() != null && level.getEntity(data.getGovernorId()) instanceof GovernorEntity g ? g : null;
+            CompoundTag modules = new CompoundTag();
+            com.talhanation.recruits.api.governor.GovernorModules.forEach("writeSnapshot", module -> {
+                CompoundTag moduleTag = new CompoundTag();
+                module.writeSnapshot(moduleContext(level, claim, data, module, ruling), moduleTag);
+                if (!moduleTag.isEmpty()) modules.put(module.id().toString(), moduleTag);
+            });
+            if (!modules.isEmpty()) tag.put("modules", modules);
+        }
         return tag;
     }
 }

@@ -6,6 +6,7 @@ import com.talhanation.recruits.client.ClientManager;
 import com.talhanation.recruits.client.gui.widgets.ScrollDropDownMenu;
 import com.talhanation.recruits.entities.AbstractLeaderEntity;
 import com.talhanation.recruits.entities.CaptainEntity;
+import com.talhanation.recruits.entities.IHasTargetPriority;
 import com.talhanation.recruits.entities.AbstractLeaderEntity.EnemyAction;
 import com.talhanation.recruits.entities.AbstractLeaderEntity.InfoMode;
 import com.talhanation.recruits.network.*;
@@ -158,13 +159,28 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
             case ENEMY   -> "Enemies";
             case NONE    -> "None";
         };
-        addRenderableWidget(new ExtendedButton(x, y, fullW, btnH,
+        // the captain shares this row with his target priority, the screen has no room for another row
+        boolean captainRow = leaderEntity instanceof CaptainEntity;
+        addRenderableWidget(new ExtendedButton(x, y, captainRow ? btnW : fullW, btnH,
                 Component.literal(infoLabel), btn -> {
                     infoMode = infoMode.getNext();
                     Main.SIMPLE_CHANNEL.sendToServer(
                             new MessagePatrolLeaderSetInfoMode(leaderEntity.getUUID(), infoMode.getIndex()));
                     buildWidgets();
                 }));
+
+        // --- Captain: target priority like the Siege Engineer, a click cycles through ---
+        if (leaderEntity instanceof CaptainEntity captain) {
+            IHasTargetPriority.TargetPriority prio = IHasTargetPriority.TargetPriority.fromIndex(captain.getTargetPriority());
+            Button prioButton = addRenderableWidget(new ExtendedButton(x + btnW + 4, y, btnW, btnH, prioName(prio), btn -> {
+                IHasTargetPriority.TargetPriority next = nextCaptainPriority(
+                        IHasTargetPriority.TargetPriority.fromIndex(captain.getTargetPriority()));
+                captain.setTargetPriority(next); // shown right away, the server sets it as well
+                Main.SIMPLE_CHANNEL.sendToServer(new MessageSetTargetPrio(captain.getUUID(), next.getIndex()));
+                buildWidgets();
+            }));
+            prioButton.setTooltip(Tooltip.create(Component.translatable("gui.recruits.captain.tooltip.targetPrio", prioTooltip(prio))));
+        }
         y += btnH + 4;
 
         // --- On Enemy ---
@@ -280,4 +296,42 @@ public class PatrolLeaderScreen extends RecruitsScreenBase {
 
     @Override
     public boolean isPauseScreen() { return false; }
+    /** Order of the captain's priority button: the scoring first, then the fixed priorities. */
+    private static final IHasTargetPriority.TargetPriority[] CAPTAIN_PRIORITIES = {
+            IHasTargetPriority.TargetPriority.AUTO,
+            IHasTargetPriority.TargetPriority.SHIPS,
+            IHasTargetPriority.TargetPriority.CLOSEST,
+            IHasTargetPriority.TargetPriority.SIEGE_WEAPONS,
+            IHasTargetPriority.TargetPriority.INFANTRY,
+            IHasTargetPriority.TargetPriority.CAVALRY
+    };
+
+    private static IHasTargetPriority.TargetPriority nextCaptainPriority(IHasTargetPriority.TargetPriority current) {
+        for (int i = 0; i < CAPTAIN_PRIORITIES.length; i++) {
+            if (CAPTAIN_PRIORITIES[i] == current) return CAPTAIN_PRIORITIES[(i + 1) % CAPTAIN_PRIORITIES.length];
+        }
+        return IHasTargetPriority.TargetPriority.AUTO;
+    }
+
+    private static Component prioName(IHasTargetPriority.TargetPriority prio) {
+        return Component.translatable(switch (prio) {
+            case CLOSEST -> "gui.recruits.inv.text.prioClosestEnemy";
+            case INFANTRY -> "gui.recruits.inv.text.prioInfantry";
+            case CAVALRY -> "gui.recruits.inv.text.prioCavalry";
+            case SIEGE_WEAPONS -> "gui.recruits.inv.text.prioSiegeWeapons";
+            case SHIPS -> "gui.recruits.inv.text.prioShips";
+            case AUTO -> "gui.recruits.inv.text.prioAuto";
+        });
+    }
+
+    private static Component prioTooltip(IHasTargetPriority.TargetPriority prio) {
+        return Component.translatable(switch (prio) {
+            case CLOSEST -> "gui.recruits.inv.tooltip.prioClosestEnemy";
+            case INFANTRY -> "gui.recruits.inv.tooltip.prioInfantry";
+            case CAVALRY -> "gui.recruits.inv.tooltip.prioCavalry";
+            case SIEGE_WEAPONS -> "gui.recruits.inv.tooltip.prioSiegeWeapons";
+            case SHIPS -> "gui.recruits.inv.tooltip.prioShips";
+            case AUTO -> "gui.recruits.inv.tooltip.prioAuto";
+        });
+    }
 }

@@ -47,6 +47,7 @@ public class MessagePromoteRecruit implements Message<MessagePromoteRecruit> {
         return switch (profession) {
             case 2 -> Main.isSiegeWeaponsLoaded && Main.isSiegeWeaponsCompatible;               // siege engineer
             case 3 -> Main.isSmallShipsLoaded && Main.isSmallShipsCompatible;                   // captain
+            case 6 -> Main.GOVERNOR_ENABLED;                                                    // governor
             default -> true;                                                                      // messenger, scout, patrol leader
         };
     }

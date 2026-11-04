@@ -2,7 +2,11 @@ package com.talhanation.recruits.governor;
 
 import com.talhanation.recruits.ClaimEvent;
 import com.talhanation.recruits.SiegeEvent;
+import com.talhanation.recruits.api.governor.GovernorModules;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import java.util.UUID;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -51,6 +55,11 @@ public class GovernorEvents {
         ClaimGovernorData data = manager.getData(event.getClaim().getUUID());
         if (data == null) return;
 
+        // addon modules first, while the old owner is still known (e.g. remove his Governor trades and orders)
+        UUID oldOwner = data.getGovernorOwner();
+        UUID newOwner = GovernorManager.getClaimOwner(event.getClaim());
+        GovernorModules.forEach("onOwnerChanged", module -> module.onOwnerChanged(event.getLevel(), event.getClaim(), oldOwner, newOwner));
+
         if (data.hasGovernor()) {
             GovernorManager.notifyPlayer(event.getLevel(), data.getGovernorOwner(), Component.translatable("chat.recruits.governor.stopped_ruling",
                     data.getGovernorName(), event.getClaim().getName(),
@@ -60,6 +69,13 @@ public class GovernorEvents {
         for (GovernorPost post : data.getPosts()) post.setAssigned(null);
         data.patrols.clear();
         data.siegeNotified = false;
+    }
+
+    /** Daily reports the owner missed while he was offline. */
+    @SubscribeEvent
+    public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        GovernorManager manager = GovernorManager.get();
+        if (manager != null && event.getEntity() instanceof ServerPlayer player) manager.deliverPendingReports(player);
     }
 
     @SubscribeEvent

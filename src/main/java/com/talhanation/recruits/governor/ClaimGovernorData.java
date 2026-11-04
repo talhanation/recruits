@@ -43,6 +43,12 @@ public class ClaimGovernorData {
     private long lastQuestDay = -1;
     /** Level of the Governor in office, for the garrison limit while he is not loaded. */
     private int governorLevel;
+    /** Last day the modules ran their daily check. */
+    private long lastModuleDay = -1;
+    /** Data of the addon modules (workers ...), by module id. Saved with the claim. */
+    private final Map<String, CompoundTag> moduleData = new HashMap<>();
+    /** Daily report that could not be delivered (owner offline), as component JSON. Sent at the next login. */
+    private final List<String> pendingReport = new ArrayList<>();
 
     // one-time notifications ("einmal melden")
     public boolean treasuryMissingNotified;
@@ -293,6 +299,30 @@ public class ClaimGovernorData {
         this.governorLevel = Math.max(0, level);
     }
 
+    // ------------------------------------------------------------------ modules
+
+    public long getLastModuleDay() {
+        return lastModuleDay;
+    }
+
+    public void setLastModuleDay(long day) {
+        this.lastModuleDay = day;
+    }
+
+    /** The module's own data, created on first use. */
+    public CompoundTag getModuleData(net.minecraft.resources.ResourceLocation module) {
+        return moduleData.computeIfAbsent(module.toString(), key -> new CompoundTag());
+    }
+
+    public List<String> getPendingReport() {
+        return pendingReport;
+    }
+
+    public void setPendingReport(List<String> lines) {
+        pendingReport.clear();
+        pendingReport.addAll(lines);
+    }
+
     public void setRecruitStatus(String status, Object arg) {
         this.recruitStatus = status;
         this.recruitStatusArg = arg == null ? "" : String.valueOf(arg);
@@ -335,6 +365,19 @@ public class ClaimGovernorData {
         tag.putBoolean("treasuryNotified", treasuryMissingNotified);
         tag.putBoolean("upkeepNotified", upkeepMissingNotified);
         tag.putBoolean("siegeNotified", siegeNotified);
+        tag.putLong("lastModuleDay", lastModuleDay);
+        if (!moduleData.isEmpty()) {
+            CompoundTag modules = new CompoundTag();
+            for (Map.Entry<String, CompoundTag> entry : moduleData.entrySet()) {
+                if (!entry.getValue().isEmpty()) modules.put(entry.getKey(), entry.getValue());
+            }
+            tag.put("modules", modules);
+        }
+        if (!pendingReport.isEmpty()) {
+            ListTag report = new ListTag();
+            for (String line : pendingReport) report.add(net.minecraft.nbt.StringTag.valueOf(line));
+            tag.put("pendingReport", report);
+        }
         return tag;
     }
 
@@ -374,6 +417,11 @@ public class ClaimGovernorData {
         data.treasuryMissingNotified = tag.getBoolean("treasuryNotified");
         data.upkeepMissingNotified = tag.getBoolean("upkeepNotified");
         data.siegeNotified = tag.getBoolean("siegeNotified");
+        data.lastModuleDay = tag.contains("lastModuleDay") ? tag.getLong("lastModuleDay") : -1;
+        CompoundTag modules = tag.getCompound("modules");
+        for (String key : modules.getAllKeys()) data.moduleData.put(key, modules.getCompound(key));
+        ListTag report = tag.getList("pendingReport", Tag.TAG_STRING);
+        for (int i = 0; i < report.size(); i++) data.pendingReport.add(report.getString(i));
         return data;
     }
 

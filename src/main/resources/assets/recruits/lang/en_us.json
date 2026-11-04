@@ -663,6 +663,9 @@
   "gui.recruits.inv.tooltip.prioCavalry": "Set Priority to target Cavalry",
   "gui.recruits.inv.tooltip.prioSiegeWeapons": "Set Priority to target Siege Weapons",
   "gui.recruits.inv.tooltip.prioShips": "Set Priority to target Ships",
+  "gui.recruits.inv.text.prioAuto": "Automatic",
+  "gui.recruits.inv.tooltip.prioAuto": "Picks the target by threat, distance and condition",
+  "gui.recruits.captain.tooltip.targetPrio": "Target priority: %s. Click to change.",
 
   "gui.recruits.embargo.screen_title": "Embargoes",
   "gui.recruits.embargo.add_title": "Add Embargo",
@@ -812,6 +815,7 @@
   "chat.recruits.governor.not_governing": "%s does not govern a claim.",
   "chat.recruits.governor.died": "Governor %s has fallen at %s %s %s.",
   "chat.recruits.governor.stopped_ruling": "Governor %s no longer rules %s: %s.",
+  "chat.recruits.governor.report": "Governor %s, daily report of %s:",
   "chat.recruits.governor.treasury_missing": "Governor %s: treasury missing (%s %s %s).",
   "chat.recruits.governor.upkeep_missing": "Governor %s: upkeep chest missing (%s %s %s).",
   "chat.recruits.governor.under_siege": "Governor %s: %s is under siege!",
