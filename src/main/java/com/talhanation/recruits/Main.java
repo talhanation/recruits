@@ -51,7 +51,6 @@ public class Main {
      * Governor switch. Off for the Small Ships release: the code stays in, but recruits can not be promoted
      * to Governor, his command tab and spawn egg are hidden. Turn on again when the Governor is released.
      */
-    public static final boolean GOVERNOR_ENABLED = false;
     public static boolean isMusketModLoaded;
     public static boolean isSmallShipsLoaded;
     public static boolean isSmallShipsCompatible;
@@ -276,12 +275,12 @@ public class Main {
         MinecraftForge.EVENT_BUS.register(new ClientPlayerEvents());
         MinecraftForge.EVENT_BUS.register(new ClientClaimProtectionEvents());
         MinecraftForge.EVENT_BUS.register(new ClaimOverlayManager());
-        if (GOVERNOR_ENABLED) MinecraftForge.EVENT_BUS.register(new com.talhanation.recruits.client.events.GovernorPostRenderer());
+        MinecraftForge.EVENT_BUS.register(new com.talhanation.recruits.client.events.GovernorPostRenderer());
 
         CommandCategoryManager.register(new MovementCategory(), -2);
         CommandCategoryManager.register(new CombatCategory(), -3);
         CommandCategoryManager.register(new OtherCategory(), -1);
-        if (GOVERNOR_ENABLED) CommandCategoryManager.register(new GovernorCategory(), 0);
+        CommandCategoryManager.register(new GovernorCategory(), 0);
     }
 
     private void addCreativeTabs(BuildCreativeModeTabContentsEvent event) {
@@ -298,7 +297,7 @@ public class Main {
             event.accept(ModItems.PATROL_LEADER_SPAWN_EGG.get());
             event.accept(ModItems.CAPTAIN_SPAWN_EGG.get());
             event.accept(ModItems.SIEGE_ENGINEER_SPAWN_EGG.get());
-            if (GOVERNOR_ENABLED) event.accept(ModItems.GOVERNOR_SPAWN_EGG.get());
+            event.accept(ModItems.GOVERNOR_SPAWN_EGG.get());
         }
 
         if (event.getTabKey().equals(CreativeModeTabs.FUNCTIONAL_BLOCKS)){

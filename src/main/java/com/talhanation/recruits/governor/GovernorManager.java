@@ -4,6 +4,7 @@ import com.talhanation.recruits.ClaimEvents;
 import com.talhanation.recruits.FactionEvents;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.VillageEvents;
+import com.talhanation.recruits.api.governor.GovernorModules;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.GovernorEntity;
@@ -538,12 +539,12 @@ public class GovernorManager {
         tag.putInt("taxBase", RecruitsServerConfig.GovernorTaxPer10Inhabitants.get());
 
         // data of the addon modules for their tabs, only if there is something to show
-        if (!com.talhanation.recruits.api.governor.GovernorModules.isEmpty()) {
-            GovernorEntity ruling = data.getGovernorId() != null && level.getEntity(data.getGovernorId()) instanceof GovernorEntity g ? g : null;
+        if (!GovernorModules.isEmpty()) {
+            GovernorEntity governor = data.getGovernorId() != null && level.getEntity(data.getGovernorId()) instanceof GovernorEntity g ? g : null;
             CompoundTag modules = new CompoundTag();
-            com.talhanation.recruits.api.governor.GovernorModules.forEach("writeSnapshot", module -> {
+            GovernorModules.forEach("writeSnapshot", module -> {
                 CompoundTag moduleTag = new CompoundTag();
-                module.writeSnapshot(moduleContext(level, claim, data, module, ruling), moduleTag);
+                module.writeSnapshot(moduleContext(level, claim, data, module, governor), moduleTag);
                 if (!moduleTag.isEmpty()) modules.put(module.id().toString(), moduleTag);
             });
             if (!modules.isEmpty()) tag.put("modules", modules);

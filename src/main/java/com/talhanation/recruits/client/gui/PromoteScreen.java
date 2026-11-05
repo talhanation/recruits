@@ -115,8 +115,7 @@ public class PromoteScreen extends ScreenBase<PromoteContainer> {
         entries.add(new ProfessionEntry(BUTTON_CAPTAIN, Main.isSmallShipsCompatible ? TOOLTIP_CAPTAIN : TOOLTIP_CAPTAIN_DISABLED, 3, 5, level >= 5 && ships, ships));
         entries.add(new ProfessionEntry(BUTTON_PATROL_LEADER, TOOLTIP_PATROL_LEADER, 4, 5, level >= 5, true));
         // the Governor is switched off for now (Main.GOVERNOR_ENABLED): shown like the other upcoming professions
-        if (Main.GOVERNOR_ENABLED) entries.add(new ProfessionEntry(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, 7, level >= 7, true));
-        else entries.add(new ProfessionEntry(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, 7, false, false));
+        entries.add(new ProfessionEntry(BUTTON_GOVERNOR, TOOLTIP_GOVERNOR, 6, 7, level >= 7, true));
         // not available yet
         entries.add(new ProfessionEntry(BUTTON_ASSASSIN, TOOLTIP_ASSASSIN, 5, 5, false, false));
         entries.add(new ProfessionEntry(BUTTON_SPY, TOOLTIP_SPY, 7, 7, false, false));
