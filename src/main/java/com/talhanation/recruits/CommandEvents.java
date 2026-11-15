@@ -748,21 +748,21 @@ public class CommandEvents {
     }
 
     /** Home harbour for a captain: where his ship lies now. The player is the sender, see MessageCaptainHarbour. */
-    public static void onHarbourCommand(ServerPlayer player, CaptainEntity captain) {
+    public static void onHarbourCommand(@Nullable ServerPlayer player, CaptainEntity captain) {
         Entity ship = captain.getVehicle();
         if (!captain.isSteeringShip() || ship == null) {
-            player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_harbour_no_ship", captain.getName().getString()));
+            if (player != null) player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_harbour_no_ship", captain.getName().getString()));
             return;
         }
         int surfaceY = ShipPathfinder.surfaceY(ship.level(), ship.getX(), ship.getY(), ship.getZ());
         captain.setHarbourPos(BlockPos.containing(ship.getX(), surfaceY, ship.getZ()));
-        player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_harbour_set", captain.getName().getString()));
+        if (player != null) player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_harbour_set", captain.getName().getString()));
     }
 
     /** A captain sails back to his home harbour along the recorded way. */
-    public static void onReturnHarbourCommand(ServerPlayer player, CaptainEntity captain) {
+    public static void onReturnHarbourCommand(@Nullable ServerPlayer player, CaptainEntity captain) {
         if (captain.getHarbourPos() == null) {
-            player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_no_harbour", captain.getName().getString()));
+            if (player != null) player.sendSystemMessage(Component.translatable("chat.recruits.text.captain_no_harbour", captain.getName().getString()));
             return;
         }
         checkPatrolLeaderState(captain);

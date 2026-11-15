@@ -22,6 +22,7 @@ public class HireRequest {
     private final int validDays;
 
     private long expiresDay = Long.MAX_VALUE;
+    private boolean garrison;
     /** Why it was not served yet, key below {@code gui.recruits.governor.recruit_status}, for the module's report. */
     private String status = "waiting";
 
@@ -41,6 +42,19 @@ public class HireRequest {
         this.priority = priority;
         this.validDays = Math.max(1, validDays);
         this.onHired = onHired;
+    }
+
+    /**
+     * The unit joins the garrison instead of the owner's own units: the Governor pays and supplies it,
+     * it counts against the garrison limit, not the player limit.
+     */
+    public HireRequest asGarrison() {
+        this.garrison = true;
+        return this;
+    }
+
+    public boolean isGarrison() {
+        return garrison;
     }
 
     public String getKey() {

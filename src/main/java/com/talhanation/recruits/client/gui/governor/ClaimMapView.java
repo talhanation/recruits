@@ -29,6 +29,9 @@ import java.util.Set;
  * The terrain is copied chunk by chunk from the world map data into an own small texture. A chunk keeps its
  * last picture while the world map rebuilds or reloads it, so the cut-out never flickers or turns black;
  * chunks the player never explored stay dark.
+ * <p>
+ * Addon tabs can draw on top of the terrain with an {@link Overlay}: it gets the {@link Frame} that turns block
+ * coordinates into screen coordinates.
  */
 @OnlyIn(Dist.CLIENT)
 public class ClaimMapView {
@@ -54,11 +57,55 @@ public class ClaimMapView {
     private long lastRefresh;
     private boolean waitingForRegions;
     private boolean closed;
+    /** Frame of the last render, null before the first one. */
+    @Nullable
+    private Frame lastFrame;
+
+    /** Draws on top of the terrain, inside the map (the scissor is set). */
+    @FunctionalInterface
+    public interface Overlay {
+        void render(GuiGraphics g, Frame frame);
+    }
+
+    /**
+     * Where the claim lies on the screen: block x/z of the top left corner of the map texture and the pixels per
+     * block. The texture covers the box of all claim chunks, {@code blocksWide} x {@code blocksHigh} blocks.
+     */
+    public record Frame(double left, double top, double scale, int minBlockX, int minBlockZ, int blocksWide, int blocksHigh) {
+
+        public double screenX(double blockX) {
+            return left + (blockX - minBlockX) * scale;
+        }
+
+        public double screenZ(double blockZ) {
+            return top + (blockZ - minBlockZ) * scale;
+        }
+
+        /** Block x under a screen x. */
+        public int blockX(double screenX) {
+            return (int) Math.floor((screenX - left) / scale) + minBlockX;
+        }
+
+        /** Block z under a screen y. */
+        public int blockZ(double screenY) {
+            return (int) Math.floor((screenY - top) / scale) + minBlockZ;
+        }
+
+        public boolean contains(int blockX, int blockZ) {
+            return blockX >= minBlockX && blockX < minBlockX + blocksWide && blockZ >= minBlockZ && blockZ < minBlockZ + blocksHigh;
+        }
+    }
 
     public ClaimMapView() {
         this.mapCache = WorldMapCacheManager.getInstance();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) mapCache.initialize(minecraft.level);
+    }
+
+    /** Frame of the last render (e.g. for the mouse in a click), null if the map was not drawn. */
+    @Nullable
+    public Frame getFrame() {
+        return lastFrame;
     }
 
     public void close() {
@@ -77,6 +124,14 @@ public class ClaimMapView {
     @Nullable
     public GovernorPost render(GuiGraphics g, Font font, int x, int y, int width, int height,
                                List<ChunkPos> chunks, List<GovernorPost> posts, int mouseX, int mouseY) {
+        return render(g, font, x, y, width, height, chunks, posts, null, mouseX, mouseY);
+    }
+
+    /** Like above, with an overlay drawn between the terrain and the posts. */
+    @Nullable
+    public GovernorPost render(GuiGraphics g, Font font, int x, int y, int width, int height, List<ChunkPos> chunks,
+                               List<GovernorPost> posts, @Nullable Overlay overlay, int mouseX, int mouseY) {
+        lastFrame = null;
         g.fill(x - 1, y - 1, x + width + 1, y + height + 1, FRAME);
         g.fill(x, y, x + width, y + height, BACKGROUND);
         if (chunks.isEmpty() || closed) return null;
@@ -104,6 +159,8 @@ public class ClaimMapView {
             g.pose().popPose();
 
             renderBorder(g, left, top, scale);
+            lastFrame = new Frame(left, top, scale, minChunkX * 16, minChunkZ * 16, texWidth, texHeight);
+            if (overlay != null) overlay.render(g, lastFrame);
 
             GovernorPost hovered = null;
             for (GovernorPost post : posts) {

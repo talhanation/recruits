@@ -11,6 +11,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -30,8 +32,22 @@ public class GovernorEvents {
         GovernorManager.setInstance(manager);
     }
 
+    /** Tickets of the daily term that were left from a crash. Here all levels are loaded. */
+    @SubscribeEvent
+    public void onServerStarted(ServerStartedEvent event) {
+        GovernorManager manager = GovernorManager.get();
+        if (manager != null) GovernorDayLoader.clearStaleTickets(event.getServer().overworld(), manager);
+    }
+
+    /** Daily term of office of Governors whose claim is not loaded. */
+    @SubscribeEvent
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END && server != null) GovernorDayLoader.tick(server);
+    }
+
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
+        if (server != null) GovernorDayLoader.releaseAll(server.overworld());
         GovernorManager manager = GovernorManager.get();
         if (manager != null && server != null) {
             manager.save(server.overworld());

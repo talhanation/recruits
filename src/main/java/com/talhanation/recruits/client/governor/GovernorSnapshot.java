@@ -77,6 +77,9 @@ public class GovernorSnapshot {
     public boolean village;
     public int villages;
     public int inhabitants;
+    public int nobles;
+    /** Inhabitants the next noble needs, -1 if no more nobles come. */
+    public int nextNobleAt = -1;
     public int questMode;
     public boolean repActive;
     public int reputation;
@@ -93,6 +96,8 @@ public class GovernorSnapshot {
     public int taxToday;
     public int[] taxPenalty = new int[4];
     public int taxBase;
+    /** Data of the addon modules by module id, for their tabs. */
+    public CompoundTag modules = new CompoundTag();
 
     public static GovernorSnapshot fromNBT(CompoundTag tag) {
         GovernorSnapshot s = new GovernorSnapshot();
@@ -163,6 +168,8 @@ public class GovernorSnapshot {
         s.village = tag.getBoolean("village");
         s.villages = tag.getInt("villages");
         s.inhabitants = tag.getInt("inhabitants");
+        s.nobles = tag.getInt("nobles");
+        s.nextNobleAt = tag.contains("nextNobleAt") ? tag.getInt("nextNobleAt") : -1;
         s.questMode = tag.getInt("questMode");
         s.repActive = tag.getBoolean("repActive");
         s.reputation = tag.getInt("reputation");
@@ -183,6 +190,7 @@ public class GovernorSnapshot {
         s.taxToday = tag.getInt("taxToday");
         copy(tag.getIntArray("taxPenalty"), s.taxPenalty);
         s.taxBase = tag.getInt("taxBase");
+        s.modules = tag.getCompound("modules");
         return s;
     }
 

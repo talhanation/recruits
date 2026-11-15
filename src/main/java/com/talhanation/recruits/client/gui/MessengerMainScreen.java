@@ -7,6 +7,7 @@ import com.talhanation.recruits.client.gui.diplomacy.EmbargoScreen;
 import com.talhanation.recruits.entities.MessengerEntity;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +21,8 @@ public class MessengerMainScreen extends RecruitsScreenBase {
     private static final Component BUTTON_MESSAGES = Component.translatable("gui.recruits.messenger.tab.messages");
     private static final Component BUTTON_TREATIES = Component.translatable("gui.recruits.messenger.tab.treaties");
     private static final Component BUTTON_EMBARGOES = Component.translatable("gui.recruits.embargo.screen_title");
+    private static final Component BUTTON_COMPANIONS = Component.translatable("gui.recruits.messenger.tab.companions");
+    private static final Component TOOLTIP_COMPANIONS = Component.translatable("gui.recruits.messenger.tooltip.companions");
     private static final Component TITLE = Component.translatable("gui.recruits.messenger.main_title");
 
     private final Player player;
@@ -61,6 +64,14 @@ public class MessengerMainScreen extends RecruitsScreenBase {
         embargoButton.active = ClientManager.ownFaction != null
                 && ClientManager.ownFaction.getTeamLeaderUUID().equals(player.getUUID());
         addRenderableWidget(embargoButton);
+
+        // orders for the player's other companions: the Messenger carries them there, so he has to be free
+        Button companionsButton = new ExtendedButton(btnX, guiTop + 105, btnWidth, 20, BUTTON_COMPANIONS,
+                button -> minecraft.setScreen(new CompanionListScreen(messenger, player))
+        );
+        companionsButton.active = messenger.getMessengerState() == MessengerEntity.MessengerState.IDLE;
+        companionsButton.setTooltip(Tooltip.create(TOOLTIP_COMPANIONS));
+        addRenderableWidget(companionsButton);
     }
 
     @Override

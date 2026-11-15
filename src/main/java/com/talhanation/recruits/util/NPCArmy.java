@@ -144,6 +144,16 @@ public class NPCArmy {
         updateShips();
     }
 
+    /**
+     * Members that were not in the world when the army was last put together (unloaded chunk, loaded later than the
+     * leader, back from a simulated journey) are taken in again. Without this they were out for good.
+     */
+    public void resolveMissing() {
+        if (uuids == null || uuids.isEmpty()) return;
+        long present = allUnits == null ? 0 : allUnits.stream().filter(LivingEntity::isAlive).count();
+        if (present < uuids.size()) initRecruits(true);
+    }
+
     public void updateShips() {
         ships = ships.stream()
                 .filter(boat -> SmallShipsBridge.isShip(boat) && !boat.isUnderWater() && hasOnBoard(boat))
@@ -307,4 +317,4 @@ public class NPCArmy {
     public int size() {
         return allUnits.size();
     }
-}
+}

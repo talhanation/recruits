@@ -100,6 +100,13 @@ public class RecruitsHireTradesRegistry {
         return best == Integer.MAX_VALUE ? 1 : best;
     }
 
+    /** Trader level on which this trader type offers the entity, 0 if the type does not offer it. */
+    public static int getOfferLevel(String traderType, @Nullable ResourceLocation resourceLocation) {
+        if (resourceLocation == null) return 0;
+        Integer level = findLevel(TRADES.get(traderType), resourceLocation);
+        return level == null ? 0 : level;
+    }
+
     @Nullable
     private static Integer findLevel(@Nullable Map<Integer, List<RecruitsHireTrade>> levelMap, ResourceLocation resourceLocation) {
         if (levelMap == null) return null;

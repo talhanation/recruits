@@ -44,13 +44,9 @@ import org.apache.logging.log4j.Logger;
 @Mod(Main.MOD_ID)
 public class Main {
     public static final String MOD_ID = "recruits";
-    public static final int NETWORK_PROTOCOL = 4;
+    public static final int NETWORK_PROTOCOL = 6;
     public static SimpleChannel SIMPLE_CHANNEL;
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    /**
-     * Governor switch. Off for the Small Ships release: the code stays in, but recruits can not be promoted
-     * to Governor, his command tab and spawn egg are hidden. Turn on again when the Governor is released.
-     */
     public static boolean isMusketModLoaded;
     public static boolean isSmallShipsLoaded;
     public static boolean isSmallShipsCompatible;
@@ -238,7 +234,12 @@ public class Main {
                 MessageToClientGovernorData.class,
                 MessageGovernorSetClaim.class,
                 MessageGovernorSetQuestMode.class,
-                MessageGovernorSetUnit.class
+                MessageGovernorSetUnit.class,
+                MessageRequestCompanionList.class,
+                MessageToClientCompanionList.class,
+                MessageOpenRemoteCompanion.class,
+                MessageToClientOpenRemoteCompanion.class,
+                MessageSendRemoteOrders.class
         };
 
 

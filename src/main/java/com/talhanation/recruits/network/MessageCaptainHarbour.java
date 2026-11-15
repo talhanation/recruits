@@ -8,14 +8,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Objects;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
 /**
  * Home harbour orders from the captain screen: set it where his ship lies now,
  * or sail back to it. The player is the sender, not a uuid from the packet.
  */
-public class MessageCaptainHarbour implements Message<MessageCaptainHarbour> {
+public class MessageCaptainHarbour implements Message<MessageCaptainHarbour>, CompanionOrder<CaptainEntity> {
 
     private UUID captain;
     private boolean returnHome;
@@ -33,13 +33,29 @@ public class MessageCaptainHarbour implements Message<MessageCaptainHarbour> {
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(CaptainEntity.class, player.getBoundingBox().inflate(100.0D),
-                captain -> captain.getUUID().equals(this.captain) && NetworkSecurity.canControl(player, captain)
-        ).forEach(captain -> {
-            if (this.returnHome) CommandEvents.onReturnHarbourCommand(player, captain);
-            else CommandEvents.onHarbourCommand(player, captain);
-        });
+        CompanionOrders.handle(context.getSender(), this);
+    }
+
+    @Override
+    public UUID getCompanion() {
+        return this.captain;
+    }
+
+    @Override
+    public Class<CaptainEntity> getCompanionType() {
+        return CaptainEntity.class;
+    }
+
+    @Override
+    public boolean needsWorld() {
+        return true;
+    }
+
+    @Override
+    public void applyTo(CaptainEntity captain, @Nullable ServerPlayer sender) {
+        ServerPlayer player = CompanionOrders.playerFor(captain, sender);
+        if (this.returnHome) CommandEvents.onReturnHarbourCommand(player, captain);
+        else CommandEvents.onHarbourCommand(player, captain);
     }
 
     public MessageCaptainHarbour fromBytes(FriendlyByteBuf buf) {

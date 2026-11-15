@@ -1,5 +1,8 @@
 package com.talhanation.recruits.entities;
 
+import com.talhanation.recruits.world.SeaRoute;
+import com.talhanation.recruits.world.TravelPlan;
+import net.minecraft.world.entity.Entity;
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.ai.controller.IAttackController;
@@ -201,7 +204,8 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
     private boolean checkForArmy = false;
     public void tick(){
         super.tick();
-        if(this.level().isClientSide()) return;
+        // removed: the patrol was just taken out of the world for its simulated part, see SimulatedTravelManager
+        if(this.level().isClientSide() || this.isRemoved()) return;
 
 
         if(!checkForArmy && this.army != null ){
@@ -218,6 +222,9 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
             checkEnemyTimer = 200;
             checkForPotentialEnemies();
         }
+
+        if(this.tickCount % 20 == 0) this.syncTravelPlan();
+        if(this.army != null && this.tickCount % 200 == 0) this.army.resolveMissing();
 
         double distance = 0D;
         if(currentWaypoint != null) distance = this.distanceToSqr(currentWaypoint.getX(), currentWaypoint.getY(), currentWaypoint.getZ());
@@ -337,6 +344,142 @@ public abstract class AbstractLeaderEntity extends AbstractChunkLoaderEntity imp
                 this.handleUpkeepState();
             }
         }
+    }
+
+    ///////////////////////////////////SIMULATED PATROL/////////////////////////////////////////
+    // A patrol far from every player carries on as a simulation (SimulatedTravelManager): the leader and his army are
+    // taken out of the world, only their position moves along the route, and they are put back where a player can
+    // see them. In the world everything below the tick stays as it is - this part only keeps the travel plan in
+    // step with the patrol and takes over the position when the patrol comes back.
+
+    /** On patrol with nothing else going on: this can go on out of the world. */
+    protected boolean canPatrolTravel() {
+        return (state == State.PATROLLING || state == State.WAITING) && !retreating && hasIndex();
+    }
+
+    /** The patrol sails: it is put back on water. */
+    protected boolean travelsOnWater() {
+        return false;
+    }
+
+    /** By ship: the way over water along the route. Null: none (yet), out of the world the straight line it is. */
+    @Nullable
+    protected SeaRoute currentSeaRoute() {
+        return null;
+    }
+
+    private int waitSecondsAt(int index) {
+        if (index < WAYPOINT_WAIT_SECONDS.size()) return WAYPOINT_WAIT_SECONDS.get(index);
+        return getWaitTimeInMin() * 60;
+    }
+
+    /** Once a second: the plan says where the patrol stands in its route, so it can leave the world at any moment. */
+    private void syncTravelPlan() {
+        if (!this.canPatrolTravel()) {
+            if (this.isTravelling()) this.stopTravel();
+            return;
+        }
+
+        TravelPlan plan = this.getTravelPlan();
+        if (plan == null || !plan.route) {
+            plan = new TravelPlan();
+            plan.route = true;
+            this.startTravel(plan);
+        }
+        if (!plan.points.equals(WAYPOINTS)) {
+            plan.points.clear();
+            plan.points.addAll(WAYPOINTS);
+        }
+        plan.waits.clear();
+        for (int i = 0; i < WAYPOINTS.size(); i++) plan.waits.add(waitSecondsAt(i));
+        plan.index = this.getWaypointIndex();
+        plan.cycle = this.getCycle();
+        plan.returning = this.returning;
+        plan.water = this.travelsOnWater();
+        plan.sea = plan.water ? this.currentSeaRoute() : null;
+        plan.waiting = state == State.WAITING;
+        if (plan.waiting && this.getServer() != null) {
+            int left = Math.max(0, waitSecondsAt(plan.index) * 20 - this.waitingTime);
+            plan.waitUntil = this.getServer().overworld().getGameTime() + left;
+        }
+    }
+
+    @Override
+    protected boolean steersOwnTravel() {
+        return true;
+    }
+
+    /**
+     * A started patrol, on the march or in a fight. Not while it resupplies: there the army is spread out at the
+     * upkeep and stays in its chunk like before, until somebody comes back.
+     */
+    @Override
+    public boolean isOnMission() {
+        return state == State.PATROLLING || state == State.WAITING || state == State.ATTACKING || state == State.RETREATING;
+    }
+
+    /** The chunk goes while the patrol fights: nobody is left here, back on the route. */
+    @Override
+    public void onTravelStranded() {
+        if (!this.isOnMission() || !this.hasIndex()) return;
+        if (state != State.PATROLLING && state != State.WAITING) {
+            this.enemyArmy = null;
+            this.setTarget(null);
+            this.setPatrolState(State.PATROLLING);
+        }
+        this.syncTravelPlan();
+    }
+
+    /** Back in the world: the patrol goes on where the simulation got to. */
+    @Override
+    protected void onTravelResumed() {
+        TravelPlan plan = this.getTravelPlan();
+        if (plan == null || !plan.route) return;
+
+        if (this.army != null) this.army.initRecruits(true);
+        this.takeOverTravelPlan(plan);
+    }
+
+    /**
+     * Orders reach the patrol while it is out of the world (a Messenger found it): this leader takes over where the
+     * simulation got to, the orders are carried out on him, and the plan follows - a new route counts from the next
+     * step on, a stopped patrol stays where it is. The army is not touched, it is not in a world right now.
+     */
+    @Override
+    @Nullable
+    public TravelPlan changeOutOfWorld(TravelPlan plan, Runnable change) {
+        if (plan.route) this.takeOverTravelPlan(plan);
+        super.changeOutOfWorld(plan, change);
+        this.syncTravelPlan();
+        return this.getTravelPlan();
+    }
+
+    /** The leader stands in his route where the plan says. */
+    private void takeOverTravelPlan(TravelPlan plan) {
+        if (plan.index >= 0 && plan.index < WAYPOINTS.size()) {
+            this.setWaypointIndex(plan.index);
+            this.currentWaypoint = WAYPOINTS.get(plan.index);
+        }
+        this.returning = plan.returning;
+        if (plan.waiting && this.getServer() != null) {
+            long left = Math.max(0L, plan.waitUntil - this.getServer().overworld().getGameTime());
+            this.waitingTime = (int) Math.max(0L, waitSecondsAt(plan.index) * 20L - left);
+            this.setPatrolState(State.WAITING);
+        } else {
+            this.setPatrolState(State.PATROLLING);
+        }
+    }
+
+    /** The army travels with its leader. */
+    @Override
+    public List<? extends Entity> getTravelCompany() {
+        return this.army == null ? List.of() : this.army.getAllRecruitUnits();
+    }
+
+    /** A patrol travels as a simulation, the leader keeps no chunks loaded. */
+    @Override
+    public boolean shouldLoadChunk() {
+        return false;
     }
 
     public boolean getOtherUpkeepInterruption() {

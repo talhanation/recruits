@@ -16,8 +16,10 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.world.entity.Entity;
+import javax.annotation.Nullable;
 
-public class MessageAssignGroupToCompanion implements Message<MessageAssignGroupToCompanion> {
+public class MessageAssignGroupToCompanion implements Message<MessageAssignGroupToCompanion>, CompanionOrder<AbstractLeaderEntity> {
 
     private UUID ownerUUID;
     private UUID companionUUID;
@@ -34,28 +36,38 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer =  context.getSender();
-        ServerLevel serverLevel =  serverPlayer.serverLevel();
+        CompanionOrders.handle(context.getSender(), this);
+    }
 
-        AbstractLeaderEntity companionEntity = null;
+    @Override
+    public UUID getCompanion() {
+        return this.companionUUID;
+    }
 
+    @Override
+    public Class<AbstractLeaderEntity> getCompanionType() {
+        return AbstractLeaderEntity.class;
+    }
+
+    @Override
+    public boolean needsWorld() {
+        return true;
+    }
+
+    @Override
+    public void applyTo(AbstractLeaderEntity companionEntity, @Nullable ServerPlayer sender) {
+        if (!(companionEntity.level() instanceof ServerLevel serverLevel)) return;
+        // Only your own leader, with your own group, and only your own recruits.
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
+        if (!CompanionOrders.canManageGroup(companionEntity, sender, group)) return;
+
+        // Given by the player himself: the recruits around him, as before. Delivered by a Messenger: the recruits
+        // around the leader, the player may be at the other end of the map.
+        Entity center = sender != null ? sender : companionEntity;
         List<LivingEntity> list = serverLevel.getEntitiesOfClass(
                 LivingEntity.class,
-                serverPlayer.getBoundingBox().inflate(100)
+                center.getBoundingBox().inflate(100)
         );
-
-        for (LivingEntity companion : list){
-            if(companion.getUUID().equals(this.companionUUID) && companion instanceof AbstractLeaderEntity leader){
-                companionEntity = leader;
-                break;
-            }
-        }
-        // Only your own leader, with your own group, and only your own recruits.
-        if(companionEntity == null || !NetworkSecurity.canControl(serverPlayer, companionEntity)) return;
-
-
-        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
-        if(group == null || !NetworkSecurity.canManageGroup(serverPlayer, group)) return;
 
         list.removeIf(living -> !(living instanceof AbstractRecruitEntity recruit)
                 || (recruit.getGroup() == null || !recruit.getGroup().equals(group.getUUID()))
@@ -65,11 +77,13 @@ public class MessageAssignGroupToCompanion implements Message<MessageAssignGroup
         for (LivingEntity living : list) {
             if(living instanceof AbstractRecruitEntity recruit) ICompanion.assignToLeaderCompanion(companionEntity, recruit);
         }
+
         companionEntity.army = new NPCArmy(serverLevel, list, null);
         group.leaderUUID = companionUUID;
         companionEntity.setGroupUUID(group.getUUID());
 
-        RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(serverPlayer);
+        ServerPlayer player = CompanionOrders.playerFor(companionEntity, sender);
+        if (player != null) RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
     }
 
     public MessageAssignGroupToCompanion fromBytes(FriendlyByteBuf buf) {

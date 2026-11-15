@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
+public abstract class AbstractChunkLoaderEntity extends AbstractTravelEntity {
     private Optional<RecruitsChunk> loadedChunk = Optional.empty();
 
     public AbstractChunkLoaderEntity(EntityType<? extends AbstractChunkLoaderEntity> entityType, Level world) {
@@ -24,18 +24,29 @@ public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
 
     public void tick() {
         super.tick();
+        // taken out of the world for a simulated journey during this tick: no new tickets for an entity that is gone
+        if(this.isRemoved()) return;
         if(shouldLoadChunk()) updateChunkLoading();
+        else releaseChunkLoading();
     }
 
+    /** false: this entity keeps no chunks loaded (any more), e.g. because it travels as a simulation. */
     public boolean shouldLoadChunk(){
         return true;
+    }
+
+    /** Gives back the chunks an entity forced before it stopped loading chunks (old worlds). */
+    private void releaseChunkLoading(){
+        if(loadedChunk.isEmpty() || this.getCommandSenderWorld().isClientSide()) return;
+        this.getSetOfChunks(loadedChunk.get()).forEach(chunk -> this.setForceChunk(chunk, false));
+        loadedChunk = Optional.empty();
     }
 
     public void updateChunkLoading(){
         if (!this.getCommandSenderWorld().isClientSide() && RecruitsServerConfig.RecruitsChunkLoading.get()) {
             RecruitsChunk currentChunk = new RecruitsChunk(this.chunkPosition().x, this.chunkPosition().z);
             if (loadedChunk.isEmpty()) {
-                this.setForceChunk(currentChunk, true);
+                this.getSetOfChunks(currentChunk).forEach(chunk -> this.setForceChunk(chunk, true));
                 loadedChunk = Optional.of(currentChunk);
 
             } else if (!currentChunk.equals(loadedChunk.get())){
@@ -112,6 +123,17 @@ public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
             this.z = z;
         }
 
+        // without these every tick looked like a chunk change and all 3x3 tickets were set again, 20 times a second
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof RecruitsChunk chunk && chunk.x == this.x && chunk.z == this.z;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * x + z;
+        }
+
         public boolean isSame(RecruitsChunk otherChunk){
             if(otherChunk != null) return this.x == otherChunk.x && this.z == otherChunk.z;
             else return false;
@@ -154,4 +176,4 @@ public abstract class AbstractChunkLoaderEntity extends BowmanEntity {
             return list;
         }
     }
-}
+}

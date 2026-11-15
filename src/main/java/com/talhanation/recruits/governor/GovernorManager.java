@@ -232,10 +232,43 @@ public class GovernorManager {
 
     // ------------------------------------------------------------------ garrison
 
+    /** The military garrison: the units that guard, patrol and get a loadout. */
     public static List<AbstractRecruitEntity> findGarrison(ServerLevel level, RecruitsClaim claim, @Nullable UUID owner) {
         UUID claimId = claim.getUUID();
         return level.getEntitiesOfClass(AbstractRecruitEntity.class, getClaimBox(level, claim, 32),
-                recruit -> GovernorGarrison.isGarrisonOf(recruit, claimId, owner));
+                recruit -> GovernorGarrison.isGarrisonOf(recruit, claimId, owner) && GovernorGarrison.canServe(recruit));
+    }
+
+    /** Garrison units a module took (workers): upkeep and pay from the Governor, no guard duty. */
+    public static List<AbstractRecruitEntity> findModuleUnits(ServerLevel level, RecruitsClaim claim, @Nullable UUID owner) {
+        UUID claimId = claim.getUUID();
+        return level.getEntitiesOfClass(AbstractRecruitEntity.class, getClaimBox(level, claim, 64),
+                recruit -> GovernorGarrison.isGarrisonOf(recruit, claimId, owner) && !GovernorGarrison.canServe(recruit));
+    }
+
+    /** Everything that counts against the garrison limit: military units and module units. */
+    public static int countGarrison(ServerLevel level, RecruitsClaim claim, @Nullable UUID owner) {
+        return findGarrison(level, claim, owner).size() + findModuleUnits(level, claim, owner).size();
+    }
+
+    /**
+     * Lets the modules plan ({@code IGovernorModule.onUpdate}) if the last planning is at least minGap ticks ago.
+     * Only with a loaded Governor.
+     */
+    public static void updateModules(ServerLevel overworld, RecruitsClaim claim, ClaimGovernorData data, long minGap) {
+        if (com.talhanation.recruits.api.governor.GovernorModules.isEmpty()) return;
+        long now = overworld.getGameTime();
+        // the first planning of a claim at its own moment, so the claims do not all plan in the same tick
+        if (data.lastModuleUpdate == Long.MIN_VALUE / 2) {
+            data.lastModuleUpdate = now - minGap + Math.floorMod(claim.getUUID().hashCode(), (int) Math.max(1, minGap));
+        }
+        if (now - data.lastModuleUpdate < minGap) return;
+        data.lastModuleUpdate = now;
+        com.talhanation.recruits.api.governor.GovernorModules.forEach("onUpdate", module -> {
+            com.talhanation.recruits.api.governor.GovernorContext ctx =
+                    com.talhanation.recruits.api.governor.GovernorAccess.forClaim(overworld, claim.getUUID(), module.id());
+            if (ctx != null && ctx.isLoaded()) module.onUpdate(ctx);
+        });
     }
 
     public static void unassign(ClaimGovernorData data, UUID recruit) {
@@ -253,6 +286,15 @@ public class GovernorManager {
     public static List<RecruitsVillage> getVillages(RecruitsClaim claim) {
         if (VillageEvents.villageManager == null) return new ArrayList<>();
         return VillageEvents.villageManager.getVillagesInClaim(claim);
+    }
+
+    /** Unit types the Governor of the claim needs but can not hire (entity type ids), empty without a Governor. */
+    public static Set<String> getWantedUnits(@Nullable RecruitsClaim claim) {
+        GovernorManager manager = get();
+        if (claim == null || manager == null) return Collections.emptySet();
+        ClaimGovernorData claimData = manager.getData(claim.getUUID());
+        if (claimData == null || !claimData.hasGovernor()) return Collections.emptySet();
+        return claimData.getWantedUnits();
     }
 
     /** Inhabitants of the claim, counted like the nobles count them (villagers with a bed in the village + nobles). */
@@ -489,7 +531,7 @@ public class GovernorManager {
         tag.putBoolean("treasuryMissing", treasuryMissing);
         boolean upkeepMissing = data.getPosts(GovernorPost.Type.UPKEEP).isEmpty();
         for (GovernorPost upkeep : data.getPosts(GovernorPost.Type.UPKEEP)) {
-            if (level.isLoaded(upkeep.getPos()) && !GovernorGarrison.isContainer(level, upkeep.getPos())) upkeepMissing = true;
+            if (!GovernorGarrison.isPostPresent(level, upkeep)) upkeepMissing = true;
         }
         tag.putBoolean("upkeepMissing", upkeepMissing);
 
@@ -518,6 +560,7 @@ public class GovernorManager {
         }
         tag.putIntArray("counts", counts);
         tag.putIntArray("quota", quota);
+        if (garrisonOwner != null) total += findModuleUnits(level, claim, garrisonOwner).size();
         tag.putInt("garrisonTotal", total);
         tag.put("loadout", loadout);
         tag.putInt("budget", data.getBudgetPerDay());
@@ -527,7 +570,15 @@ public class GovernorManager {
         List<RecruitsVillage> villages = getVillages(claim);
         tag.putBoolean("village", !villages.isEmpty());
         tag.putInt("villages", villages.size());
-        tag.putInt("inhabitants", getInhabitants(level, claim));
+        int inhabitants = getInhabitants(level, claim);
+        tag.putInt("inhabitants", inhabitants);
+        // nobles: how many there are, and from how many inhabitants the next one comes (-1: no more)
+        int nobles = 0;
+        for (RecruitsVillage village : villages) nobles += village.nobles.size();
+        tag.putInt("nobles", nobles);
+        int nobleMax = RecruitsServerConfig.NobleMaxPerVillage.get() * villages.size();
+        tag.putInt("nextNobleAt", villages.isEmpty() || nobles >= nobleMax ? -1
+                : RecruitsServerConfig.NobleMinInhabitants.get() + RecruitsServerConfig.NobleInhabitantsPerAdditional.get() * nobles);
         tag.putInt("questMode", data.getQuestMode());
         writeVillageReputation(tag, level, claim, data);
         tag.putInt("taxLevel", data.getTaxLevel());

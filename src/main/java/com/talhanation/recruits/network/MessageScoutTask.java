@@ -6,11 +6,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
+import net.minecraft.server.level.ServerPlayer;
+import javax.annotation.Nullable;
 
-public class MessageScoutTask implements Message<MessageScoutTask> {
+public class MessageScoutTask implements Message<MessageScoutTask>, CompanionOrder<ScoutEntity> {
 
     private UUID recruit;
     private int state;
@@ -26,16 +26,28 @@ public class MessageScoutTask implements Message<MessageScoutTask> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<ScoutEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(ScoutEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (ScoutEntity scoutEntity : list){
+    public void executeServerSide(NetworkEvent.Context context) {
+        CompanionOrders.handle(context.getSender(), this);
+    }
 
-            if (scoutEntity.getUUID().equals(this.recruit) && NetworkSecurity.canControl(context.getSender(), scoutEntity)){
+    @Override
+    public UUID getCompanion() {
+        return this.recruit;
+    }
 
-                scoutEntity.startTask(ScoutEntity.State.fromIndex(state));
-                break;
-            }
-        }
+    @Override
+    public Class<ScoutEntity> getCompanionType() {
+        return ScoutEntity.class;
+    }
+
+    @Override
+    public boolean needsWorld() {
+        return true;
+    }
+
+    @Override
+    public void applyTo(ScoutEntity scout, @Nullable ServerPlayer sender) {
+        scout.startTask(ScoutEntity.State.fromIndex(state));
     }
     public MessageScoutTask fromBytes(FriendlyByteBuf buf) {
         this.recruit = buf.readUUID();

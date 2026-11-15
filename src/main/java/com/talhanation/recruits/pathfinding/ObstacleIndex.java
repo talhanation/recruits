@@ -1,6 +1,7 @@
 package com.talhanation.recruits.pathfinding;
 
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
+import com.talhanation.recruits.entities.ai.navigation.RecruitCollision;
 import com.talhanation.recruits.pathfinding.ObstacleSnapshot.Obstacle;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.server.level.ServerLevel;
@@ -28,8 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <ul>
  *     <li><b>solid</b>: collidable hitboxes ({@link Entity#canBeCollidedWith()}), e.g. siege weapons,
  *     ground cannons, boats, ships. Nodes inside them are blocked.</li>
- *     <li><b>standing</b>: recruits that stand still. Only a cost malus, so walking around is preferred
- *     but a path through a crowd is still found. Moving recruits are ignored.</li>
+ *     <li><b>standing</b>: recruits that stand still, on foot or mounted. Only a cost malus, so walking
+ *     around is preferred but a path through a crowd is still found. Moving recruits are ignored.</li>
  * </ul>
  * Entities are tracked via join/leave events, the level is never scanned. Once per second the obstacles
  * are collected and a new snapshot is built only if their state changed.
@@ -58,10 +59,12 @@ public final class ObstacleIndex {
         if (!entity.isAlive()) return null;
 
         if (entity instanceof AbstractRecruitEntity recruit) {
-            boolean standing = !recruit.isPassenger()
-                    && recruit.getDeltaMovement().horizontalDistanceSqr() < STANDING_SPEED_SQR
+            // a mounted recruit stands where its mount stands, with the hitbox (and id) of the mount
+            Entity body = RecruitCollision.bodyOf(recruit);
+            boolean standing = body != null
+                    && body.getDeltaMovement().horizontalDistanceSqr() < STANDING_SPEED_SQR
                     && recruit.getNavigation().isDone();
-            return standing ? new Obstacle(recruit.getId(), true, recruit.getGroup(), recruit.getBoundingBox()) : null;
+            return standing ? new Obstacle(body.getId(), true, recruit.getGroup(), body.getBoundingBox()) : null;
         }
 
         return entity.canBeCollidedWith() && !entity.isSpectator()

@@ -5,6 +5,7 @@ import com.talhanation.recruits.entities.GovernorEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
 import com.talhanation.recruits.governor.ClaimGovernorData;
 import com.talhanation.recruits.governor.GovernorController;
+import com.talhanation.recruits.governor.GovernorGarrison;
 import com.talhanation.recruits.governor.GovernorHiring;
 import com.talhanation.recruits.governor.GovernorManager;
 import com.talhanation.recruits.world.RecruitsClaim;
@@ -17,9 +18,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -94,6 +97,15 @@ public class GovernorContext {
         return governor;
     }
 
+    /**
+     * Sends the Governor to a place instead of his post, e.g. to a build site he marks out: he holds his position
+     * there until it is cleared with null. His own tasks (withdraw, hire, taxes) come first. Only while he is loaded.
+     */
+    public void setVisitTarget(@Nullable BlockPos pos) {
+        if (governor == null) return;
+        governor.controller.setVisitTarget(pos == null ? null : net.minecraft.world.phys.Vec3.atBottomCenterOf(pos));
+    }
+
     public boolean isLoaded() {
         return governor != null;
     }
@@ -108,6 +120,15 @@ public class GovernorContext {
     /** Data of this module stored with the claim's Governor data. Changes are saved with the world. */
     public CompoundTag getModuleData() {
         return data.getModuleData(moduleId);
+    }
+
+    /**
+     * Unit types this module needs but can not hire in the claim: no free unit stands in it and no noble offers them.
+     * When a village of the claim elects its next noble, it prefers a trader type that offers them.
+     * Replaces the module's last list, an empty list clears it.
+     */
+    public void setWantedUnits(Collection<ResourceLocation> entityIds) {
+        data.setWantedUnits(moduleId, entityIds);
     }
 
     // ------------------------------------------------------------------ treasury and budget
@@ -125,6 +146,87 @@ public class GovernorContext {
     /** What the Governor may still spend today (daily budget minus what he spent). */
     public int getRemainingBudget() {
         return data.getRemainingBudget(getDay());
+    }
+
+    /** The currency of the treasury (the Recruits currency). */
+    public net.minecraft.world.item.Item getCurrency() {
+        return GovernorGarrison.getCurrency();
+    }
+
+    /**
+     * Takes currency out of the treasury to pass it on, e.g. into the market for the merchant. Counts as spending
+     * of the day: at most the remaining budget, only while the treasury is loaded.
+     * @return how much was taken, the caller puts it somewhere (or back with {@link #deposit})
+     */
+    public int withdraw(int amount) {
+        amount = Math.min(amount, getRemainingBudget());
+        if (amount <= 0) return 0;
+        BlockPos pos = data.getTreasuryPos();
+        if (pos == null || !level.isLoaded(pos)) return 0;
+        Container container = GovernorGarrison.getContainer(level, pos);
+        if (container == null) return 0;
+        int removed = GovernorGarrison.removeCurrency(container, amount);
+        data.lastKnownTreasury = GovernorGarrison.countCurrency(container);
+        if (removed > 0) data.addSpent(getDay(), removed);
+        return removed;
+    }
+
+    /** Puts currency back into the treasury (e.g. what did not fit into the market), it no longer counts as spent. */
+    public int deposit(int amount) {
+        if (amount <= 0) return 0;
+        BlockPos pos = data.getTreasuryPos();
+        if (pos == null || !level.isLoaded(pos)) return amount;
+        Container container = GovernorGarrison.getContainer(level, pos);
+        if (container == null) return amount;
+        int left = GovernorGarrison.addCurrency(container, amount);
+        data.lastKnownTreasury = GovernorGarrison.countCurrency(container);
+        data.addSpent(getDay(), -(amount - left));
+        return left;
+    }
+
+    /**
+     * Puts part of today's budget aside without paying it, e.g. to save up for a building that costs more than one
+     * day's budget. The coins stay in the treasury; pay them later with {@link #spend(int, int)}.
+     * @return how much was put aside (at most the remaining budget)
+     */
+    public int reserveBudget(int amount) {
+        amount = Math.min(amount, getRemainingBudget());
+        if (amount <= 0) return 0;
+        data.addSpent(getDay(), amount);
+        return amount;
+    }
+
+    /**
+     * Pays from the treasury, e.g. the price of a building. Counts as spending of the day, so only within the
+     * remaining budget, and only while the treasury chest is loaded.
+     * @return true if the whole amount was paid, false if nothing was paid
+     */
+    public boolean spend(int amount) {
+        return spend(amount, 0);
+    }
+
+    /**
+     * Like {@link #spend(int)}, but {@code saved} of the amount was put aside on earlier days ({@link #reserveBudget})
+     * and does not count against today's budget again.
+     */
+    public boolean spend(int amount, int saved) {
+        if (amount <= 0) return true;
+        saved = Math.max(0, Math.min(saved, amount));
+        if (amount - saved > getRemainingBudget()) return false;
+        BlockPos pos = data.getTreasuryPos();
+        if (pos == null || !level.isLoaded(pos)) return false;
+        Container container = GovernorGarrison.getContainer(level, pos);
+        if (container == null || GovernorGarrison.countCurrency(container) < amount) return false;
+
+        int removed = GovernorGarrison.removeCurrency(container, amount);
+        if (removed < amount) {
+            GovernorGarrison.addCurrency(container, removed);
+            data.lastKnownTreasury = GovernorGarrison.countCurrency(container);
+            return false;
+        }
+        data.lastKnownTreasury = GovernorGarrison.countCurrency(container);
+        data.addSpent(getDay(), amount - saved);
+        return true;
     }
 
     // ------------------------------------------------------------------ village

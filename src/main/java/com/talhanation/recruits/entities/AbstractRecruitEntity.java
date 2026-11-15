@@ -60,6 +60,7 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.raid.Raider;
@@ -200,12 +201,10 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
         return this.collision;
     }
 
-    // recruits are solid for each other, see RecruitCollision
+    // recruits and the mounts of recruits are solid for each other, see RecruitCollision
     @Override
     public boolean canCollideWith(@NotNull Entity other) {
-        return other instanceof AbstractRecruitEntity otherRecruit
-                ? RecruitCollision.collides(this, otherRecruit)
-                : super.canCollideWith(other);
+        return RecruitCollision.collides(this, other) || super.canCollideWith(other);
     }
 
     /** Jumps only if that clears a block in front, see {@link RecruitCollision#tryJumpOverTerrain()}. */
@@ -258,6 +257,11 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
         if(getMountTimer() > 0) setMountTimer(getMountTimer() - 1);
         if(getUpkeepTimer() > 0) setUpkeepTimer(getUpkeepTimer() - 1);
+
+        // companion register: position and status every 100 ticks, phase from the entity id
+        if(this instanceof ICompanion && Math.floorMod(this.tickCount + this.getId(), 100) == 0 && RecruitEvents.recruitsCompanionManager != null){
+            RecruitEvents.recruitsCompanionManager.updatePosition(this);
+        }
         if(remountAfterUpkeep && (this.tickCount + this.getId()) % 20 == 0 && !needsToGetFood()) tryRemountAfterUpkeep();
         // a Small Ships ground cannon pulls everyone touching it into its barrel - recruits are never its ammo
         if(this.getVehicle() != null && GroundCannon.isGroundCannon(this.getVehicle())) GroundCannon.handleRecruitInBarrel(this, this.getVehicle());
@@ -910,10 +914,19 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
 
     public void setIsOwned(boolean bool){
         entityData.set(OWNED, bool);
+        this.updateCompanionRecord();
     }
 
     public void setOwnerUUID(Optional<UUID> id) {
         this.entityData.set(OWNER_ID,id);
+        this.updateCompanionRecord();
+    }
+
+    /** Keeps the companion register up to date when the owner changes (hire, give away, disband). */
+    private void updateCompanionRecord() {
+        if (this instanceof ICompanion && this.isAddedToWorld() && !this.level().isClientSide() && RecruitEvents.recruitsCompanionManager != null) {
+            RecruitEvents.recruitsCompanionManager.update(this, true);
+        }
     }
 
     public void setProtectUUID(Optional<UUID> id) {
@@ -1704,6 +1717,61 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
                 this.hurt(this.damageSources().starve(), 0.25F);
             }
         }
+    }
+
+    /**
+     * Makes up for the time this recruit was out of the world on a simulated journey
+     * (see {@link com.talhanation.recruits.world.SimulatedTravelManager}): hunger, meals from his own inventory,
+     * morale, healing and the payment timer, by the same numbers as the tick and the {@code RecruitEatGoal}.
+     * Nobody starves or is paid on the way: hunger ends at 0 at worst and a payment that became due is settled
+     * by the normal tick once he is back.
+     */
+    public void catchUpAwayTime(long ticks) {
+        if (ticks <= 0L || this instanceof VillagerNobleEntity) return;
+
+        if (RecruitsServerConfig.RecruitsPayment.get() && this.paymentTimer > 0) {
+            this.paymentTimer = (int) Math.max(0L, this.paymentTimer - ticks);
+        }
+        if (this.getUpkeepTimer() > 0) this.setUpkeepTimer((int) Math.max(0L, this.getUpkeepTimer() - ticks));
+        if (!RecruitsServerConfig.RecruitsUpdateHungerAndMorale.get()) return;
+
+        float hunger = this.getHunger();
+        float morale = this.getMorale();
+        long minutes = Math.min(ticks / 1200L, 20000L);
+        for (long minute = 0; minute < minutes; minute++) {
+            hunger = Math.max(0F, hunger - 2F); // updateHunger(): 2/60 per second on the move
+            if (hunger <= 50F) {
+                float meal = this.takeMealFromInventory();
+                if (meal >= 0F) {
+                    hunger = Math.min(100F, hunger + meal);
+                    morale = Math.min(100F, morale + 2.5F);
+                }
+            }
+            // updateMorale(), once a minute
+            if (hunger <= 1F && this.isOwned() && morale > 0F) morale -= 2F;
+            if (this.isOwned() && hunger < 90F && morale > 35F) morale -= 1F;
+            if ((hunger >= 90F || this.getHealth() >= this.getMaxHealth() * 0.85F) && morale < 65F) morale += 2F;
+            if (morale < 0F) morale = 0F;
+        }
+        hunger = Math.max(0F, hunger - (ticks % 1200L) / 20F * (2F / 60F));
+
+        this.setHunger(hunger);
+        this.setMoral(morale);
+        if (minutes > 0 && hunger >= 70F) this.heal(this.getMaxHealth());
+    }
+
+    /** Eats one item from the inventory without the eating time. @return the hunger it gives, -1 if there is no food */
+    private float takeMealFromInventory() {
+        for (int i = 0; i < this.getInventorySize(); i++) {
+            ItemStack stack = this.getInventory().getItem(i);
+            if (stack.isEmpty() || !this.canEatItemStack(stack)) continue;
+            FoodProperties food = stack.getItem().getFoodProperties(stack, this);
+            if (food == null) continue;
+            stack.shrink(1);
+            this.getInventory().setChanged();
+            return food.getSaturationModifier() + food.getNutrition() * 5F;
+        }
+        return -1F;
     }
 
     public boolean needsToGetFood(){
@@ -2550,4 +2618,4 @@ public abstract class AbstractRecruitEntity extends AbstractInventoryEntity{
             }
         }
     }
-}
+}

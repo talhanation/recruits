@@ -94,7 +94,10 @@ public final class ObstacleSnapshot {
         private Query(ObstacleSnapshot snapshot, @Nullable Mob mob) {
             this.snapshot = snapshot;
             this.selfId = mob == null ? -1 : mob.getId();
-            this.selfGroup = mob instanceof AbstractRecruitEntity recruit ? recruit.getGroup() : null;
+            // the path of a mounted recruit is calculated for its mount
+            Entity rider = mob == null ? null : mob.getFirstPassenger();
+            this.selfGroup = mob instanceof AbstractRecruitEntity recruit ? recruit.getGroup()
+                    : rider instanceof AbstractRecruitEntity mounted ? mounted.getGroup() : null;
             this.halfWidth = mob == null ? 0 : mob.getBbWidth() / 2.0D;
             this.height = mob == null ? 0 : mob.getBbHeight();
 

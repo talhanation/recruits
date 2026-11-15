@@ -1,6 +1,9 @@
 package com.talhanation.recruits.network;
 
 import com.talhanation.recruits.RecruitEvents;
+import com.talhanation.recruits.api.governor.GovernorAccess;
+import com.talhanation.recruits.api.governor.GovernorContext;
+import com.talhanation.recruits.api.governor.GovernorModules;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.governor.ClaimGovernorData;
 import com.talhanation.recruits.governor.GovernorGarrison;
@@ -16,6 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +46,8 @@ public class MessageGovernorAssignGroup implements Message<MessageGovernorAssign
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         if (player == null) return;
+        // the group has to stand in the claim: not something a Messenger can carry
+        if (GovernorPackets.refuseInDraft(player, claim)) return;
         ClaimGovernorData data = GovernorPackets.access(player, claim, true);
         RecruitsClaim recruitsClaim = GovernorManager.getClaim(claim);
         if (data == null || recruitsClaim == null) return;
@@ -50,14 +56,16 @@ public class MessageGovernorAssignGroup implements Message<MessageGovernorAssign
         if (recruitsGroup == null || !player.getUUID().equals(recruitsGroup.getPlayerUUID())) return;
 
         ServerLevel level = player.serverLevel();
-        int free = GovernorManager.getGarrisonCap(recruitsClaim) - GovernorManager.findGarrison(level, recruitsClaim, player.getUUID()).size();
+        int free = GovernorManager.getGarrisonCap(recruitsClaim) - GovernorManager.countGarrison(level, recruitsClaim, player.getUUID());
 
-        List<AbstractRecruitEntity> candidates = level.getEntitiesOfClass(AbstractRecruitEntity.class,
+        List<AbstractRecruitEntity> members = level.getEntitiesOfClass(AbstractRecruitEntity.class,
                 GovernorManager.getClaimBox(level, recruitsClaim, 64),
                 r -> r.isAlive() && r.isOwned() && !r.isGarrison()
                         && player.getUUID().equals(r.getOwnerUUID())
-                        && group.equals(r.getGroup())
-                        && GovernorGarrison.canServe(r));
+                        && group.equals(r.getGroup()));
+        List<AbstractRecruitEntity> candidates = new ArrayList<>();
+        List<AbstractRecruitEntity> others = new ArrayList<>();
+        for (AbstractRecruitEntity member : members) (GovernorGarrison.canServe(member) ? candidates : others).add(member);
 
         int moved = 0;
         for (AbstractRecruitEntity recruit : candidates) {
@@ -65,10 +73,25 @@ public class MessageGovernorAssignGroup implements Message<MessageGovernorAssign
             GovernorGarrison.joinGarrison(level, recruit, recruitsClaim.getUUID());
             moved++;
         }
+        // units that can not serve (workers): a module of an addon may take them, then they join the garrison too
+        int handed = 0;
+        for (AbstractRecruitEntity unit : others) {
+            if (moved + handed >= free) break;
+            boolean[] taken = {false};
+            GovernorModules.forEach("onUnitHandedOver", module -> {
+                if (taken[0]) return;
+                GovernorContext ctx = GovernorAccess.forClaim(player.server.overworld(), recruitsClaim.getUUID(), module.id());
+                if (ctx != null && module.onUnitHandedOver(ctx, unit)) taken[0] = true;
+            });
+            if (taken[0]) {
+                GovernorGarrison.joinGarrison(level, unit, recruitsClaim.getUUID());
+                handed++;
+            }
+        }
 
         RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
         RecruitEvents.recruitsPlayerUnitManager.broadCastUnitInfoToPlayer(player);
-        player.sendSystemMessage(Component.translatable("chat.recruits.governor.assigned", moved, recruitsGroup.getName()));
+        player.sendSystemMessage(Component.translatable("chat.recruits.governor.assigned", moved + handed, recruitsGroup.getName()));
         if (moved < candidates.size()) {
             player.sendSystemMessage(Component.translatable("chat.recruits.governor.garrison_full", GovernorManager.getGarrisonCap(recruitsClaim)));
         }

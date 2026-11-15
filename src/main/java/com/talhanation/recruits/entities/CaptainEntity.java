@@ -4,7 +4,11 @@ import com.talhanation.recruits.compat.smallships.SmallShipsBridge;
 import com.talhanation.recruits.entities.ai.UseShield;
 import com.talhanation.recruits.entities.ai.controller.PatrolLeaderAttackController;
 import com.talhanation.recruits.entities.ai.controller.ship.CaptainShipController;
+import com.talhanation.recruits.entities.ai.controller.ship.ShipPathfinder;
 import com.talhanation.recruits.entities.ai.controller.ship.ShipProfile;
+import com.talhanation.recruits.world.SeaRoute;
+import com.talhanation.recruits.world.SimulatedTravelManager;
+import com.talhanation.recruits.world.TravelPlan;
 import com.talhanation.recruits.pathfinding.AsyncGroundPathNavigation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -55,6 +59,11 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     /** one hit, one reaction: a hull hit by a ball is booked twice (ENTITY_DAMAGE and PROJECTILE_LAND) */
     private int shipHitTick = Integer.MIN_VALUE;
     @Nullable private Entity shipHitBy;
+    /** the way over water along his patrol route, see currentSeaRoute */
+    @Nullable private SeaRoute seaRoute;
+    /** the signature a sea route is being looked for */
+    private long seaRequested;
+    private boolean seaRequestedOnce;
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -97,7 +106,8 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
     @Override
     public void tick() {
         super.tick();
-        if(this.level().isClientSide()) return;
+        // removed: ship and crew were just taken out of the world for the simulated part of the patrol
+        if(this.level().isClientSide() || this.isRemoved()) return;
 
         this.shipController.tick();
         this.updateHelm(this.isSteeringShip() ? this.getVehicle() : null);
@@ -184,6 +194,71 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
         return this.shipController.isActive();
     }
 
+    /** Not out of the world while he runs for the harbour or lies in it - that is the ship controller's business. */
+    @Override
+    protected boolean canPatrolTravel() {
+        return super.canPatrolTravel() && !this.shipController.isHarbourRunning() && !this.shipController.isRetreating();
+    }
+
+    @Override
+    protected boolean travelsOnWater() {
+        return this.isSteeringShip();
+    }
+
+    ///////////////////////////////////SEA ROUTE/////////////////////////////////////////
+    // The way over water along the patrol route, found once in the background when the route is given to him (or
+    // changed, or he takes another ship): see SeaRoutePlanner. Out of the world his ship sails along it instead of
+    // the straight line. In the world the ship controller finds its way as before.
+
+    /** What the sea route was found for: the way points, round in a circle or not, the kind of ship. */
+    private long seaSignature() {
+        Entity ship = this.getVehicle();
+        long hash = 31L * WAYPOINTS.hashCode() + (this.getCycle() ? 1 : 0);
+        return 31L * hash + (ship == null ? 0 : EntityType.getKey(ship.getType()).hashCode());
+    }
+
+    @Override
+    @Nullable
+    protected SeaRoute currentSeaRoute() {
+        long signature = this.seaSignature();
+        if (this.seaRoute != null && this.seaRoute.signature == signature) return this.seaRoute;
+        if (this.seaRequested == signature && this.seaRequestedOnce) return null; // being looked for
+        Entity ship = this.getVehicle();
+        ShipProfile profile = this.shipController.getProfile();
+        SimulatedTravelManager manager = SimulatedTravelManager.get();
+        if (ship == null || profile == null || manager == null || WAYPOINTS.size() < 2) return null;
+        this.seaRequested = signature;
+        this.seaRequestedOnce = true;
+        int surface = ShipPathfinder.surfaceY(this.level(), ship.getX(), ship.getY(), ship.getZ()) + 1;
+        manager.planSeaRoute(this, WAYPOINTS, this.getCycle(), signature, profile.requiredDepth, profile.tightRadius(), surface);
+        return null;
+    }
+
+    @Override
+    public void onSeaRoute(SeaRoute route) {
+        if (route.signature != this.seaSignature()) return; // the route was changed meanwhile
+        this.seaRoute = route;
+        // way points no water leads to: told once, so the route can be put right
+        StringBuilder missing = new StringBuilder();
+        for (int leg = 0; leg < route.legs(); leg++) {
+            if (!route.isPartial(leg)) continue;
+            if (missing.length() > 0) missing.append(", ");
+            missing.append((leg + 1) % WAYPOINTS.size() + 1);
+        }
+        Player owner = this.getOwner();
+        if (missing.length() > 0 && owner != null) {
+            owner.sendSystemMessage(Component.translatable("chat.recruits.text.captain_no_sea_route", this.getName().getString(), missing.toString()));
+        }
+    }
+
+    /** Back in the world: a sea route that was found while he was away came with the travel plan. */
+    @Override
+    protected void onTravelResumed() {
+        TravelPlan plan = this.getTravelPlan();
+        if (plan != null && plan.sea != null) this.seaRoute = plan.sea;
+        super.onTravelResumed();
+    }
+
     @Override
     protected boolean leadsOwnFight() {
         return this.isSteeringShip() || this.shipController.isHarbourRunning() || this.shipController.isRetreating();
@@ -220,10 +295,12 @@ public class CaptainEntity extends AbstractLeaderEntity implements IStrategicFir
             this.shipController.save(nbt);
         }
         nbt.putInt("TargetPriority", this.getTargetPriority());
+        if (this.seaRoute != null) nbt.put("SeaRoute", this.seaRoute.save());
     }
 
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
+        if (nbt.contains("SeaRoute", 10)) this.seaRoute = SeaRoute.load(nbt.getCompound("SeaRoute"));
         if (nbt.contains("SailPosX") && nbt.contains("SailPosY") && nbt.contains("SailPosZ")) {
             this.setSailPos(new BlockPos (
                     nbt.getInt("SailPosX"),

@@ -6,6 +6,7 @@ import com.talhanation.recruits.Main;
 import com.talhanation.recruits.config.RecruitsServerConfig;
 import com.talhanation.recruits.entities.AbstractRecruitEntity;
 import com.talhanation.recruits.entities.VillagerNobleEntity;
+import com.talhanation.recruits.governor.GovernorManager;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.network.MessageToClientNobleInfo;
 import net.minecraft.core.BlockPos;
@@ -68,6 +69,10 @@ public class RecruitsVillageManager {
     public static final int REP_KILL_NOBLE = -40;
     /** Hiring from a noble needs more than 2 jobless villagers of the village, so the village never runs empty. */
     public static final int MIN_JOBLESS_FOR_HIRE = 3;
+    /** Election: points per unit the Governor wants, by the trader level that offers it (level 1, 2, 3+). */
+    private static final int[] WISH_POINTS = {0, 3, 2, 1};
+    /** Election: weight of one point, a trader type nobody wished for has weight 1. */
+    private static final int WISH_WEIGHT = 3;
     private static final String HIT_THROTTLE_KEY = "RecruitsNobleRepHit";
     private static final int HIT_THROTTLE_TICKS = 20;
 
@@ -244,6 +249,19 @@ public class RecruitsVillageManager {
         village.lastResidentSeenTime = level.getGameTime();
     }
 
+    /**
+     * A new village around a bell, e.g. the one a Governor had built for settlers. Null if the bell lies in a
+     * village already. The villagers whose bed is in its radius become its inhabitants as usual.
+     */
+    @Nullable
+    public RecruitsVillage foundVillage(ServerLevel level, BlockPos bell) {
+        if (findVillage(level.dimension(), bell) != null) return null;
+        RecruitsVillage village = new RecruitsVillage(UUID.randomUUID(), level.dimension(), bell);
+        village.lastResidentSeenTime = level.getGameTime();
+        villages.put(village.getId(), village);
+        return village;
+    }
+
     /* ===================== Nobles ===================== */
 
     /**
@@ -393,7 +411,7 @@ public class RecruitsVillageManager {
         noble.copyPosition(villager);
         noble.initSpawn();
         AbstractRecruitEntity.applyVariantFromVillager(noble, villager);
-        noble.setTraderType(pickTraderType(village));
+        noble.setTraderType(pickTraderType(level, village));
 
         for (ItemStack stack : villager.getInventory().items) {
             if (!stack.isEmpty()) noble.getInventory().addItem(stack.copy());
@@ -432,14 +450,39 @@ public class RecruitsVillageManager {
         return noble;
     }
 
-    private String pickTraderType(RecruitsVillage village) {
+    /**
+     * Trader type of a new noble: one the village does not have yet. In a claim with a Governor, the types that offer
+     * the units he can not hire are more likely (he canvasses for them at the election), the lower the trader level of
+     * the unit the more, since a new noble starts on level 1. It stays a draw.
+     */
+    private String pickTraderType(ServerLevel level, RecruitsVillage village) {
         List<String> all = RecruitsHireTradesRegistry.getAllTraderTypes();
         if (all.isEmpty()) return "";
         Set<String> used = village.getUsedTraderTypes();
         List<String> unused = new ArrayList<>(all);
         unused.removeAll(used);
         List<String> pool = unused.isEmpty() ? all : unused;
-        return pool.get(random.nextInt(pool.size()));
+
+        Set<String> wanted = GovernorManager.getWantedUnits(GovernorManager.getClaimAt(level, village.getCenter()));
+        if (wanted.isEmpty()) return pool.get(random.nextInt(pool.size()));
+
+        int[] weights = new int[pool.size()];
+        int total = 0;
+        for (int i = 0; i < pool.size(); i++) {
+            int points = 0;
+            for (String unit : wanted) {
+                int tradeLevel = RecruitsHireTradesRegistry.getOfferLevel(pool.get(i), ResourceLocation.tryParse(unit));
+                if (tradeLevel > 0) points += WISH_POINTS[Math.min(tradeLevel, WISH_POINTS.length - 1)];
+            }
+            weights[i] = 1 + WISH_WEIGHT * points;
+            total += weights[i];
+        }
+        int roll = random.nextInt(total);
+        for (int i = 0; i < pool.size(); i++) {
+            roll -= weights[i];
+            if (roll < 0) return pool.get(i);
+        }
+        return pool.get(pool.size() - 1);
     }
 
     private void playElectionCeremony(ServerLevel level, RecruitsVillage village, VillagerNobleEntity noble) {

@@ -542,5 +542,16 @@
   "gui.recruits.map.teleport_admin": "Işınlanma (Admin)",
   "description.recruits.peaceTreaty": "Bu antlaşmayı kabul etmek\nher iki beyliğin birbirlerine\nsüre boyunca saldırmasını engeller.",
   "chat.recruits.text.messenger_target_player_not_accepted": "%s: Geldim ama %s barış teklifimizi kabul etmedi.",
-  "chat.recruits.text.messenger_info_to_target_treaty": "%s: %s'den önemli bir teklifim var"
+  "chat.recruits.text.messenger_info_to_target_treaty": "%s: %s'den önemli bir teklifim var",
+  "gui.recruits.governor.tooltip.post.upkeep_entity": "%s yanında ikmal: garnizon yiyecek ve teçhizatı onun envanterinden alır.",
+  "gui.recruits.governor.unit.release": "Geri al",
+  "gui.recruits.governor.tooltip.unit_release": "%s sana geri döner: garnizondan ayrılır, vali artık ödemez ve ikmal etmez",
+  "gui.recruits.governor.info.nobles": "Soylular: %s (sonraki %2$s/%3$s nüfusta)",
+  "gui.recruits.governor.info.nobles_max": "Soylular: %s (azami)",
+  "gui.recruits.governor.info.next": "Sonraki adım: %s",
+  "gui.recruits.governor.next.treasury": "Toprağa bir hazine yerleştir",
+  "gui.recruits.governor.next.budget": "Bir bütçe belirle",
+  "gui.recruits.governor.next.coins": "Hazineye altın koy",
+  "gui.recruits.governor.next.upkeep": "Toprağa bir ikmal noktası (sandık veya depo) koy",
+  "gui.recruits.governor.next.quota": "Bir garnizon kotası belirle"
 }

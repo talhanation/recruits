@@ -7,11 +7,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
+import net.minecraft.server.level.ServerPlayer;
+import javax.annotation.Nullable;
 
-public class MessageSetTargetPrio implements Message<MessageSetTargetPrio> {
+public class MessageSetTargetPrio implements Message<MessageSetTargetPrio>, CompanionOrder<AbstractRecruitEntity> {
 
     private UUID recruit;
     private int state;
@@ -27,16 +27,24 @@ public class MessageSetTargetPrio implements Message<MessageSetTargetPrio> {
         return Dist.DEDICATED_SERVER;
     }
 
-    public void executeServerSide(NetworkEvent.Context context){
-        List<AbstractRecruitEntity> list = Objects.requireNonNull(context.getSender()).getCommandSenderWorld().getEntitiesOfClass(AbstractRecruitEntity.class, context.getSender().getBoundingBox().inflate(16D));
-        for (AbstractRecruitEntity recruitEntity : list){
+    public void executeServerSide(NetworkEvent.Context context) {
+        CompanionOrders.handle(context.getSender(), this);
+    }
 
-            if (recruitEntity.getUUID().equals(this.recruit) && recruitEntity instanceof IHasTargetPriority specialRecruit
-                    && NetworkSecurity.canControl(context.getSender(), recruitEntity)){
+    @Override
+    public UUID getCompanion() {
+        return this.recruit;
+    }
 
-                specialRecruit.setTargetPriority(IHasTargetPriority.TargetPriority.fromIndex(state));
-                break;
-            }
+    @Override
+    public Class<AbstractRecruitEntity> getCompanionType() {
+        return AbstractRecruitEntity.class;
+    }
+
+    @Override
+    public void applyTo(AbstractRecruitEntity companion, @Nullable ServerPlayer sender) {
+        if (companion instanceof IHasTargetPriority specialRecruit) {
+            specialRecruit.setTargetPriority(IHasTargetPriority.TargetPriority.fromIndex(state));
         }
     }
     public MessageSetTargetPrio fromBytes(FriendlyByteBuf buf) {

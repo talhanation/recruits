@@ -15,8 +15,9 @@ import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.util.*;
+import javax.annotation.Nullable;
 
-public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageRemoveAssignedGroupFromCompanion> {
+public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageRemoveAssignedGroupFromCompanion>, CompanionOrder<AbstractLeaderEntity> {
 
     private UUID owner;
     private UUID companion;
@@ -34,31 +35,44 @@ public class MessageRemoveAssignedGroupFromCompanion implements Message<MessageR
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer serverPlayer = context.getSender();
-        serverPlayer.serverLevel().getEntitiesOfClass(AbstractLeaderEntity.class,
-                context.getSender().getBoundingBox().inflate(100D),
-                (leader) -> leader.getUUID().equals(this.companion) && NetworkSecurity.canControl(serverPlayer, leader)
-        ).forEach((companionEntity) -> {
-            if(companionEntity == null) return;
+        CompanionOrders.handle(context.getSender(), this);
+    }
 
-            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
-            if(group == null) return;
-            group.leaderUUID = null;
-            companionEntity.setGroupUUID(group.getUUID());
+    @Override
+    public UUID getCompanion() {
+        return this.companion;
+    }
 
+    @Override
+    public Class<AbstractLeaderEntity> getCompanionType() {
+        return AbstractLeaderEntity.class;
+    }
 
-            if(companionEntity.getArmySize() > 0){
-                RecruitCommanderUtil.setRecruitsListen(companionEntity.army.getAllRecruitUnits(), true);
-                RecruitCommanderUtil.setRecruitsFollow(companionEntity.army.getAllRecruitUnits(), null);
-                RecruitCommanderUtil.setRecruitsHoldPos(companionEntity.army.getAllRecruitUnits());
-                RecruitCommanderUtil.setRecruitsMoveSpeed(companionEntity.army.getAllRecruitUnits(), 1F);
-            }
+    @Override
+    public boolean needsWorld() {
+        return true;
+    }
 
-            companionEntity.army = null;
-            RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(serverPlayer);
+    @Override
+    public void applyTo(AbstractLeaderEntity companionEntity, @Nullable ServerPlayer sender) {
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(companionEntity.getGroup());
+        if(group == null) return;
 
-            Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(context::getSender), new MessageToClientUpdateLeaderScreen(companionEntity.WAYPOINTS, companionEntity.WAYPOINT_ITEMS, companionEntity.getArmySize()));
-        });
+        group.leaderUUID = null;
+        companionEntity.setGroupUUID(group.getUUID());
+
+        if(companionEntity.getArmySize() > 0){
+            RecruitCommanderUtil.setRecruitsListen(companionEntity.army.getAllRecruitUnits(), true);
+            RecruitCommanderUtil.setRecruitsFollow(companionEntity.army.getAllRecruitUnits(), null);
+            RecruitCommanderUtil.setRecruitsHoldPos(companionEntity.army.getAllRecruitUnits());
+            RecruitCommanderUtil.setRecruitsMoveSpeed(companionEntity.army.getAllRecruitUnits(), 1F);
+        }
+        companionEntity.army = null;
+
+        ServerPlayer player = CompanionOrders.playerFor(companionEntity, sender);
+        if (player == null) return;
+        RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
+        Main.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new MessageToClientUpdateLeaderScreen(companionEntity.WAYPOINTS, companionEntity.WAYPOINT_ITEMS, companionEntity.getArmySize()));
     }
 
     public MessageRemoveAssignedGroupFromCompanion fromBytes(FriendlyByteBuf buf) {

@@ -10,15 +10,13 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Client → Server: assigns a group UUID to a leader entity so the
  * subsequent {@link MessageAssignGroupToCompanion} knows which group to use.
  */
-public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
+public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup>, CompanionOrder<AbstractLeaderEntity> {
 
     private UUID leaderUUID;
     @Nullable
@@ -38,21 +36,35 @@ public class MessageSetLeaderGroup implements Message<MessageSetLeaderGroup> {
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.serverLevel().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(100D),
-                leader -> leader.getUUID().equals(this.leaderUUID) && NetworkSecurity.canControl(player, leader)
-        ).forEach(leader -> {
-            if (groupUUID == null) {
-                leader.setGroupUUID(null);
-                return;
-            }
-            RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
-            if (group == null || !NetworkSecurity.canManageGroup(player, group)) return;
-            leader.setGroupUUID(group.getUUID());
-            RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
-        });
+        CompanionOrders.handle(context.getSender(), this);
+    }
+
+    @Override
+    public UUID getCompanion() {
+        return this.leaderUUID;
+    }
+
+    @Override
+    public Class<AbstractLeaderEntity> getCompanionType() {
+        return AbstractLeaderEntity.class;
+    }
+
+    @Override
+    public boolean needsWorld() {
+        return true;
+    }
+
+    @Override
+    public void applyTo(AbstractLeaderEntity leader, @Nullable ServerPlayer sender) {
+        if (groupUUID == null) {
+            leader.setGroupUUID(null);
+            return;
+        }
+        RecruitsGroup group = RecruitEvents.recruitsGroupsManager.getGroup(groupUUID);
+        if (!CompanionOrders.canManageGroup(leader, sender, group)) return;
+        leader.setGroupUUID(group.getUUID());
+        ServerPlayer player = CompanionOrders.playerFor(leader, sender);
+        if (player != null) RecruitEvents.recruitsGroupsManager.broadCastGroupsToPlayer(player);
     }
 
     @Override

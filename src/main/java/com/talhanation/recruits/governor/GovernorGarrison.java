@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -137,6 +138,14 @@ public final class GovernorGarrison {
         if (claimId != null && GovernorManager.get() != null) {
             ClaimGovernorData data = GovernorManager.get().getData(claimId);
             if (data != null) GovernorManager.unassign(data, recruit.getUUID());
+            // a module unit (worker): the module lets him go too
+            if (!canServe(recruit)) {
+                com.talhanation.recruits.api.governor.GovernorModules.forEach("onUnitReleased", module -> {
+                    com.talhanation.recruits.api.governor.GovernorContext ctx =
+                            com.talhanation.recruits.api.governor.GovernorAccess.forClaim(level.getServer().overworld(), claimId, module.id());
+                    if (ctx != null) module.onUnitReleased(ctx, recruit);
+                });
+            }
         }
         return true;
     }
@@ -255,6 +264,35 @@ public final class GovernorGarrison {
         BlockEntity entity = level.getBlockEntity(pos);
         if (entity instanceof Container container) return container;
         return null;
+    }
+
+    /** The inventory of an Upkeep or Treasury post: the container block, or the upkeep entity (a storage area). */
+    @Nullable
+    public static Container getPostContainer(ServerLevel level, GovernorPost post) {
+        if (post.getEntity() == null) return getContainer(level, post.getPos());
+        Entity entity = level.getEntity(post.getEntity());
+        return entity instanceof Container container && entity.isAlive() ? container : null;
+    }
+
+    /** False if the post's container block or upkeep entity is gone. Unloaded posts count as there. */
+    public static boolean isPostPresent(ServerLevel level, GovernorPost post) {
+        if (!level.isLoaded(post.getPos())) return true;
+        if (post.getEntity() == null) return isContainer(level, post.getPos());
+        return getPostContainer(level, post) != null;
+    }
+
+    /** Points the recruit's upkeep at the post: the entity of the post, else its block. */
+    public static void setUpkeep(AbstractRecruitEntity recruit, GovernorPost post) {
+        if (post.getEntity() != null) {
+            if (!post.getEntity().equals(recruit.getUpkeepUUID())) {
+                recruit.setUpkeepUUID(Optional.of(post.getEntity()));
+                recruit.clearUpkeepPos();
+            }
+        }
+        else if (!post.getPos().equals(recruit.getUpkeepPos()) || recruit.getUpkeepUUID() != null) {
+            recruit.setUpkeepPos(post.getPos());
+            recruit.clearUpkeepEntity();
+        }
     }
 
     public static boolean isContainer(Level level, BlockPos pos) {

@@ -63,10 +63,11 @@ public class RecruitPathNavigation extends AsyncGroundPathNavigation {
         if (!this.climbControlled) super.moveTowards(target);
     }
 
-    // also keep following (and creating) paths while hanging on a ladder
+    // also keep following (and creating) paths while on a ladder. Includes the moment in the air right above
+    // its top: a moveTo() in that moment got no path and dropped the current one, so the recruit fell back down
     @Override
     protected boolean canUpdatePath() {
-        return super.canUpdatePath() || this.mob.onClimbable();
+        return super.canUpdatePath() || this.isClimbing();
     }
 
     public boolean moveTo(double x, double y, double z, double speed) {

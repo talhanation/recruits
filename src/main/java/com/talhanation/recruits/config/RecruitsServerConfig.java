@@ -54,6 +54,11 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.IntValue GovernorTickInterval;
     public static ForgeConfigSpec.IntValue GovernorPatrolInterval;
     public static ForgeConfigSpec.IntValue GovernorMaxPatrols;
+    public static ForgeConfigSpec.DoubleValue TravelSpeedOnFoot;
+    public static ForgeConfigSpec.DoubleValue TravelSpeedMounted;
+    public static ForgeConfigSpec.DoubleValue TravelSpeedFactor;
+    public static ForgeConfigSpec.BooleanValue GovernorDayLoading;
+    public static ForgeConfigSpec.IntValue GovernorDayMaxChunks;
     public static ForgeConfigSpec.IntValue GovernorPatrolDwellTicks;
     public static ForgeConfigSpec.IntValue GovernorTaxPer10Inhabitants;
     public static ForgeConfigSpec.IntValue GovernorTaxReputationPenaltyLow;
@@ -1018,6 +1023,22 @@ public class RecruitsServerConfig {
                 .worldRestart()
                 .defineInRange("GovernorMaxPatrols", 2, 0, 16);
 
+        GovernorDayLoading = BUILDER.comment("""
+                        Should the claim of a Governor be loaded once a day at the villagers' meeting when no player is near?
+                        Then taxes, the inhabitants, the noble election and the production of the Workers addon go on without the owner.
+                        \t(takes effect after restart)
+                        \tdefault: true""")
+                .worldRestart()
+                .define("GovernorDayLoading", true);
+
+        GovernorDayMaxChunks = BUILDER.comment("""
+                        Maximum number of chunks loaded at the same time for the daily term of the Governors.
+                        Claims that do not fit wait for the next day; who waited longest comes first.
+                        \t(takes effect after restart)
+                        \tdefault: 1000""")
+                .worldRestart()
+                .defineInRange("GovernorDayMaxChunks", 1000, 0, 100000);
+
         GovernorPatrolDwellTicks = BUILDER.comment("""
                         How long in ticks a patrol stays at each patrol point before walking on to the next one.
                         \t(takes effect after restart)
@@ -1052,6 +1073,34 @@ public class RecruitsServerConfig {
                         \tdefault: 3""")
                 .worldRestart()
                 .defineInRange("GovernorTaxReputationPenaltyHigh", 3, 0, 100);
+
+        BUILDER.pop();
+
+        BUILDER.comment("Simulated Travel Config (messengers and other companions on a long journey):").push("Travel");
+
+        TravelSpeedFactor = BUILDER.comment("""
+                        A travelling group that no player can see is taken out of the world and only its position moves on.
+                        Its speed there is the speed it really walked before, multiplied by this factor.
+                        The factor makes up for the detours of a real way; above 1.0 a journey is faster when nobody watches.
+                        \t(takes effect after restart)
+                        \tdefault: 0.8""")
+                .worldRestart()
+                .defineInRange("TravelSpeedFactor", 0.8D, 0.1D, 4.0D);
+
+        TravelSpeedOnFoot = BUILDER.comment("""
+                        Speed in blocks per second of a group on foot whose real speed could not be measured,
+                        because it left the world before it walked for ten seconds.
+                        \t(takes effect after restart)
+                        \tdefault: 4.0""")
+                .worldRestart()
+                .defineInRange("TravelSpeedOnFoot", 4.0D, 0.5D, 40.0D);
+
+        TravelSpeedMounted = BUILDER.comment("""
+                        Speed in blocks per second of a mounted group whose real speed could not be measured.
+                        \t(takes effect after restart)
+                        \tdefault: 8.0""")
+                .worldRestart()
+                .defineInRange("TravelSpeedMounted", 8.0D, 0.5D, 40.0D);
 
         BUILDER.pop();
 

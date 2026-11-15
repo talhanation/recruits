@@ -33,13 +33,11 @@ public class MessageGovernorReleaseRecruit implements Message<MessageGovernorRel
         ServerPlayer player = context.getSender();
         if (player == null) return;
 
-        for (AbstractRecruitEntity entity : player.serverLevel().getEntitiesOfClass(AbstractRecruitEntity.class,
-                player.getBoundingBox().inflate(16D), r -> r.getUUID().equals(recruit) && r.isAlive())) {
-            if (!entity.isGarrison() || !player.getUUID().equals(entity.getOwnerUUID())) return;
-            if (GovernorGarrison.releaseFromGarrison(player.serverLevel(), entity, player)) {
-                player.sendSystemMessage(Component.translatable("chat.recruits.governor.released", entity.getName().getString()));
-            }
-            return;
+        // anywhere in the loaded world: from the garrison tab the unit may stand far away in the claim
+        if (!(player.serverLevel().getEntity(recruit) instanceof AbstractRecruitEntity entity) || !entity.isAlive()) return;
+        if (!entity.isGarrison() || !player.getUUID().equals(entity.getOwnerUUID())) return;
+        if (GovernorGarrison.releaseFromGarrison(player.serverLevel(), entity, player)) {
+            player.sendSystemMessage(Component.translatable("chat.recruits.governor.released", entity.getName().getString()));
         }
     }
 

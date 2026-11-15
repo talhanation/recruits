@@ -2,6 +2,9 @@ package com.talhanation.recruits.client.gui.governor;
 
 import com.talhanation.recruits.Main;
 import com.talhanation.recruits.client.ClientManager;
+import com.talhanation.recruits.client.api.governor.GovernorTabContext;
+import com.talhanation.recruits.client.api.governor.GovernorTabs;
+import com.talhanation.recruits.client.api.governor.IGovernorTab;
 import com.talhanation.recruits.client.governor.GovernorSnapshot;
 import com.talhanation.recruits.client.gui.RecruitsScreenBase;
 import com.talhanation.recruits.client.gui.commandscreen.GovernorCategory;
@@ -13,6 +16,7 @@ import com.talhanation.recruits.governor.ClaimGovernorData;
 import com.talhanation.recruits.governor.GovernorPost;
 import com.talhanation.recruits.governor.GovernorUnitType;
 import com.talhanation.recruits.network.*;
+import com.talhanation.recruits.network.MessageGovernorReleaseRecruit;
 import com.talhanation.recruits.world.NobleReputation;
 import com.talhanation.recruits.world.RecruitsClaim;
 import com.talhanation.recruits.world.RecruitsFaction;
@@ -21,6 +25,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
@@ -44,7 +51,7 @@ import java.util.UUID;
 @OnlyIn(Dist.CLIENT)
 public class GovernorScreen extends RecruitsScreenBase {
 
-    private enum Tab {INFO, GARRISON, ORDER, VILLAGE}
+    private enum Tab {INFO, GARRISON, ORDER, VILLAGE, MODULE}
 
     private static final int WIDTH = 310;
     private static final int HEIGHT = 274;
@@ -59,9 +66,17 @@ public class GovernorScreen extends RecruitsScreenBase {
     private static final int LIST_WIDTH = WIDTH - 16 - 10;
 
     private static Tab lastTab = Tab.INFO;
+    /** Tab id of the last addon tab. */
+    @Nullable
+    private static ResourceLocation lastModule;
 
     private GovernorSnapshot snapshot;
     private Tab tab;
+    /** The addon tab shown when tab is MODULE. */
+    @Nullable
+    private IGovernorTab moduleTab;
+    @Nullable
+    private GovernorTabContext moduleContext;
     @Nullable
     private RecruitsGroup selectedGroup;
     @Nullable
@@ -86,6 +101,7 @@ public class GovernorScreen extends RecruitsScreenBase {
         this.snapshot = snapshot;
         this.governorId = snapshot.self;
         this.tab = lastTab;
+        if (lastTab == Tab.MODULE && lastModule != null) this.moduleTab = GovernorTabs.get(lastModule);
     }
 
     @Nullable
@@ -121,12 +137,32 @@ public class GovernorScreen extends RecruitsScreenBase {
             mapView.close();
             mapView = null;
         }
+        for (IGovernorTab moduleTab : GovernorTabs.getAll()) moduleTab.onClose();
     }
 
     private void setTab(Tab tab) {
         this.tab = tab;
         lastTab = tab;
         rebuild();
+    }
+
+    private void setModuleTab(IGovernorTab moduleTab) {
+        this.moduleTab = moduleTab;
+        lastModule = moduleTab.tabId();
+        setTab(Tab.MODULE);
+    }
+
+    private CompoundTag moduleData(IGovernorTab moduleTab) {
+        return snapshot.modules.getCompound(moduleTab.moduleId().toString());
+    }
+
+    /** Addon tabs that have something to show for this claim. */
+    private List<IGovernorTab> visibleModuleTabs() {
+        List<IGovernorTab> list = new ArrayList<>();
+        for (IGovernorTab moduleTab : GovernorTabs.getAll()) {
+            if (moduleTab.isVisible(moduleData(moduleTab))) list.add(moduleTab);
+        }
+        return list;
     }
 
     private void rebuild() {
@@ -136,24 +172,38 @@ public class GovernorScreen extends RecruitsScreenBase {
         groupDropDown = null;
         unitList = null;
         postList = null;
+        moduleContext = null;
         buildClaimWidget();
         if (!snapshot.hasClaim()) return;
         if (tab == Tab.VILLAGE && !snapshot.village) tab = Tab.INFO;
+        List<IGovernorTab> moduleTabs = visibleModuleTabs();
+        if (tab == Tab.MODULE && (moduleTab == null || !moduleTabs.contains(moduleTab))) tab = Tab.INFO;
 
+        // the tab row shares the width, so addon tabs fit next to the own ones
+        int count = 3 + (snapshot.village ? 1 : 0) + moduleTabs.size();
+        int tabWidth = Math.min(70, (WIDTH - 12 - 4 * (count - 1)) / count);
         int x = guiLeft + 6;
-        int tabWidth = 70;
-        addTabButton(x, Tab.INFO, "info");
-        addTabButton(x + (tabWidth + 4), Tab.GARRISON, "garrison");
-        addTabButton(x + (tabWidth + 4) * 2, Tab.ORDER, "order");
-        if (snapshot.village) addTabButton(x + (tabWidth + 4) * 3, Tab.VILLAGE, "village");
+        x = addTabButton(x, tabWidth, Tab.INFO, Component.translatable("gui.recruits.governor.tab.info"), null);
+        x = addTabButton(x, tabWidth, Tab.GARRISON, Component.translatable("gui.recruits.governor.tab.garrison"), null);
+        x = addTabButton(x, tabWidth, Tab.ORDER, Component.translatable("gui.recruits.governor.tab.order"), null);
+        if (snapshot.village) x = addTabButton(x, tabWidth, Tab.VILLAGE, Component.translatable("gui.recruits.governor.tab.village"), null);
+        for (IGovernorTab moduleTab : moduleTabs) x = addTabButton(x, tabWidth, Tab.MODULE, moduleTab.getTitle(), moduleTab);
 
         switch (tab) {
             case GARRISON -> buildGarrison();
             case ORDER -> buildOrder();
             case VILLAGE -> buildVillage();
+            case MODULE -> buildModule();
             default -> {
             }
         }
+    }
+
+    private void buildModule() {
+        if (moduleTab == null || snapshot.claim == null) return;
+        moduleContext = new GovernorTabContext(this, snapshot.claim, moduleData(moduleTab), snapshot.chunks, guiLeft + 8, guiTop + CONTENT,
+                WIDTH - 16, HEIGHT - CONTENT - 8, font, widget -> addRenderableWidget(widget));
+        moduleTab.init(moduleContext);
     }
 
     // ------------------------------------------------------------------ claim widget (office)
@@ -201,10 +251,16 @@ public class GovernorScreen extends RecruitsScreenBase {
         minecraft.setScreen(new SelectClaimScreen(this, minecraft.player, governorId, snapshot));
     }
 
-    private void addTabButton(int x, Tab target, String key) {
-        ExtendedButton button = new ExtendedButton(x, guiTop + HEADER + 6, 70, 18, Component.translatable("gui.recruits.governor.tab." + key), b -> setTab(target));
-        button.active = tab != target;
+    /** @return x of the next tab button */
+    private int addTabButton(int x, int width, Tab target, Component title, @Nullable IGovernorTab targetModule) {
+        ExtendedButton button = new ExtendedButton(x, guiTop + HEADER + 6, width, 18, title, b -> {
+            if (targetModule != null) setModuleTab(targetModule);
+            else setTab(target);
+        });
+        button.active = targetModule != null ? !(tab == Tab.MODULE && moduleTab == targetModule) : tab != target;
+        if (font.width(title) > width - 6) button.setTooltip(Tooltip.create(title));
         addRenderableWidget(button);
+        return x + width + 4;
     }
 
     // ------------------------------------------------------------------ garrison tab
@@ -235,6 +291,11 @@ public class GovernorScreen extends RecruitsScreenBase {
         unitList = new PanelList<>(guiLeft + 8, top, LIST_WIDTH, unitListBottom() - top, 34);
         List<UnitEntry> entries = new ArrayList<>();
         for (GovernorUnitType type : GovernorUnitType.values()) entries.add(new UnitEntry(type));
+        // units of the addon modules (handed-over workers), under the garrison types
+        for (String module : snapshot.modules.getAllKeys()) {
+            ListTag units = snapshot.modules.getCompound(module).getList("units", Tag.TAG_COMPOUND);
+            for (int i = 0; i < units.size(); i++) entries.add(new UnitEntry(units.getCompound(i)));
+        }
         unitList.setEntries(entries);
         unitList.setScrollAmount(unitScroll);
         addRenderableWidget(unitList);
@@ -281,16 +342,53 @@ public class GovernorScreen extends RecruitsScreenBase {
         return item == null ? ItemStack.EMPTY : new ItemStack(item);
     }
 
-    /** One unit type: icon, name, equipment template, present / wanted, Edit. */
+    /**
+     * One unit type: icon, name, equipment template, present / wanted, Edit.
+     * Or one unit of an addon module (a worker): icon, name and what it does.
+     */
     private class UnitEntry extends PanelList.Entry<UnitEntry> {
+        @Nullable
         private final GovernorUnitType type;
+        @Nullable
         private final ExtendedButton edit;
+        @Nullable
+        private final CompoundTag unit;
 
         UnitEntry(GovernorUnitType type) {
             this.type = type;
+            this.unit = null;
             this.edit = new ExtendedButton(0, 0, 56, 16, Component.translatable("gui.recruits.governor.unit.edit"), b -> openUnitEdit(type));
             this.edit.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.unit_edit", type.getDisplayName())));
             this.children.add(edit);
+        }
+
+        UnitEntry(CompoundTag unit) {
+            this.type = null;
+            this.unit = unit;
+            // a module unit (worker) goes back to the owner like a garrison recruit
+            if (unit.hasUUID("uuid")) {
+                UUID id = unit.getUUID("uuid");
+                this.edit = new ExtendedButton(0, 0, 56, 16, Component.translatable("gui.recruits.governor.unit.release"),
+                        b -> Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorReleaseRecruit(id)));
+                this.edit.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.unit_release", unit.getString("name"))));
+                this.children.add(edit);
+            }
+            else {
+                this.edit = null;
+            }
+        }
+
+        private void renderModuleUnit(GuiGraphics g, CompoundTag unit, int top, int left, int width, int height) {
+            UnitIcons.render(g, UnitIcons.ofEntityId(ResourceLocation.tryParse(unit.getString("type"))), left + 4, top + (height - UnitIcons.SIZE) / 2);
+            g.drawString(font, font.plainSubstrByWidth(unit.getString("name"), width - 36), left + 30, top + 5, PanelList.TEXT_COLOR, false);
+            Component status = null;
+            try {
+                status = Component.Serializer.fromJson(unit.getString("status"));
+            } catch (Exception ignored) {
+            }
+            if (status != null) {
+                g.drawString(font, font.plainSubstrByWidth(status.getString(), width - 36), left + 30, top + 18, PanelList.TEXT_GRAY, false);
+            }
         }
 
         @Override
@@ -300,6 +398,15 @@ public class GovernorScreen extends RecruitsScreenBase {
 
         @Override
         protected void renderContent(GuiGraphics g, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovered, float partialTick) {
+            if (type == null) {
+                if (unit != null) renderModuleUnit(g, unit, top, left, width - (edit != null ? 62 : 0), height);
+                if (edit != null) {
+                    edit.setX(left + width - 60);
+                    edit.setY(top + (height - 16) / 2);
+                }
+                return;
+            }
+            if (edit == null) return;
             UnitIcons.render(g, UnitIcons.of(type), left + 4, top + (height - UnitIcons.SIZE) / 2);
             g.drawString(font, type.getDisplayName(), left + 30, top + 3, PanelList.TEXT_COLOR, false);
 
@@ -431,6 +538,7 @@ public class GovernorScreen extends RecruitsScreenBase {
             groupDropDown.onMouseClick(mouseX, mouseY);
             return true;
         }
+        if (tab == Tab.MODULE && moduleTab != null && moduleContext != null && moduleTab.mouseClicked(moduleContext, mouseX, mouseY, button)) return true;
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -443,6 +551,7 @@ public class GovernorScreen extends RecruitsScreenBase {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (groupDropDown != null && groupDropDown.mouseScrolled(mouseX, mouseY, delta)) return true;
+        if (tab == Tab.MODULE && moduleTab != null && moduleContext != null && moduleTab.mouseScrolled(moduleContext, mouseX, mouseY, delta)) return true;
         return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
@@ -475,6 +584,9 @@ public class GovernorScreen extends RecruitsScreenBase {
             case GARRISON -> renderGarrison(guiGraphics);
             case ORDER -> renderOrder(guiGraphics);
             case VILLAGE -> renderVillage(guiGraphics);
+            case MODULE -> {
+                if (moduleTab != null && moduleContext != null) moduleTab.render(guiGraphics, moduleContext, mouseX, mouseY);
+            }
         }
 
         if (groupDropDown != null) groupDropDown.renderWidget(guiGraphics, mouseX, mouseY, delta);
@@ -497,7 +609,7 @@ public class GovernorScreen extends RecruitsScreenBase {
     /** Draws the text cut to the width; returns the next y. */
     private int fitLine(GuiGraphics g, Component text, int x, int y, int maxWidth, int color) {
         String s = text.getString();
-        if (font.width(s) > maxWidth) s = font.plainSubstrByWidth(s, maxWidth - font.width("…")) + "…";
+        if (font.width(s) > maxWidth) s = font.plainSubstrByWidth(s, maxWidth - font.width("\u2026")) + "\u2026";
         g.drawString(font, s, x, y, color, false);
         return y + 12;
     }
@@ -568,6 +680,16 @@ public class GovernorScreen extends RecruitsScreenBase {
         if (snapshot.purse > 0) y = fitLine(g, Component.translatable("gui.recruits.governor.info.purse", snapshot.purse), x, y, textWidth, TEXT);
         y = wrapLines(g, recruitStatusText(), x, y + 2, textWidth, recruitStatusColor(), 3);
 
+        if (snapshot.village) {
+            Component nobles = snapshot.nextNobleAt < 0
+                    ? Component.translatable("gui.recruits.governor.info.nobles_max", snapshot.nobles)
+                    : Component.translatable("gui.recruits.governor.info.nobles", snapshot.nobles, snapshot.inhabitants, snapshot.nextNobleAt);
+            y = fitLine(g, nobles, x, y, textWidth, TEXT);
+        }
+        // the next step: what the Governor needs from the player first, then what the modules plan
+        Component next = nextStep();
+        if (next != null) y = wrapLines(g, Component.translatable("gui.recruits.governor.info.next", next), x, y + 2, textWidth, 0xFFE0A0, 3);
+
         y += 2;
         if (!snapshot.hasTreasury || snapshot.treasuryMissing) y = wrapLines(g, Component.translatable("gui.recruits.governor.warn.treasury"), x, y, textWidth, RED, 2);
         if (snapshot.upkeepMissing) y = wrapLines(g, Component.translatable("gui.recruits.governor.warn.upkeep"), x, y, textWidth, RED, 2);
@@ -587,6 +709,27 @@ public class GovernorScreen extends RecruitsScreenBase {
             if (assigned != null) tooltip.add(Component.literal(assigned).withStyle(ChatFormatting.GREEN));
             g.renderComponentTooltip(font, tooltip, mouseX, mouseY);
         }
+    }
+
+    /** The most important next step: something only the player can do, else the plan of a module. */
+    @Nullable
+    private Component nextStep() {
+        if (!snapshot.ruling) return null;
+        if (!snapshot.hasTreasury || snapshot.treasuryMissing) return Component.translatable("gui.recruits.governor.next.treasury");
+        if (snapshot.budget <= 0) return Component.translatable("gui.recruits.governor.next.budget");
+        if (snapshot.coins == 0) return Component.translatable("gui.recruits.governor.next.coins");
+        if (snapshot.upkeepMissing) return Component.translatable("gui.recruits.governor.next.upkeep");
+        for (String module : snapshot.modules.getAllKeys()) {
+            String json = snapshot.modules.getCompound(module).getString("next");
+            if (json.isEmpty()) continue;
+            try {
+                Component line = Component.Serializer.fromJson(json);
+                if (line != null) return line;
+            } catch (Exception ignored) {
+            }
+        }
+        if (snapshot.getTotalQuota() <= 0) return Component.translatable("gui.recruits.governor.next.quota");
+        return null;
     }
 
     /** Colours of the post types under the map, two columns. */

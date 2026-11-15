@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -21,7 +20,7 @@ import java.util.UUID;
  * so the positions must be included in the packet — the server cannot read the
  * client's filesystem.
  */
-public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderSetRoute> {
+public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderSetRoute>, CompanionOrder<AbstractLeaderEntity> {
 
     private UUID recruit;
     @Nullable private UUID routeId;       // null = clear route
@@ -53,19 +52,27 @@ public class MessagePatrolLeaderSetRoute implements Message<MessagePatrolLeaderS
 
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(64.0D),
-                leader -> leader.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, leader)
-        ).forEach(leader -> {
-            if (routeId != null) {
-                leader.setRouteID(routeId);
-            } else {
-                leader.clearRouteID();
-            }
-            leader.loadRouteWaypointsFromData(waypoints, waitSeconds);
-        });
+        CompanionOrders.handle(context.getSender(), this);
+    }
+
+    @Override
+    public UUID getCompanion() {
+        return this.recruit;
+    }
+
+    @Override
+    public Class<AbstractLeaderEntity> getCompanionType() {
+        return AbstractLeaderEntity.class;
+    }
+
+    @Override
+    public void applyTo(AbstractLeaderEntity leader, @Nullable ServerPlayer sender) {
+        if (routeId != null) {
+            leader.setRouteID(routeId);
+        } else {
+            leader.clearRouteID();
+        }
+        leader.loadRouteWaypointsFromData(waypoints, waitSeconds);
     }
 
     private static final int MAX_ROUTE_WAYPOINTS = 1024;

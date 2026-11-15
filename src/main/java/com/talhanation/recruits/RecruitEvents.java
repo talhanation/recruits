@@ -9,6 +9,7 @@ import com.talhanation.recruits.governor.GovernorOffice;
 import com.talhanation.recruits.entities.ai.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.recruits.init.ModEntityTypes;
 import com.talhanation.recruits.inventory.PromoteContainer;
+import com.talhanation.recruits.network.CompanionOrders;
 import com.talhanation.recruits.network.MessageOpenPromoteScreen;
 import com.talhanation.recruits.world.*;
 import com.talhanation.recruits.RecruitEvent;
@@ -61,6 +62,8 @@ public class RecruitEvents {
     private static final Map<ServerLevel, PillagerPatrolSpawn> PILLAGER_PATROL = new HashMap<>();
     public static RecruitsPlayerUnitManager recruitsPlayerUnitManager;
     public static RecruitsGroupsManager recruitsGroupsManager;
+    public static RecruitsCompanionManager recruitsCompanionManager;
+    public static SimulatedTravelManager simulatedTravelManager;
 
     public static MinecraftServer server;
     public static HashMap<Integer, EntityType<? extends AbstractRecruitEntity>> entitiesByProfession = new HashMap<>() {
@@ -185,6 +188,27 @@ public class RecruitEvents {
 
         recruitsGroupsManager = new RecruitsGroupsManager();
         recruitsGroupsManager.load(server.overworld());
+
+        recruitsCompanionManager = new RecruitsCompanionManager();
+        recruitsCompanionManager.load(server.overworld());
+        CompanionOrders.clearDrafts();
+
+        simulatedTravelManager = new SimulatedTravelManager();
+        simulatedTravelManager.load(server.overworld());
+    }
+
+    /** A leader on a mission whose chunk is about to go is taken out of the world before he is saved into it. */
+    @SubscribeEvent
+    public void onChunkTicketLevel(net.minecraftforge.event.level.ChunkTicketLevelUpdatedEvent event) {
+        if (simulatedTravelManager == null) return;
+        simulatedTravelManager.onChunkLevelChanged(event.getLevel(), event.getChunkPos(), event.getOldTicketLevel(), event.getNewTicketLevel());
+    }
+
+    /** Simulated journeys run on the server tick, not the level tick: they go on while no dimension ticks. */
+    @SubscribeEvent
+    public void onServerTickTravel(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || simulatedTravelManager == null) return;
+        simulatedTravelManager.tick(event.getServer());
     }
 
     @SubscribeEvent
@@ -222,6 +246,9 @@ public class RecruitEvents {
             recruitsPlayerUnitManager.broadCastUnitInfoToPlayer(player);
 
             recruitsGroupsManager.broadCastGroupsToPlayer(player);
+        }
+        else if(event.getEntity() instanceof AbstractRecruitEntity recruit && RecruitsCompanionManager.isCompanion(recruit) && recruitsCompanionManager != null){
+            recruitsCompanionManager.update(recruit, true);
         }
     }
 
@@ -374,8 +401,20 @@ public class RecruitEvents {
         if(event.getLevel().isClientSide()) return;
 
         Entity entity = event.getEntity();
+        if (entity instanceof AbstractTravelEntity traveller && simulatedTravelManager != null) {
+            // died or was discarded on the way: nobody has to look for him. Out of the world he leaves as CHANGED_DIMENSION.
+            Entity.RemovalReason reason = traveller.getRemovalReason();
+            if (reason != null && reason.shouldDestroy()) simulatedTravelManager.untrack(traveller.getUUID());
+        }
+
         if (entity instanceof Projectile projectile) {
             canceledProjectiles.remove(projectile);
+        }
+        else if (entity instanceof AbstractRecruitEntity recruit && RecruitsCompanionManager.isCompanion(recruit) && recruitsCompanionManager != null) {
+            Entity.RemovalReason reason = recruit.getRemovalReason();
+            // killed or discarded: gone for good. Unloaded: keep the record. Changed dimension: the copy joins there.
+            if (reason != null && reason.shouldDestroy()) recruitsCompanionManager.remove(recruit.getUUID());
+            else if (reason != Entity.RemovalReason.CHANGED_DIMENSION) recruitsCompanionManager.update(recruit, false);
         }
     }
 

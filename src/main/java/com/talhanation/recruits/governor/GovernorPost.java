@@ -11,7 +11,8 @@ import java.util.UUID;
 /**
  * One position of a claim that the Governor manages.
  * Melee and Ranged posts are held by exactly one recruit, Reserve and Patrol points by any number,
- * Treasury and Upkeep are container blocks.
+ * Treasury and Upkeep are container blocks; an Upkeep post can also be an entity with an inventory
+ * (e.g. a storage area of Workers), then {@link #getEntity()} is set and the position is where it stands.
  */
 public class GovernorPost {
 
@@ -66,17 +67,30 @@ public class GovernorPost {
     private final int number;
     @Nullable
     private UUID assigned;
+    @Nullable
+    private final UUID entity;
 
     public GovernorPost(Type type, BlockPos pos, int number) {
-        this(UUID.randomUUID(), type, pos, number, null);
+        this(UUID.randomUUID(), type, pos, number, null, null);
     }
 
-    private GovernorPost(UUID id, Type type, BlockPos pos, int number, @Nullable UUID assigned) {
+    public GovernorPost(Type type, BlockPos pos, int number, @Nullable UUID entity) {
+        this(UUID.randomUUID(), type, pos, number, null, entity);
+    }
+
+    private GovernorPost(UUID id, Type type, BlockPos pos, int number, @Nullable UUID assigned, @Nullable UUID entity) {
         this.id = id;
         this.type = type;
         this.pos = pos.immutable();
         this.number = number;
         this.assigned = assigned;
+        this.entity = entity;
+    }
+
+    /** The entity whose inventory is the upkeep (a storage area), null for a container block. */
+    @Nullable
+    public UUID getEntity() {
+        return entity;
     }
 
     public UUID getId() {
@@ -131,6 +145,7 @@ public class GovernorPost {
         tag.putInt("z", pos.getZ());
         tag.putInt("number", number);
         if (assigned != null) tag.putUUID("assigned", assigned);
+        if (entity != null) tag.putUUID("entity", entity);
         return tag;
     }
 
@@ -140,6 +155,7 @@ public class GovernorPost {
         BlockPos pos = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
         int number = tag.getInt("number");
         UUID assigned = tag.hasUUID("assigned") ? tag.getUUID("assigned") : null;
-        return new GovernorPost(id, type, pos, number, assigned);
+        UUID entity = tag.hasUUID("entity") ? tag.getUUID("entity") : null;
+        return new GovernorPost(id, type, pos, number, assigned, entity);
     }
 }

@@ -22,6 +22,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -120,6 +121,9 @@ public class GovernorCategory implements ICommandCategory {
         BlockPos target = screen.rayBlockPos;
         boolean inClaim = target != null && snapshot.chunks.contains(new ChunkPos(target));
         boolean isContainer = inClaim && isContainer(player.getCommandSenderWorld(), target);
+        // an entity with an inventory (a storage area of Workers) can be an Upkeep post too
+        Entity upkeepEntity = screen.rayEntity instanceof Container && screen.rayEntity.isAlive()
+                && snapshot.chunks.contains(new ChunkPos(screen.rayEntity.blockPosition())) ? screen.rayEntity : null;
 
         int colA = x + 90;
         int colB = x + 175;
@@ -128,7 +132,16 @@ public class GovernorCategory implements ICommandCategory {
         addPostButton(screen, snapshot, colA, y - 10, GovernorPost.Type.RESERVE, target, inClaim);
         addPostButton(screen, snapshot, colB, y - 10, GovernorPost.Type.PATROL, target, inClaim);
         addPostButton(screen, snapshot, colA, y + 20, GovernorPost.Type.TREASURY, target, isContainer);
-        addPostButton(screen, snapshot, colB, y + 20, GovernorPost.Type.UPKEEP, target, isContainer);
+        if (upkeepEntity != null) addUpkeepEntityButton(screen, snapshot, colB, y + 20, upkeepEntity);
+        else addPostButton(screen, snapshot, colB, y + 20, GovernorPost.Type.UPKEEP, target, isContainer);
+    }
+
+    private void addUpkeepEntityButton(CommandScreen screen, GovernorSnapshot snapshot, int x, int y, Entity entity) {
+        GovernorPost.Type type = GovernorPost.Type.UPKEEP;
+        RecruitsCommandButton button = new RecruitsCommandButton(x, y, type.getDisplayName(),
+                press -> Main.SIMPLE_CHANNEL.sendToServer(new MessageGovernorAddPost(snapshot.claim, type, entity.blockPosition(), entity.getUUID())));
+        button.setTooltip(Tooltip.create(Component.translatable("gui.recruits.governor.tooltip.post.upkeep_entity", entity.getName())));
+        screen.addRenderableWidget(button);
     }
 
     private void addPostButton(CommandScreen screen, GovernorSnapshot snapshot, int x, int y, GovernorPost.Type type, @Nullable BlockPos target, boolean active) {

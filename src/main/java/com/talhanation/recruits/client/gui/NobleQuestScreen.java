@@ -32,7 +32,7 @@ public class NobleQuestScreen extends RecruitsScreenBase {
     private static final ResourceLocation TEXTURE = new ResourceLocation(Main.MOD_ID, "textures/gui/gui_big.png");
     private static final Component TITLE = Component.translatable("gui.recruits.noble.quests.title");
     private static final Component BUTTON_ACCEPT = Component.translatable("gui.recruits.noble.quest.accept");
-    private static final Component BUTTON_TAKEN = Component.literal("✔");
+    private static final Component BUTTON_TAKEN = Component.literal("\u2714");
     private static final Component BUTTON_TURN_IN = Component.translatable("gui.recruits.noble.quest.turn_in");
     private static final Component BUTTON_ABANDON = Component.translatable("gui.recruits.noble.quest.abandon");
     private static final Component BUTTON_BACK = Component.translatable("gui.recruits.noble.button.back");

@@ -606,5 +606,16 @@
   "gui.recruits.map.readout.zoom": "Масштаб: %s",
   "description.recruits.peaceTreaty": "При принятии этого договора\nобе фракции не смогут атаковать\nдруг друга на протяжении действия.",
   "chat.recruits.text.messenger_target_player_not_accepted": "%s: Я прибыл, но %s не принял наше мирное предложение.",
-  "chat.recruits.text.messenger_info_to_target_treaty": "%s: У меня важное предложение от %s"
+  "chat.recruits.text.messenger_info_to_target_treaty": "%s: У меня важное предложение от %s",
+  "gui.recruits.governor.tooltip.post.upkeep_entity": "Снабжение у %s: гарнизон берёт еду и снаряжение из его инвентаря.",
+  "gui.recruits.governor.unit.release": "Отпустить",
+  "gui.recruits.governor.tooltip.unit_release": "Вернуть %s вам: покидает гарнизон, губернатор больше не платит и не снабжает",
+  "gui.recruits.governor.info.nobles": "Знать: %s (следующий при %2$s/%3$s жителях)",
+  "gui.recruits.governor.info.nobles_max": "Знать: %s (максимум)",
+  "gui.recruits.governor.info.next": "Следующий шаг: %s",
+  "gui.recruits.governor.next.treasury": "Поставьте казну в территории",
+  "gui.recruits.governor.next.budget": "Установите бюджет",
+  "gui.recruits.governor.next.coins": "Положите монеты в казну",
+  "gui.recruits.governor.next.upkeep": "Поставьте пост снабжения (сундук или склад) в территории",
+  "gui.recruits.governor.next.quota": "Установите квоту гарнизона"
 }

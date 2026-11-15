@@ -130,6 +130,9 @@ public class GovernorController {
     private BlockPos postTreasury;
     @Nullable
     private Vec3 postStand;
+    /** Where a module sent the Governor instead of his post (a build site), null at his post. Runtime only. */
+    @Nullable
+    private Vec3 visitTarget;
 
     public GovernorController(GovernorEntity governor) {
         this.governor = governor;
@@ -267,7 +270,7 @@ public class GovernorController {
         boolean anyUpkeep = false;
         for (GovernorPost upkeep : data.getPosts(GovernorPost.Type.UPKEEP)) {
             anyUpkeep = true;
-            if (level.isLoaded(upkeep.getPos()) && !GovernorGarrison.isContainer(level, upkeep.getPos())) {
+            if (!GovernorGarrison.isPostPresent(level, upkeep)) {
                 missingUpkeep = upkeep.getPos();
                 break;
             }
@@ -424,10 +427,7 @@ public class GovernorController {
 
             post.setAssigned(null);
             breaks.put(id, now);
-            if (!upkeep.getPos().equals(recruit.getUpkeepPos())) {
-                recruit.setUpkeepPos(upkeep.getPos());
-                recruit.clearUpkeepEntity();
-            }
+            GovernorGarrison.setUpkeep(recruit, upkeep);
             recruit.setUpkeepTimer(0);
             recruit.forcedUpkeep = true;
             // after eating he waits at the chest, not on his old post
@@ -589,10 +589,21 @@ public class GovernorController {
 
     // ------------------------------------------------------------------ the Governor's own post
 
-    /** Without a task the Governor stands right at the treasury chest. */
+    /** Without a task the Governor stands right at the treasury chest, or where a module sent him. */
     private void keepGovernorAtPost(ServerLevel level, ClaimGovernorData data) {
         if (task != null) return;
-        holdAt(governor, getGovernorPost(level, data), 0.1D);
+        holdAt(governor, visitTarget != null ? visitTarget : getGovernorPost(level, data), 0.1D);
+    }
+
+    /** A module sends the Governor to a place (he holds his position there), null sends him back to his post. */
+    public void setVisitTarget(@Nullable Vec3 target) {
+        this.visitTarget = target;
+        if (task == null && target != null) holdAt(governor, target, 0.1D);
+    }
+
+    @Nullable
+    public Vec3 getVisitTarget() {
+        return visitTarget;
     }
 
     /** Where the Governor stands: in front of the treasury chest, without treasury at his home position. */
@@ -679,37 +690,42 @@ public class GovernorController {
     private void manageUpkeepAndLoadout(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, List<AbstractRecruitEntity> garrison) {
         // the Governor eats and takes his pay at his post: the treasury is his upkeep
         BlockPos governorUpkeep = data.getTreasuryPos();
-        if (governorUpkeep == null) {
-            GovernorPost nearest = data.getNearest(GovernorPost.Type.UPKEEP, governor.position());
-            if (nearest != null) governorUpkeep = nearest.getPos();
+        if (governorUpkeep != null) {
+            if (!governorUpkeep.equals(governor.getUpkeepPos()) || governor.getUpkeepUUID() != null) {
+                governor.setUpkeepPos(governorUpkeep);
+                governor.clearUpkeepEntity();
+            }
         }
-        if (governorUpkeep != null && !governorUpkeep.equals(governor.getUpkeepPos())) {
-            governor.setUpkeepPos(governorUpkeep);
-            governor.clearUpkeepEntity();
+        else {
+            GovernorPost nearest = data.getNearest(GovernorPost.Type.UPKEEP, governor.position());
+            if (nearest != null) GovernorGarrison.setUpkeep(governor, nearest);
         }
 
         List<GovernorPost> upkeeps = data.getPosts(GovernorPost.Type.UPKEEP);
         if (upkeeps.isEmpty()) return;
 
+        // units of the modules (workers): food and pay at the nearest upkeep, no loadout
+        for (AbstractRecruitEntity unit : GovernorManager.findModuleUnits(level, claim, governor.getOwnerUUID())) {
+            GovernorPost nearest = data.getNearest(GovernorPost.Type.UPKEEP, unit.position());
+            if (nearest != null) GovernorGarrison.setUpkeep(unit, nearest);
+        }
+
         long now = level.getGameTime();
-        Map<BlockPos, Container> containers = new HashMap<>();
+        Map<UUID, Container> containers = new HashMap<>();
 
         for (AbstractRecruitEntity recruit : garrison) {
             Vec3 anchor = recruit.getHoldPos() != null ? recruit.getHoldPos() : recruit.position();
             GovernorPost nearest = data.getNearest(GovernorPost.Type.UPKEEP, anchor);
             if (nearest == null) continue;
 
-            if (recruit.getUpkeepPos() == null || !recruit.getUpkeepPos().equals(nearest.getPos())) {
-                recruit.setUpkeepPos(nearest.getPos());
-                recruit.clearUpkeepEntity();
-            }
+            GovernorGarrison.setUpkeep(recruit, nearest);
 
             if (claim.isUnderSiege) continue;
             if (recruit.getTarget() != null || recruit.forcedUpkeep) continue;
             Long last = lastLoadoutCall.get(recruit.getUUID());
             if (last != null && now - last < LOADOUT_COOLDOWN) continue;
 
-            Container container = containers.computeIfAbsent(nearest.getPos(), pos -> GovernorGarrison.getContainer(level, pos));
+            Container container = containers.computeIfAbsent(nearest.getId(), id -> GovernorGarrison.getPostContainer(level, nearest));
             if (container != null && GovernorGarrison.wantsLoadoutChange(recruit, data, container)) {
                 recruit.forcedUpkeep = true;
                 lastLoadoutCall.put(recruit.getUUID(), now);
@@ -1094,10 +1110,15 @@ public class GovernorController {
     // ------------------------------------------------------------------ modules of addons
 
     /** Slow tick: onInterval. Once a day at the meeting: daily check and report. */
+    /** Ticks between two plannings of the modules. */
+    private static final long MODULE_UPDATE_TICKS = 1200L;
+
     private void runModules(ServerLevel level, RecruitsClaim claim, ClaimGovernorData data, boolean slowTick) {
         if (slowTick) {
             GovernorModules.forEach("onInterval", module -> module.onInterval(context(level, claim, data, module)));
         }
+        // planning once per minute (and when the owner opens the screen, see MessageGovernorRequestData)
+        GovernorManager.updateModules(level, claim, data, MODULE_UPDATE_TICKS);
 
         long dayTime = level.getDayTime();
         long day = dayTime / 24000L;
@@ -1162,10 +1183,15 @@ public class GovernorController {
         List<HireRequest> requests = new ArrayList<>(moduleHires.values());
         requests.sort(Comparator.comparingInt(HireRequest::getPriority).reversed());
 
-        if (!GovernorHiring.canOwnerTakeUnit(owner, claim.getOwnerFactionStringID())) {
-            for (HireRequest request : requests) request.setStatus("limit");
-            return false;
-        }
+        // garrison requests count against the garrison limit, the others against the player limit
+        boolean playerFull = !GovernorHiring.canOwnerTakeUnit(owner, claim.getOwnerFactionStringID());
+        boolean garrisonFull = GovernorManager.countGarrison(level, claim, owner) >= GovernorManager.getGarrisonCap(claim);
+        requests.removeIf(request -> {
+            boolean full = request.isGarrison() ? garrisonFull : playerFull;
+            if (full) request.setStatus(request.isGarrison() ? "cap_reached" : "limit");
+            return full;
+        });
+        if (requests.isEmpty()) return false;
         int budget = data.getRemainingBudget(day);
         int coins = data.lastKnownTreasury;
         if (budget <= 0 || coins <= 0) {
@@ -1230,7 +1256,13 @@ public class GovernorController {
         UUID owner = governor.getOwnerUUID();
         if (request == null || owner == null || current.entity == null) return false;
         String factionId = claim.getOwnerFactionStringID();
-        if (!GovernorHiring.canOwnerTakeUnit(owner, factionId)) {
+        if (request.isGarrison()) {
+            if (GovernorManager.countGarrison(level, claim, owner) >= GovernorManager.getGarrisonCap(claim)) {
+                request.setStatus("cap_reached");
+                return false;
+            }
+        }
+        else if (!GovernorHiring.canOwnerTakeUnit(owner, factionId)) {
             request.setStatus("limit");
             return false;
         }
@@ -1262,7 +1294,8 @@ public class GovernorController {
             nobleTrade = trade;
         }
 
-        GovernorHiring.hireForOwner(level, unit, owner, governor.getOwnerName(), factionId);
+        if (request.isGarrison()) GovernorGarrison.hireIntoGarrison(level, unit, owner, governor.getOwnerName(), factionId, claim.getUUID());
+        else GovernorHiring.hireForOwner(level, unit, owner, governor.getOwnerName(), factionId);
         if (fromNoble != null) {
             level.addFreshEntity(unit);
             fromNoble.doTrade(nobleTrade.resourceLocation);
@@ -1300,7 +1333,8 @@ public class GovernorController {
         needed.sort(Comparator.comparingInt((GovernorUnitType type) -> data.getQuota(type) - counts[type.getIndex()]).reversed());
 
         int cap = GovernorManager.getGarrisonCap(claim);
-        if (garrison.size() >= cap) {
+        // module units (workers) count too
+        if (GovernorManager.countGarrison(level, claim, governor.getOwnerUUID()) >= cap) {
             data.setRecruitStatus("cap_reached", cap);
             return;
         }
@@ -1406,7 +1440,7 @@ public class GovernorController {
         if (owner == null || current.unitType == null || current.entity == null) return false;
         String factionId = claim.getOwnerFactionStringID();
         if (!GovernorGarrison.canFactionAddNPC(factionId)) return false;
-        if (GovernorManager.findGarrison(level, claim, owner).size() >= GovernorManager.getGarrisonCap(claim)) return false;
+        if (GovernorManager.countGarrison(level, claim, owner) >= GovernorManager.getGarrisonCap(claim)) return false;
 
         String ownerName = governor.getOwnerName();
         Entity source = level.getEntity(current.entity);

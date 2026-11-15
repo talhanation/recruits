@@ -23,18 +23,20 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Moves a recruit on ladders / vines along its path (the pathfinder routes over climbable columns, see
- * RecruitsPathNodeEvaluator#addClimbNeighbors). Climbing is fully controlled here instead of relying on
- * vanilla physics, which does not work for mobs on ladders:
+ * RecruitsPathNodeEvaluator#addClimbNeighbors).
+ * <p>
+ * Vanilla can not do this: the MoveControl jumps inside a ladder block (it has a collision shape), and
+ * jumping on a ladder always means "climb up". So while the recruit is in a climbable block, or about to
+ * drop into one from above, the MoveControl is parked and the velocity is set directly.
+ * <p>
+ * The rules only look at where the recruit is and at which height its path leaves the ladder column -
+ * not at which path node the navigation currently calls "next":
  * <ul>
- *     <li>the vanilla MoveControl jumps inside a ladder block (it has a collision shape) and then keeps
- *     walking forward - up again, or off a free standing ladder,</li>
- *     <li>touching the wall on a ladder means climbing up, and a 0.6 wide mob in the column center is only
- *     ~0.01 away from the ladder plate - the slightest drift and it stands on the plate below or climbs.</li>
+ *     <li>the path leaves the column further up: climb up</li>
+ *     <li>the path leaves the column further down: climb down</li>
+ *     <li>the height fits: step off towards the exit</li>
  * </ul>
- * So while active: MoveControl is parked, the recruit is held 0.15 away from the ladder plate, and its
- * velocity is set directly - up 0.2, down 0.15 per tick (vanilla ladder speeds). It enters a ladder from
- * above slowly, at the top it climbs until its feet are above the exit edge before stepping over, and at the
- * bottom it climbs down to the ground before stepping off.
+ * The recruit is kept 0.1 away from the ladder plate, otherwise it ends up standing on the plate.
  * Closed wooden trapdoors in the column are opened and closed again once passed.
  * The navigation keeps following the path. No goal flags, so it never blocks other goals.
  */
@@ -43,10 +45,12 @@ public class RecruitClimbGoal extends Goal {
     private static final double CLIMB_UP_SPEED = 0.2D;
     private static final double CLIMB_DOWN_SPEED = 0.15D;
     private static final double HORIZONTAL_SPEED = 0.15D;
-    /** Distance kept from the ladder / trapdoor plate (no standing on it, no wall contact). */
-    private static final double WALL_DISTANCE = 0.15D;
-    /** Ticks without movement until the climb is given up and the path dropped. */
+    /** Distance kept from the ladder / trapdoor plate. Small enough that the navigation still counts the node as reached. */
+    private static final double WALL_DISTANCE = 0.1D;
+    /** Ticks without getting anywhere until the path is dropped. */
     private static final int STUCK_TICKS = 60;
+    /** Moving less than this does not count as getting anywhere. */
+    private static final double PROGRESS_DISTANCE = 0.5D;
     private static final int TRAPDOOR_CLOSE_TIMEOUT = 60;
 
     private final AbstractRecruitEntity recruit;
@@ -64,12 +68,12 @@ public class RecruitClimbGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return this.shouldSteer();
+        return this.shouldClimb();
     }
 
     @Override
     public boolean canContinueToUse() {
-        return (this.shouldSteer() && this.ticksWithoutProgress < STUCK_TICKS) || this.openedTrapdoor != null;
+        return this.shouldClimb() || this.openedTrapdoor != null;
     }
 
     @Override
@@ -79,7 +83,7 @@ public class RecruitClimbGoal extends Goal {
 
     @Override
     public void start() {
-        this.lastPos = this.recruit.position();
+        this.lastPos = null;
         this.ticksWithoutProgress = 0;
     }
 
@@ -94,114 +98,143 @@ public class RecruitClimbGoal extends Goal {
 
     @Override
     public void tick() {
-        boolean steer = this.shouldSteer();
-        this.setClimbControlled(steer);
-        if (steer) this.steer();
+        boolean climb = this.shouldClimb();
+        this.setClimbControlled(climb);
+        if (climb) this.climb();
         this.tickTrapdoor();
     }
 
     // ------------------------------------------------------------------ when
 
-    private boolean shouldSteer() {
+    private boolean shouldClimb() {
         if (this.recruit.isPassenger()) return false;
         Path path = this.recruit.getNavigation().getPath();
         if (path == null) return false;
 
-        boolean hanging = this.recruit.onClimbable() && !this.recruit.onGround();
-        if (isCalculating(path)) return hanging; // hold on while a new path is being calculated
+        if (isCalculating(path)) return this.isOnLadder() && !this.recruit.onGround(); // hold on until the new path is there
         if (path.isDone()) return false;
+        if (this.isOnLadder()) return true;
 
+        // standing beside the top of a ladder and the path goes down into it
         Node to = path.getNextNode();
-        return isClimbStep(path)
-                || hanging
-                // stepping down into a ladder column from above
-                || (to.y < this.recruit.getY() - 0.5D && ClimbableBlocks.get().canClimbAt(this.recruit.level(), to.x, to.y, to.z));
+        if (to.y >= this.recruit.getY() - 0.5D || !this.canClimbAt(to.x, to.y, to.z)) return false;
+        // ... really down: not the ladder the recruit just climbed out of (the navigation may be one node behind)
+        int after = path.getNextNodeIndex() + 1;
+        return after >= path.getNodeCount() || path.getNode(after).y <= to.y;
     }
 
     private static boolean isCalculating(Path path) {
         return path instanceof AsyncPath asyncPath && !asyncPath.isProcessed();
     }
 
-    /** Same column, other height. */
-    private static boolean isClimbStep(Path path) {
-        int next = path.getNextNodeIndex();
-        if (next <= 0 || next >= path.getNodeCount()) return false;
-        Node to = path.getNode(next);
-        Node from = path.getNode(next - 1);
-        return to.x == from.x && to.z == from.z && to.y != from.y;
+    /** Feet in a climbable block, or in the air right above one (dropping in from above, climbing out at the top). */
+    private boolean isOnLadder() {
+        BlockPos feet = this.recruit.blockPosition();
+        return this.canClimbAt(feet.getX(), feet.getY(), feet.getZ())
+                || (!this.recruit.onGround() && this.canClimbAt(feet.getX(), feet.getY() - 1, feet.getZ()));
+    }
+
+    private boolean canClimbAt(int x, int y, int z) {
+        return ClimbableBlocks.get().canClimbAt(this.recruit.level(), x, y, z);
     }
 
     // ------------------------------------------------------------------ how
 
-    private void steer() {
+    private void climb() {
         // park the vanilla MoveControl: no jumping, no forward walking
         this.recruit.getMoveControl().setWantedPosition(this.recruit.getX(), this.recruit.getY(), this.recruit.getZ(), 0.0D);
 
         Path path = this.recruit.getNavigation().getPath();
         BlockPos feet = this.recruit.blockPosition();
-        boolean onLadder = this.recruit.onClimbable();
+        // only inside a climbable block the height is controlled, above it gravity does the work
+        boolean inClimbable = this.canClimbAt(feet.getX(), feet.getY(), feet.getZ());
         double vy = this.recruit.getDeltaMovement().y;
         Vec3 target;
 
         if (path == null || isCalculating(path) || path.isDone()) {
-            // hold position on the ladder
-            target = this.anchor(feet.getX(), feet.getY(), feet.getZ());
-            if (onLadder) vy = 0.0D;
-        } else {
+            // hold on
+            target = this.anchor(feet);
+            if (inClimbable) vy = 0.0D;
+        } else if (!this.isOnLadder()) {
+            // beside the top of the ladder: walk over the edge and drop into the column
             Node to = path.getNextNode();
-            double dy = to.y - this.recruit.getY();
+            target = this.anchor(new BlockPos(to.x, to.y, to.z));
+            this.openTrapdoorsAhead(path);
+            this.checkProgress();
+        } else {
+            // the rest of the path inside this column ("last"), and the node where it leaves the column ("exit")
+            int index = path.getNextNodeIndex();
+            Node last = null;
+            while (index < path.getNodeCount() && path.getNode(index).x == feet.getX() && path.getNode(index).z == feet.getZ()) {
+                last = path.getNode(index++);
+            }
+            Node exit = index < path.getNodeCount() ? path.getNode(index) : null; // null only if the path ends in the column
 
-            if (to.x == feet.getX() && to.z == feet.getZ()) {
-                // in the column: straight up or down
-                target = this.anchor(to.x, feet.getY(), to.z);
-                if (onLadder) vy = dy > 0.05D ? CLIMB_UP_SPEED : dy < -0.05D ? -CLIMB_DOWN_SPEED : 0.0D;
-            } else if (dy > 0.05D) {
-                // leaving at the top: keep climbing, lean towards the exit for the last half block
-                // (touching its edge only helps climbing) and step over once the feet are above it
-                target = dy < 0.5D ? this.anchor(to.x, to.y, to.z) : this.anchor(feet.getX(), feet.getY(), feet.getZ());
-                if (onLadder) vy = CLIMB_UP_SPEED;
-            } else if (onLadder && !this.recruit.onGround() && to.y < feet.getY()) {
-                // next node is beside and a whole block lower: climb down to its height first, never jump off early.
-                // Compared by block, not by the exact height: right after climbing over the top edge the feet are
-                // a bit above the exit node, and treating that as "lower" pulled him back into the ladder forever.
-                target = this.anchor(feet.getX(), feet.getY(), feet.getZ());
-                vy = -CLIMB_DOWN_SPEED;
+            // the height at which the recruit leaves the column
+            // (a node that is higher but not beside the column is not reached by climbing here)
+            int goalY = feet.getY();
+            if (last != null) goalY = exit != null && exit.y > last.y ? exit.y : last.y;
+            else if (exit.y <= feet.getY() || (Math.abs(exit.x - feet.getX()) <= 1 && Math.abs(exit.z - feet.getZ()) <= 1)) goalY = exit.y;
+            double dy = goalY - this.recruit.getY();
+
+            Vec3 column = this.anchor(feet);
+            Vec3 out = exit == null ? column : new Vec3(exit.x + 0.5D, exit.y, exit.z + 0.5D);
+
+            if (goalY > feet.getY()) {
+                // up, in the column until the feet are above the exit edge
+                target = column;
+                if (inClimbable) vy = CLIMB_UP_SPEED;
+            } else if (goalY < feet.getY() || (inClimbable && dy < -0.05D)) {
+                // down, never jump off early
+                target = column;
+                if (inClimbable) vy = Math.max(-CLIMB_DOWN_SPEED, dy);
             } else {
-                // stepping over into the next column: onto the ladder from above, off it at the bottom or at the top
-                target = this.anchor(to.x, to.y, to.z);
-                // at the top: do not slide back down while stepping over the edge
-                if (onLadder && !this.recruit.onGround()) vy = Math.max(vy, 0.0D);
+                // right height: step off (or over the edge at the top), without sliding down meanwhile
+                target = out;
+                if (inClimbable && !this.recruit.onGround()) vy = 0.0D;
             }
             this.openTrapdoorsAhead(path);
+            this.checkProgress();
         }
 
         double dx = target.x - this.recruit.getX();
         double dz = target.z - this.recruit.getZ();
         double factor = Math.min(0.5D, HORIZONTAL_SPEED / Math.max(Math.sqrt(dx * dx + dz * dz), 1.0E-4D));
         this.recruit.setDeltaMovement(dx * factor, vy, dz * factor);
-
-        this.checkProgress();
     }
 
-    /** Block center, moved away from the plate if it is a ladder or a trapdoor. */
-    private Vec3 anchor(int x, int y, int z) {
-        double ax = x + 0.5D;
-        double az = z + 0.5D;
-        BlockState state = this.recruit.level().getBlockState(new BlockPos(x, y, z));
-        if (state.getBlock() instanceof LadderBlock || state.getBlock() instanceof TrapDoorBlock) {
+    /**
+     * Center of the ladder column at this block, moved away from the plate if it is a ladder or a trapdoor.
+     * Also works for the block right above the ladder.
+     */
+    private Vec3 anchor(BlockPos pos) {
+        Level level = this.recruit.level();
+        BlockState state = level.getBlockState(pos);
+        if (!hasPlate(state)) state = level.getBlockState(pos.below());
+
+        double x = pos.getX() + 0.5D;
+        double z = pos.getZ() + 0.5D;
+        if (hasPlate(state)) {
             Direction facing = state.getValue(HorizontalDirectionalBlock.FACING); // points away from the wall
-            ax += facing.getStepX() * WALL_DISTANCE;
-            az += facing.getStepZ() * WALL_DISTANCE;
+            x += facing.getStepX() * WALL_DISTANCE;
+            z += facing.getStepZ() * WALL_DISTANCE;
         }
-        return new Vec3(ax, y, az);
+        return new Vec3(x, pos.getY(), z);
     }
 
+    private static boolean hasPlate(BlockState state) {
+        return state.getBlock() instanceof LadderBlock || state.getBlock() instanceof TrapDoorBlock;
+    }
+
+    /** Something is in the way: drop the path instead of hanging on the ladder forever. */
     private void checkProgress() {
         Vec3 pos = this.recruit.position();
-        if (this.lastPos == null || pos.distanceToSqr(this.lastPos) > 0.1D * 0.1D) {
+        if (this.lastPos == null || pos.distanceToSqr(this.lastPos) > PROGRESS_DISTANCE * PROGRESS_DISTANCE) {
             this.lastPos = pos;
             this.ticksWithoutProgress = 0;
         } else if (++this.ticksWithoutProgress >= STUCK_TICKS) {
+            this.lastPos = null;
+            this.ticksWithoutProgress = 0;
             this.recruit.getNavigation().stop();
         }
     }

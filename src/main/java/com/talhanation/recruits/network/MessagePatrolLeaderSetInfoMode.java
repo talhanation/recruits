@@ -7,10 +7,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Objects;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
-public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLeaderSetInfoMode> {
+public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLeaderSetInfoMode>, CompanionOrder<AbstractLeaderEntity> {
     private UUID recruit;
     private byte state;
 
@@ -27,12 +27,22 @@ public class MessagePatrolLeaderSetInfoMode implements Message<MessagePatrolLead
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(16.0D),
-                v -> v.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, v)
-        ).forEach((leader) -> leader.setInfoMode(state));
+        CompanionOrders.handle(context.getSender(), this);
+    }
+
+    @Override
+    public UUID getCompanion() {
+        return this.recruit;
+    }
+
+    @Override
+    public Class<AbstractLeaderEntity> getCompanionType() {
+        return AbstractLeaderEntity.class;
+    }
+
+    @Override
+    public void applyTo(AbstractLeaderEntity leader, @Nullable ServerPlayer sender) {
+        leader.setInfoMode(this.state);
     }
 
     public MessagePatrolLeaderSetInfoMode fromBytes(FriendlyByteBuf buf) {

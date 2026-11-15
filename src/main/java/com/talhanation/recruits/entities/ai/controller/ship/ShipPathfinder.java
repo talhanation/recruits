@@ -39,10 +39,10 @@ import java.util.WeakHashMap;
  * can get off it. A step costs more the worse the class, so the way keeps off
  * the coast where the water allows it.
  *
- * <b>Other ships</b> are land for one search: their hull plus half a block,
- * where it lies when she plans - a ship under way is the traffic watch's
- * business. A hull never drops out, not even the one she follows: she keeps
- * astern of it. The way keeps to the right, see keepRight.
+ * <b>Other ships</b> that lie still are land for one search: their hull plus
+ * half a block (see Obstacles#lyingStill). A ship under way is not planned
+ * round - the captain dodges it and stops for a hull before his bow. The way
+ * keeps to the right, see keepRight.
  *
  * Synchronous and bounded: MAX_NODES expansions, a search that stops getting
  * closer gives up, goals beyond HORIZON are planned in stages, an unreachable
@@ -67,6 +67,8 @@ public final class ShipPathfinder {
     private static final double SCAN = 64.0D;
     /** blocks kept free around another hull */
     private static final double MARGIN = 0.5D;
+    /** blocks/tick up to which a ship counts as lying still: the way leads round it. A faster one is dodged, see CaptainShipController */
+    public static final float LYING_STILL = 0.05F;
     /** blocks between two points of a lane; how far across the water is looked for the banks */
     private static final double LANE_STEP = 16.0D, LANE_LOOK = 24.0D;
 
@@ -76,6 +78,32 @@ public final class ShipPathfinder {
     /** Other ships as stretches of water: segment a-b with a radius, {ax, az, bx, bz, r}. */
     public record Obstacles(List<double[]> capsules, List<Entity> ships) {
         static final Obstacles NONE = new Obstacles(List.of(), List.of());
+
+        /** @return those of them that lie still - only they are something a way can be planned round */
+        public Obstacles lyingStill() {
+            List<double[]> capsules = new ArrayList<>();
+            List<Entity> ships = new ArrayList<>();
+            for (int i = 0; i < this.ships.size(); i++) {
+                if (Math.abs(SmallShipsBridge.getSpeed(this.ships.get(i))) > LYING_STILL) continue;
+                capsules.add(this.capsules.get(i));
+                ships.add(this.ships.get(i));
+            }
+            return ships.size() == this.ships.size() ? this : new Obstacles(capsules, ships);
+        }
+
+        /** @return those of them she could run into going that way: not the ones that make at least her way in that direction - they keep ahead */
+        public Obstacles notAheadOf(Vec3 direction, float speed) {
+            List<double[]> capsules = new ArrayList<>();
+            List<Entity> ships = new ArrayList<>();
+            for (int i = 0; i < this.ships.size(); i++) {
+                Entity other = this.ships.get(i);
+                Vec3 its = CaptainShipController.forward(other.getYRot());
+                if (SmallShipsBridge.getSpeed(other) * (its.x * direction.x + its.z * direction.z) >= Math.max(0.0F, speed) - 0.02D) continue;
+                capsules.add(this.capsules.get(i));
+                ships.add(other);
+            }
+            return new Obstacles(capsules, ships);
+        }
 
         boolean covers(double x, double z) {
             for (double[] c : this.capsules) {
@@ -337,8 +365,9 @@ public final class ShipPathfinder {
      * The way moved onto the starboard lane: every LANE_STEP blocks and at
      * every corner the water is measured across the way, left and right as far
      * as her hull can go, and the point laid to the middle of it plus a
-     * quarter of its width to starboard - at most lane blocks. Where the water
-     * is narrower than two lanes the point stays where it is. Two ships on the
+     * quarter of its width to starboard - at most lane blocks. Narrower than
+     * two lanes it is half a lane off the middle, as long as two hulls still
+     * pass each other there; narrower still, the point stays. Two ships on the
      * same way in opposite directions so pass each other port to port without
      * having to give way. Every moved stretch has to be clear for the hull,
      * else that point stays; if the way cannot be kept that way, it stays as it was.
@@ -397,8 +426,14 @@ public final class ShipPathfinder {
     private double[] onLane(double x, double z, double ux, double uz, double lane) {
         double rx = -uz, rz = ux; // starboard of the heading
         double right = this.free(x, z, rx, rz), left = this.free(x, z, -rx, -rz), width = left + right;
-        if (width < 2.0D * lane) return new double[]{x, z}; // room for one only
-        double to = Math.min(right - 1.0D, (right - left) / 2.0D + Math.min(lane, width / 4.0D));
+        double to;
+        if (width >= 2.0D * lane) {
+            to = Math.min(right - 1.0D, (right - left) / 2.0D + Math.min(lane, width / 4.0D));
+        } else {
+            // narrow: half a lane off the middle, so two hulls just pass with a block between them and half a block to the bank
+            if (width < lane + 1.0D) return new double[]{x, z}; // room for one only
+            to = Math.min(right - 0.5D, (right - left) / 2.0D + lane / 2.0D);
+        }
         if (to <= 0.0D && to > -0.5D) return new double[]{x, z};
         return new double[]{x + rx * to, z + rz * to};
     }

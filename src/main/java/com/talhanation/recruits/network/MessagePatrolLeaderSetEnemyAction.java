@@ -7,10 +7,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Objects;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
-public class MessagePatrolLeaderSetEnemyAction implements Message<MessagePatrolLeaderSetEnemyAction> {
+public class MessagePatrolLeaderSetEnemyAction implements Message<MessagePatrolLeaderSetEnemyAction>, CompanionOrder<AbstractLeaderEntity> {
 
     private UUID recruit;
     private byte action; // 0 = CHARGE, 1 = HOLD, 2 = KEEP_PATROLLING
@@ -27,12 +27,22 @@ public class MessagePatrolLeaderSetEnemyAction implements Message<MessagePatrolL
     }
 
     public void executeServerSide(NetworkEvent.Context context) {
-        ServerPlayer player = Objects.requireNonNull(context.getSender());
-        player.getCommandSenderWorld().getEntitiesOfClass(
-                AbstractLeaderEntity.class,
-                player.getBoundingBox().inflate(100.0D),
-                leader -> leader.getUUID().equals(this.recruit) && NetworkSecurity.canControl(player, leader)
-        ).forEach(leader -> leader.setEnemyAction(this.action));
+        CompanionOrders.handle(context.getSender(), this);
+    }
+
+    @Override
+    public UUID getCompanion() {
+        return this.recruit;
+    }
+
+    @Override
+    public Class<AbstractLeaderEntity> getCompanionType() {
+        return AbstractLeaderEntity.class;
+    }
+
+    @Override
+    public void applyTo(AbstractLeaderEntity leader, @Nullable ServerPlayer sender) {
+        leader.setEnemyAction(this.action);
     }
 
     public MessagePatrolLeaderSetEnemyAction fromBytes(FriendlyByteBuf buf) {

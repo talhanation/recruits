@@ -9,6 +9,9 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 
 public class HorseRiddenByRecruitGoal extends Goal {
 
+    /** Vanilla base speed of a horse. A camel has only 0.09, ridden by a recruit it is as fast as a horse. */
+    private static final double HORSE_SPEED = 0.225D;
+
     public final AbstractHorse horse;
     public boolean speedApplied;
     public boolean leaderFastSpeed;
@@ -35,6 +38,8 @@ public class HorseRiddenByRecruitGoal extends Goal {
             speed = this.horse.getAttribute(Attributes.MOVEMENT_SPEED).getValue();
             this.horse.getPersistentData().putDouble("oldSpeed", speed);
         }
+        if(this.horse instanceof Camel) speed = HORSE_SPEED; // oldSpeed keeps the real value and is restored in stop()
+
         if(this.horse.getControllingPassenger() instanceof AbstractLeaderEntity leader){
             leaderFastSpeed = leader.getFastPatrolling();
             double newSpeed = leaderFastSpeed ? speed : speed * 0.7D;

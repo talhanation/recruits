@@ -44,8 +44,8 @@ import java.util.UUID;
  * W/A/S/D and the sail key through {@link SmallShipsBridge}, never a yaw, a
  * speed or a sail state written directly.
  *
- * <b>One state machine</b> ({@link Mode}), decided every DECIDE_INTERVAL ticks
- * in {@link #decide}:
+ * <b>What he does</b> is one state machine ({@link Mode}), decided every
+ * DECIDE_INTERVAL ticks in {@link #decide}:
  * <pre>
  * own ship going down               -> report, hands off
  * HARBOUR running                   -> stays until the routine is done
@@ -55,26 +55,36 @@ import java.util.UUID;
  * </pre>
  * The guns fire at whatever comes into their arc in every mode but HARBOUR.
  *
- * <b>Every tick</b> ({@link #tick}): at the helm the contacts and the guns
- * ({@link #think}), then the helm ({@link #steer}): goal of the mode ->
- * way (straight or {@link ShipPathfinder}) -> lookout -> keys. The only thing
- * that takes the helm out of this is backing up: when she is stuck, when the
- * bow jams in a turn, or when a turn on the spot needs a block before the bow.
+ * <b>How she gets there</b> is one pipeline, every tick in {@link #steer}:
+ * <pre>
+ * goalFor(mode)   where the mode wants her: a spot to sail to, or a course to hold (circling a ship)
+ * updateWay       the way to a spot: straight over wide water, else corners from {@link ShipPathfinder}
+ * helm            course and speed -> rudder and canvas; turns on the spot first if the course lies abeam or astern
+ * </pre>
+ * Three things watch over that, each with one answer:
+ * <pre>
+ * lookout    land before the bow     -> slower the closer it is, down to a stop
+ *            a hull before the bow   -> stop, and a way round it
+ *            land or a hull close by -> no faster than a touch costs nothing at
+ * traffic    a ship under way coming too close -> a few seconds on a course to starboard of hers
+ * watchdog   pressing on without moving or turning -> off astern (or ahead), then a new way
+ * </pre>
+ * Whatever holds her up for long ends in the watchdog's answer too, and a
+ * goal she fails at again and again counts as out of reach: she lies where
+ * she is, a patrol goes on to its next waypoint. So she cannot hang for good.
  */
 public final class CaptainShipController {
 
     /** What he does. See the class comment for when. */
     private enum Mode { ORDERS, FIGHT, HOMEWARD, FLEE, HARBOUR }
 
-    /** Where he lies in a FIGHT: a quarter point around the target, the hold position, or with the one he follows. */
-    private enum Station { QUARTER, HOLD, FOLLOW }
+    /** Where he lies in a FIGHT: free to manoeuvre round the target, at the hold position, or with the one he follows. */
+    private enum Station { MANOEUVRE, HOLD, FOLLOW }
 
     /** The harbour routine: way off, ashore for the upkeep, aboard again, repair and balls into the hold. */
     private enum Step { MOOR, ASHORE, BOARD, REPAIR }
 
     private enum Reason { HULL, HEALTH, FIRED_UPON, NO_MEANS }
-
-    private enum Trouble { STUCK, JAMMED }
 
     public enum Kind { SHIP, SIEGE_WEAPON, CAVALRY, INFANTRY }
 
@@ -104,8 +114,21 @@ public final class CaptainShipController {
         }
     }
 
-    /** Where the mode wants her: keep station there (or sail through), lie on heading (NaN = any), rudder still while calm. */
-    private record Goal(double x, double z, float heading, boolean stop, float speed, float deadZone, boolean calm) {}
+    /**
+     * Where the mode wants her. A spot: sail to (x, z) and keep station
+     * within deadZone (stop) or sail through it, there lie on heading (NaN =
+     * any); speed is the spot's own way (a ship she follows). A course: hold
+     * heading at speed, no spot. calm: rudder still, the guns are fuzing.
+     */
+    private record Goal(double x, double z, float heading, boolean stop, float speed, float deadZone, boolean calm, boolean course) {
+        Goal(double x, double z, float heading, boolean stop, float speed, float deadZone, boolean calm) {
+            this(x, z, heading, stop, speed, deadZone, calm, false);
+        }
+
+        static Goal course(float heading, float speed, boolean calm) {
+            return new Goal(Double.NaN, Double.NaN, heading, false, speed, 0.0F, calm, true);
+        }
+    }
 
     /** One look at the ship. Speed in blocks/tick, turn rate in degrees/tick (+ = starboard). */
     private record State(double x, double z, float yaw, float speed, float rotSpeed, int sailState) {}
@@ -113,6 +136,10 @@ public final class CaptainShipController {
     /** One tick's keys, what a player's client would send. sail: press the sail key this tick. */
     private static final class Keys {
         boolean forward, backward, left, right, sail;
+
+        void release() {
+            this.forward = this.backward = this.left = this.right = this.sail = false;
+        }
     }
 
     /* ============================== constants =============================== */
@@ -125,9 +152,16 @@ public final class CaptainShipController {
     private static final int CALM = 200;
     private static final double LAND_TROOPS_RANGE = 60.0D;
     private static final int LEASH_IGNORE = 1200;
-    private static final double IN_HARBOUR = 32.0D, RANGE_SHARE = 0.8D, CHANGE_SHARE = 0.5D;
-    /** degrees off the target's bow of the quarter points */
-    private static final float[] QUARTERS = {-45.0F, 45.0F, -135.0F, 135.0F};
+    private static final double IN_HARBOUR = 32.0D, RANGE_SHARE = 0.8D;
+
+    // ---- manoeuvring in a fight, see manoeuvre ----
+    /** shares of the range: she circles within the first, and makes for the target again beyond the second */
+    private static final double CIRCLE_WITHIN = 1.3D, CIRCLE_LOST = 1.6D;
+    /** share of her speed she circles at; ticks she lies to once there is no water to circle in */
+    private static final float CIRCLE_SPEED = 0.5F;
+    private static final int LIE_TO = 200;
+    /** shares of the range she tries for a spot to lie to at, in this order */
+    private static final double[] LIE_TO_SHARES = {0.9D, 0.7D, 0.5D};
 
     // ---- contacts and reports ----
     private static final int SEARCH_INTERVAL = 40, UNDER_FIRE = 100, CONTACT_MEMORY = 1200, UNIT_REPORT_GAP = 600;
@@ -136,45 +170,54 @@ public final class CaptainShipController {
     // ---- harbour ----
     private static final int MOOR_TIMEOUT = 200, ASHORE_TIMEOUT = 1200, BOARD_TIMEOUT = 2400, DOCKYARD_TIMEOUT = 2400, CREW_TIMEOUT = 400;
 
-    // ---- helm and way ----
-    private static final int FACE_TIMEOUT = 200, CONDITION_INTERVAL = 20, PROFILE_INTERVAL = 200, TRAIL_INTERVAL = 40;
-    private static final int MIN_REPLAN = 20, REFRESH_PLAN = 200, SHIP_LOOK = 10, WAIT_RETRY = 40, GIVE_WAY = 100, PLANS_PER_TICK = 2;
-    private static final double GOAL_JUMP = 16.0D, SHARP_TURN = 45.0D;
-    private static final float STOPPED_TURN = 45.0F, SWING_SPEED = 0.1F, TURN_DONE = 30.0F;
-
-    // ---- lookout and backing up ----
-    private static final int LOOKOUT_INTERVAL = 5, STUCK_CHECK = 40, BACK_OFF_REPEAT = 300, REST_TICKS = 100;
-    /** blocks/tick: below 16 km/h a grounding or a touch costs no hull */
-    private static final float SAFE_SPEED = 0.2F, JAMMED_TURN = 3.0F;
-    private static final double STUCK_PROGRESS = 0.5D, MIN_MOVE = 1.5D, SAFETY = 1.0D, BOW_ROOM = 1.0D;
-
-    // ---- traffic: other ships ----
-    /** blocks around her other ships are watched for an approach */
-    private static final double TRAFFIC_RANGE = 48.0D;
-    /** ticks between two looks; how long a slow-down holds after the danger is gone */
-    private static final int TRAFFIC_LOOK = 10, TRAFFIC_HOLD = 40;
-    /** blocks: a hull this close before the bow or behind the stern counts as touching */
-    private static final double TOUCH = 0.75D;
-    /** ticks she looks ahead for a ship coming too close; ticks a dodge holds at least, at most (until the other is past) */
-    private static final int DODGE_LOOK = 60, DODGE_TICKS = 50, DODGE_MAX = 200;
-    /** degrees she puts her course over to dodge */
-    private static final float DODGE_ANGLE = 30.0F;
-    /** degrees: a patrol waypoint where the route bends less than this is sailed through */
-    private static final float PASS_ANGLE = 90.0F;
-    /** ticks she waits for ships that close her way before she backs off and plans anew, whoever they are */
-    private static final int BLOCKED_WAIT = 200;
-
     // ---- trail home ----
     private static final double TRAIL_STEP = 24.0D, TRAIL_LOOP = 16.0D, TRAIL_JUMP = 64.0D;
-    private static final int TRAIL_MAX = 128;
+    private static final int TRAIL_MAX = 128, TRAIL_INTERVAL = 40;
 
-    // ---- canvas, see helm ----
-    private static final float HEADING_DEADBAND = 1.5F, ROT_SETTLED = 0.1F, TURN_FIRST = 90.0F, TURN_FIRST_HYSTERESIS = 15.0F, PULL_ANGLE = 35.0F;
-    private static final int SAIL_KEY_LOCK = 4, SAIL_REST = 100, SAIL_INTENT = 40, SAIL_REVERSE_HOLD = 60;
+    // ---- the way ----
+    private static final int FACE_TIMEOUT = 200, CONDITION_INTERVAL = 20, PROFILE_INTERVAL = 200;
+    /** ticks between two plans at least; until a way that did not reach is planned again; until no way is tried again (ships in it: sooner) */
+    private static final int MIN_REPLAN = 40, REFRESH_PLAN = 200, WAIT_RETRY = 40, PLANS_PER_TICK = 2;
+    private static final double GOAL_JUMP = 16.0D, SHARP_TURN = 45.0D;
+    /** blocks a way without the ships about has to get her further than the one round them, for them to be what closes it */
+    private static final double SHIPS_TO_BLAME = 8.0D;
+    /** degrees: a patrol waypoint where the route bends less than this is sailed through */
+    private static final float PASS_ANGLE = 90.0F;
+
+    // ---- the helm ----
+    /** degrees off her course: the rudder starts beyond the first and rests within the second */
+    private static final float RUDDER_ON = 4.0F, RUDDER_OFF = 1.5F, ROT_SETTLED = 0.1F;
+    /** degrees off her course from which she turns on the spot first - under way, from rest - and until which */
+    private static final float TURN_FIRST = 90.0F, TURN_FIRST_AT_REST = 45.0F, TURN_DONE = 20.0F;
+    /** degrees off her course up to which she rows or creeps ahead */
+    private static final float PULL_ANGLE = 35.0F;
+    private static final float AT_REST = 0.1F, STILL = 0.03F;
+    /** blocks/tick more way on than wanted from which S brakes */
+    private static final float BRAKE_MARGIN = 0.05F;
+    /** ticks furled canvas stays furled; ticks between two presses of the sail key */
+    private static final int SAIL_HOLD = 60, SAIL_KEY_LOCK = 4;
+
+    // ---- lookout, traffic and getting clear ----
+    private static final int LOOKOUT_INTERVAL = 5, SHIP_LOOK = 10, SHIPS_NEAR_INTERVAL = 20, STUCK_CHECK = 40;
+    /** blocks/tick: below 16 km/h a grounding or a touch costs no hull */
+    private static final float SAFE_SPEED = 0.2F;
+    /** blocks moved and degrees turned in STUCK_CHECK ticks of pressing on below which she is stuck */
+    private static final double STUCK_PROGRESS = 0.5D;
+    private static final float STUCK_TURN = 3.0F;
+    /** ticks held up (land or a hull before the bow, ships closing the way) until a new way, until she backs off - longer every time, HELD_MAX times at most */
+    private static final int HELD_REPLAN = 40, HELD_CLEAR = 160, HELD_MAX = 3;
+    /** backing off: blocks to spare, the least worth it, room a turn on the spot needs before the bow */
+    private static final double SAFETY = 1.0D, MIN_MOVE = 1.5D, BOW_ROOM = 1.0D;
+    /** three times within BACK_OFF_REPEAT: she rests REST_TICKS; GIVE_UP rests for one goal: it is out of reach */
+    private static final int BACK_OFF_REPEAT = 300, REST_TICKS = 100, GIVE_UP = 2;
+    /** blocks around her that ships under way are watched; ticks looked ahead; ticks and degrees of a dodge */
+    private static final double TRAFFIC_RANGE = 48.0D;
+    private static final int DODGE_LOOK = 60, DODGE_TICKS = 50;
+    private static final float DODGE_ANGLE = 30.0F;
 
     // ---- guns ----
     private static final int GUN_CHECK = 4, CROWDED_DECK = 4;
-    private static final float AIM_STEP = 0.5F, STILL = 0.03F;
+    private static final float AIM_STEP = 0.5F;
 
     private static long budgetTick = Long.MIN_VALUE;
     private static int budgetUsed;
@@ -190,7 +233,7 @@ public final class CaptainShipController {
     // ---- mode ----
     private Mode mode = Mode.ORDERS;
     private int modeSince;
-    private Station station = Station.QUARTER;
+    private Station station = Station.MANOEUVRE;
     @Nullable private Reason retreat;
     private boolean fleeRoute, homeThenHarbour;
     private int savedFollowState = -1;
@@ -209,9 +252,9 @@ public final class CaptainShipController {
     // ---- fight ----
     @Nullable private Contact target;
     @Nullable private Mark mark;
-    private int targetSeen, targetHullOf = -1, quarter = -1, quarterTarget = -1, fightSideOf = Integer.MIN_VALUE;
+    private int targetSeen, targetHullOf = -1, fightSideOf = Integer.MIN_VALUE, lieToUntil = Integer.MIN_VALUE / 2;
     private final float[] targetHull = new float[2];
-    private boolean fighting, starboardSide, shieldsUp, bowmenAboard;
+    private boolean fighting, starboardSide, shieldsUp, bowmenAboard, circling;
     @Nullable private Vec3 fightStart, holdPoint;
     private final Map<Integer, Integer> ignored = new HashMap<>();
     private int lastContact = Integer.MIN_VALUE / 2, lastTarget = Integer.MIN_VALUE / 2, lastHit = Integer.MIN_VALUE / 2;
@@ -228,53 +271,49 @@ public final class CaptainShipController {
     private ShipProfile.Ammo ammo = ShipProfile.Ammo.BALL;
     private boolean ammoSet;
 
-    // ---- course ----
-    private float faceYaw, goalSpeed, wantedYaw = Float.NaN;
-    private int faceTicks, homeIndex = -1, turnDir;
-    private boolean bowChecked;
+    // ---- orders and the trail home ----
+    private float faceYaw, goalSpeed;
+    private int faceTicks, homeIndex = -1;
     @Nullable private BlockPos lastGoal;
     private final List<BlockPos> trail = new ArrayList<>();
     @Nullable private BlockPos trailLastSeen;
 
-    // ---- way: path == null and !noWay is straight ----
+    // ---- the way: path == null and !noWay is straight ----
     @Nullable private List<double[]> path;
-    private int pathIndex, plannedAt = -MIN_REPLAN, blockedSince;
-    private boolean pathReachesGoal, noWay, replan, blockedByPlan, shipAhead;
-    private double pathFromX, pathFromZ, noWayX, noWayZ, plannedX = Double.NaN, plannedZ = Double.NaN;
-    @Nullable private Entity blocker;
-    /** the last goal turned out to be out of reach for her hull, ships or not: she lies as close as she gets */
-    private boolean goalUnreachable;
+    private int pathIndex, plannedAt = -MIN_REPLAN;
+    private boolean pathReachesGoal, noWay, replan;
+    private double pathFromX, pathFromZ, plannedX = Double.NaN, plannedZ = Double.NaN;
+    /** no way because ships lie in it - else the goal itself is out of reach for her hull and she lies as close as she gets */
+    private boolean blockedByShips, goalUnreachable;
     private double unreachableX, unreachableZ;
     /** waypoints the owner was told about, see reportUnreachable */
     private final java.util.Set<Long> reportedUnreachable = new java.util.HashSet<>();
 
-    // ---- lookout and backing up ----
-    private float lookoutCap = Float.MAX_VALUE, stuckYaw;
-    private boolean lookStop, lookReverse, pressing, rudderHeld;
-    @Nullable private Trouble trouble;
-    private double stuckX = Double.NaN, stuckZ;
-    private int rudderTicks, pressTicks, backTicks, backedAt = Integer.MIN_VALUE / 2, backStreak, restUntil = Integer.MIN_VALUE / 2;
-    private double backFromX, backFromZ, backAlongX, backAlongZ, backDistance;
-    /** -1 backing off astern, +1 moving off ahead (a ship touches her stern) */
-    private int backSign = -1;
-
-    // ---- traffic ----
-    /** blocks/tick she may make for the ships about, MAX_VALUE: no limit */
-    private float trafficCap = Float.MAX_VALUE;
-    @Nullable private Entity trafficShip;
-    private int trafficSeen = Integer.MIN_VALUE / 2;
-    /** the ship she dodges by holding evadeYaw, or null */
-    @Nullable private Entity evadeFrom;
-    private float evadeYaw, pathYaw = Float.NaN;
-    private int evadeSince;
-    /** she is sailing for somewhere this tick, not keeping station - only then does she give way or count as jammed */
-    private boolean wantsWay;
-
-    // ---- helm ----
+    // ---- the helm ----
     private final Keys keys = new Keys();
-    private int sailKeyLock, lastSail = -1, sailAge = SAIL_REST, lastSailDir, sailWish;
-    private boolean wishing, turningFirst, arrived, braking;
-    private double helmGoalX = Double.NaN, helmGoalZ = Double.NaN;
+    /** the course she steers and the course of her way (a dodge leaves that one alone) */
+    private float wantedYaw = Float.NaN, routeYaw = Float.NaN;
+    private boolean arrived, braking, turning, rudder;
+    /** the way round a turn on the spot once the short one jammed: +1 starboard, -1 port, 0 the short one */
+    private int turnDir, turnedAt = Integer.MIN_VALUE / 2;
+    private int sailKeyLock, sailHold;
+
+    // ---- lookout, traffic and getting clear ----
+    /** blocks/tick the land before the bow allows, MAX_VALUE: none in sight */
+    private float landCap = Float.MAX_VALUE;
+    @Nullable private Entity shipAhead;
+    private boolean shipsNear;
+    /** held: ticks held up now, times she got clear of it since she last sailed freely - each makes her wait longer */
+    private int shipsLooked = Integer.MIN_VALUE / 2, heldTicks, heldTimes, dodgeUntil, brakeUntil, closeUntil;
+    private float dodgeYaw;
+    /** she pressed on this tick - made way or turned; counted for the watchdog */
+    private boolean effort;
+    private int effortTicks;
+    private double watchX = Double.NaN, watchZ;
+    private float watchYaw;
+    /** -1 backing off astern, +1 moving off ahead */
+    private int backSign = -1, backTicks, backedAt = Integer.MIN_VALUE / 2, backStreak, restUntil = Integer.MIN_VALUE / 2, givenUp;
+    private double backFromX, backFromZ, backAlongX, backAlongZ, backDistance;
 
     public CaptainShipController(CaptainEntity captain) {
         this.captain = captain;
@@ -298,7 +337,6 @@ public final class CaptainShipController {
         this.faceYaw = yaw;
         this.faceTicks = FACE_TIMEOUT;
         this.turnDir = 0;
-        this.bowChecked = false;
     }
 
     /** Sails home along the trail and keeps station in the harbour. @return false without a home harbour */
@@ -331,14 +369,9 @@ public final class CaptainShipController {
         return this.mode == Mode.HOMEWARD;
     }
 
-    /** @return true while she waits for this ship to clear her way */
-    public boolean isWaitingFor(@Nullable Entity ship) {
-        return ship != null && this.blocker == ship;
-    }
-
-    /** @return true while she keeps station where she was sent - for "wander freely": time for the next point */
+    /** @return true while she lies where she was sent, or as close to it as she gets - for "wander freely": time for the next point */
     public boolean hasArrived() {
-        return this.arrived;
+        return this.arrived || (this.noWay && this.goalUnreachable);
     }
 
     public boolean isRetreating() {
@@ -519,7 +552,7 @@ public final class CaptainShipController {
         }
         // no way on, or a monster or swimmer not worth sailing for: broadside on from where she is
         if (!this.profile.canMakeWay() || this.target.minor()) return Station.HOLD;
-        return Station.QUARTER;
+        return Station.MANOEUVRE;
     }
 
     private void enter(Mode next) {
@@ -527,7 +560,7 @@ public final class CaptainShipController {
         this.mode = next;
         this.modeSince = this.captain.tickCount;
         this.holdPoint = null;
-        this.quarter = -1;
+        this.circling = false;
         this.debug("mode " + next + (next == Mode.FIGHT ? " " + this.station : ""));
     }
 
@@ -635,7 +668,7 @@ public final class CaptainShipController {
             }
         }
         // the leash: chased too far from where it began - let it go
-        if (this.station == Station.QUARTER && this.target != null && this.fightStart != null
+        if (this.station == Station.MANOEUVRE && this.target != null && this.fightStart != null
                 && this.ship.position().distanceTo(this.fightStart) > RecruitsServerConfig.CaptainChaseLeash.get()) {
             this.ignored.put(this.target.entity().getId(), this.captain.tickCount + LEASH_IGNORE);
             this.debug("leash reached - letting " + this.target.entity().getName().getString() + " go");
@@ -1414,7 +1447,7 @@ public final class CaptainShipController {
         return new Mark(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0.0F, 0.0F, 0.0F, null);
     }
 
-    /* ============================== stations ================================== */
+    /* =============================== goals ==================================== */
 
     /** @return where the mode wants her this tick, null: hold still */
     @Nullable
@@ -1431,11 +1464,7 @@ public final class CaptainShipController {
             case FIGHT -> {
                 if (this.mark == null) yield this.ordersGoal(Float.NaN, false);
                 yield switch (this.station) {
-                    case QUARTER -> {
-                        if (this.target == null) yield this.ordersGoal(Float.NaN, false);
-                        double[] point = this.quarterPoint(own);
-                        yield new Goal(point[0], point[1], (float) point[2], true, 0.0F, this.stationDeadZone(), calm);
-                    }
+                    case MANOEUVRE -> this.target == null ? this.ordersGoal(Float.NaN, false) : this.manoeuvre(own, calm);
                     case HOLD -> {
                         if (this.holdPoint == null) this.holdPoint = this.stationPoint(own);
                         float heading = broadsideHeading(this.holdPoint.x, this.holdPoint.z, this.mark.x(), this.mark.z(), this.fightSide(own));
@@ -1447,6 +1476,53 @@ public final class CaptainShipController {
             }
             default -> this.ordersGoal(Float.NaN, false);
         };
+    }
+
+    /**
+     * The fight with room to manoeuvre - three rules, all about the range R
+     * (see range) and always the same side of her own ship towards the target:
+     * <pre>
+     * a ship, far off (CIRCLE_WITHIN x R)   make for the nearest spot at R
+     * a ship, and water to do it in        circle it: the target abeam, the bow a little in while it is
+     *                                      too far and out while it is too close - so she keeps her
+     *                                      distance, keeps moving and keeps her broadside on it
+     * troops ashore, or no room to circle  lie to at the spot at R on her side of it, broadside on
+     * </pre>
+     */
+    private Goal manoeuvre(State own, boolean calm) {
+        Mark mark = this.mark;
+        int now = this.captain.tickCount;
+        double dx = own.x() - mark.x(), dz = own.z() - mark.z(), distance = Math.max(1.0E-3D, Math.hypot(dx, dz)), range = this.range();
+        boolean starboard = this.fightSide(own);
+        if (this.target.isShip() && this.profile.canMakeWay() && now >= this.lieToUntil) {
+            if (distance > range * (this.circling ? CIRCLE_LOST : CIRCLE_WITHIN)) {
+                this.circling = false;
+                double x = mark.x() + dx / distance * range, z = mark.z() + dz / distance * range;
+                // no water for her there: towards the target itself, the way ends as close as she gets
+                if (!this.isOpenWater(x, z)) return new Goal(mark.x(), mark.z(), Float.NaN, false, 0.0F, this.stationDeadZone(), false);
+                return new Goal(x, z, Float.NaN, false, 0.0F, this.stationDeadZone(), false);
+            }
+            this.circling = true;
+            // degrees the bow points in towards the target: 0 at R, more the further off, away from it when too close
+            float in = (float) Mth.clamp((distance - range) / range * 90.0D, -60.0D, 45.0D);
+            float abeam = broadsideHeading(own.x(), own.z(), mark.x(), mark.z(), starboard);
+            float heading = wrap(starboard ? abeam + in : abeam - in), speed = this.profile.maxSpeedNow() * CIRCLE_SPEED;
+            double room = this.profile.stoppingDistance(speed) + 1.5D * this.profile.length;
+            if (ShipPathfinder.isWaterAhead(this.ship, this.profile, forward(heading), room)) return Goal.course(heading, speed, calm);
+            this.lieToUntil = now + LIE_TO;
+            this.debug("no room to circle - lying to");
+        }
+        this.circling = false;
+        // lie to: the spot at R on her side of the target - nearer where there is no water for her - else where she is
+        double x = own.x(), z = own.z();
+        for (double share : LIE_TO_SHARES) {
+            double sx = mark.x() + dx / distance * range * share, sz = mark.z() + dz / distance * range * share;
+            if (!this.isOpenWater(sx, sz)) continue;
+            x = sx;
+            z = sz;
+            break;
+        }
+        return new Goal(x, z, broadsideHeading(x, z, mark.x(), mark.z(), starboard), true, 0.0F, this.stationDeadZone(), calm);
     }
 
     /** @return the sail position the commands set (move, hold, follow, protect, patrol, wander), or null */
@@ -1550,60 +1626,6 @@ public final class CaptainShipController {
         return false;
     }
 
-    /**
-     * Against a ship with guns: one of four quarter points at R, 45 degrees off
-     * its bow or stern - outside both its broadsides. They turn with the
-     * target; she keeps the one she has unless another is clearly nearer.
-     * Against anything else: abeam of it at R. Always the same side of her own ship.
-     *
-     * @return {x, z, heading}
-     */
-    private double[] quarterPoint(State own) {
-        Mark mark = this.mark;
-        double range = this.range(), x = own.x(), z = own.z();
-        if (this.target.isShip() && this.target.guns() > 0) {
-            if (this.target.entity().getId() != this.quarterTarget) {
-                this.quarter = -1;
-                this.quarterTarget = this.target.entity().getId();
-            }
-            double current = Double.MAX_VALUE;
-            if (this.quarter >= 0) {
-                Vec3 p = quarterAt(mark, this.quarter, range);
-                if (this.isOpenWater(p.x, p.z)) current = Math.hypot(p.x - own.x(), p.z - own.z());
-            }
-            int best = current < Double.MAX_VALUE ? this.quarter : -1;
-            double bestDistance = current < Double.MAX_VALUE ? current - range * CHANGE_SHARE : Double.MAX_VALUE;
-            for (int i = 0; i < QUARTERS.length; i++) {
-                if (i == this.quarter) continue;
-                Vec3 p = quarterAt(mark, i, range);
-                double distance = Math.hypot(p.x - own.x(), p.z - own.z());
-                if (distance < bestDistance && this.isOpenWater(p.x, p.z)) {
-                    best = i;
-                    bestDistance = distance;
-                }
-            }
-            this.quarter = best;
-            if (best >= 0) { // else nowhere deep enough around it: fire from where she is
-                Vec3 p = quarterAt(mark, best, range);
-                x = p.x;
-                z = p.z;
-            }
-        } else {
-            double dx = own.x() - mark.x(), dz = own.z() - mark.z(), distance = Math.max(1.0E-3D, Math.hypot(dx, dz));
-            double ax = mark.x() + dx / distance * range, az = mark.z() + dz / distance * range;
-            if (this.isOpenWater(ax, az)) {
-                x = ax;
-                z = az;
-            }
-        }
-        return new double[]{x, z, broadsideHeading(x, z, mark.x(), mark.z(), this.fightSide(own))};
-    }
-
-    private static Vec3 quarterAt(Mark mark, int quarter, double range) {
-        Vec3 dir = forward(mark.yaw() + QUARTERS[quarter]);
-        return new Vec3(mark.x() + dir.x * range, 0.0D, mark.z() + dir.z * range);
-    }
-
     /** @return the side of her own ship that faces the target - chosen once per target (the one that needs less turning) and kept */
     private boolean fightSide(State own) {
         int of = this.target != null ? this.target.entity().getId() : -2;
@@ -1647,6 +1669,7 @@ public final class CaptainShipController {
 
     /* =============================== the helm ================================= */
 
+    /** Every tick: who has the helm, then goal -> way -> keys. See the class comment. */
     private void steer() {
         Entity vehicle = this.captain.getVehicle();
         if (vehicle == null || !SmallShipsBridge.isShip(vehicle)) {
@@ -1675,29 +1698,35 @@ public final class CaptainShipController {
         if (this.mode != Mode.HOMEWARD && now % TRAIL_INTERVAL == Math.floorMod(this.captain.getId(), TRAIL_INTERVAL)) this.recordTrail(vehicle);
 
         State state = stateOf(vehicle);
+        Keys keys = this.keys;
+        keys.release();
+        if (this.sailKeyLock > 0) this.sailKeyLock--;
+        this.effort = false;
         this.lookout(vehicle, state);
-        this.watchTraffic(vehicle, state);
-        this.handleTrouble(vehicle, state);
-        Keys keys;
-        this.wantsWay = false;
+        this.watchdog(vehicle, state);
+
+        Goal goal = null;
         if (this.backTicks > 0) {
-            keys = this.backUpTick(vehicle, state);
-        } else if (this.faceTicks > 0) {
-            this.faceTicks--;
-            this.wantedYaw = this.faceYaw;
-            keys = this.turnOnSpot(vehicle, state, this.faceYaw);
-            if (Math.abs(wrap(this.faceYaw - state.yaw())) < HEADING_DEADBAND * 2.0F && Math.abs(state.rotSpeed()) < ROT_SETTLED) this.faceTicks = 0;
+            this.backOff(vehicle, state);
         } else if (now < this.restUntil) {
-            keys = this.helmStop(state);
-        } else if (this.evadeFrom != null) {
-            keys = this.helmEvade(state);
+            this.stop(state);
+        } else if (this.faceTicks > 0) { // the face command
+            this.faceTicks--;
+            this.turnTo(state, this.faceYaw);
+            if (Math.abs(wrap(this.faceYaw - state.yaw())) < RUDDER_OFF * 2.0F && Math.abs(state.rotSpeed()) < ROT_SETTLED) this.faceTicks = 0;
+        } else if ((goal = this.goalFor(state)) == null) {
+            this.clearWay();
+            this.wantedYaw = Float.NaN;
+            this.stop(state);
+        } else if (goal.course()) {
+            this.arrived = this.braking = false;
+            this.clearWay();
+            this.helm(vehicle, state, goal.heading(), goal.speed(), false);
         } else {
-            Goal goal = this.goalFor(state);
-            keys = goal == null ? this.halt(state) : this.sail(vehicle, state, goal);
+            this.sailTo(vehicle, state, goal);
         }
-        if (this.backTicks <= 0) this.keepClear(state, keys);
-        this.pressing = keys.forward || state.sailState() > 0;
-        this.rudderHeld = keys.left || keys.right;
+        if (goal != null && goal.calm()) keys.left = keys.right = false; // the guns are fuzing
+        if (this.effort) this.effortTicks++;
         // updateControls only writes the flags that changed, so this is cheap every tick
         SmallShipsBridge.pressKeys(vehicle, keys.forward, keys.backward, keys.left, keys.right);
         if (keys.sail) SmallShipsBridge.pressSailKey(vehicle);
@@ -1714,27 +1743,21 @@ public final class CaptainShipController {
         this.profile = null;
         this.profileAge = 0;
         this.faceTicks = 0;
-        this.backTicks = 0;
-        this.turnDir = 0;
         this.lastGoal = null;
         this.goalSpeed = 0.0F;
-        this.pressing = this.rudderHeld = this.shipAhead = this.blockedByPlan = false;
-        this.wantedYaw = Float.NaN;
-        this.blocker = null;
-        this.lookoutCap = Float.MAX_VALUE;
-        this.lookStop = this.lookReverse = false;
-        this.trafficCap = Float.MAX_VALUE;
-        this.trafficShip = null;
-        this.evadeFrom = null;
-        this.pathYaw = Float.NaN;
-        this.resetStuck();
         this.clearWay();
-        this.sailKeyLock = 0;
-        this.lastSail = -1;
-        this.sailAge = SAIL_REST;
-        this.lastSailDir = this.sailWish = 0;
-        this.wishing = this.turningFirst = this.arrived = this.braking = false;
-        this.helmGoalX = this.helmGoalZ = Double.NaN;
+        this.goalUnreachable = false;
+        this.wantedYaw = this.routeYaw = Float.NaN;
+        this.arrived = this.braking = this.turning = this.rudder = false;
+        this.turnDir = this.sailKeyLock = this.sailHold = 0;
+        this.landCap = Float.MAX_VALUE;
+        this.shipAhead = null;
+        this.shipsNear = false;
+        this.shipsLooked = Integer.MIN_VALUE / 2;
+        this.heldTicks = this.heldTimes = this.dodgeUntil = this.brakeUntil = this.closeUntil = 0;
+        this.watchX = Double.NaN;
+        this.effortTicks = this.backTicks = this.backStreak = this.givenUp = 0;
+        this.restUntil = Integer.MIN_VALUE / 2;
     }
 
     /** Not at the helm any more: the fight is off, a retreat and the harbour routine go on. */
@@ -1764,105 +1787,273 @@ public final class CaptainShipController {
         this.lastGoal = goal;
     }
 
-    /** Toward the goal - and there, turned to its heading if it has one. */
-    private Keys sail(Entity vehicle, State state, Goal goal) {
-        Keys keys;
-        double slack = goal.deadZone() + this.profile.length * 0.5F;
-        if (goal.stop() && !Float.isNaN(goal.heading()) && this.arrived
-                && sqr(goal.x() - state.x()) + sqr(goal.z() - state.z()) <= slack * slack) {
-            this.wantedYaw = goal.heading();
-            keys = this.turnOnSpot(vehicle, state, goal.heading());
-        } else {
-            keys = this.navigate(vehicle, state, goal);
+    /**
+     * To a spot: there already - lie still, on the goal's heading if it has
+     * one. Else along the way, for its next corner, as fast as the way
+     * allows: full, half before a sharp corner, and down the coasting curve
+     * to a stop (she stops by coasting, so the canvas comes in exactly at her
+     * stopping distance).
+     */
+    private void sailTo(Entity vehicle, State state, Goal goal) {
+        int now = this.captain.tickCount;
+        double distance = Math.hypot(goal.x() - state.x(), goal.z() - state.z());
+        boolean follows = goal.speed() >= 0.02F; // the spot is under way itself: astern of the ship she follows
+        // once there she stays until the spot moves or she drifts well out of it
+        float zone = goal.deadZone() + (this.arrived ? Math.max(2.0F, this.profile.length * 0.5F) : 0.0F);
+        if (goal.stop() && !follows && distance <= zone) {
+            if (Math.abs(state.speed()) < 0.05F) {
+                this.arrived = true;
+                this.givenUp = 0;
+            }
+            this.clearWay();
+            this.heldTicks = 0;
+            this.braking = false;
+            if (Float.isNaN(goal.heading())) {
+                this.wantedYaw = Float.NaN;
+                this.stop(state);
+            } else {
+                this.turnTo(state, goal.heading());
+            }
+            return;
         }
-        if (goal.calm()) keys.left = keys.right = false; // the guns are fuzing
-        return keys;
+        this.arrived = false;
+
+        this.updateWay(vehicle, state, goal);
+        if (this.noWay) { // she lies still; ships that close the way count as holding her up
+            this.wantedYaw = Float.NaN;
+            this.stop(state);
+            if (this.blockedByShips) this.held(vehicle, state);
+            else this.heldTicks = 0;
+            return;
+        }
+        // the spot to steer for: the next corner of the way, the goal itself on the last leg
+        double aimX = goal.x(), aimZ = goal.z();
+        boolean lastLeg = true;
+        if (this.path != null) {
+            this.advance(state);
+            if (this.pathIndex < this.path.size()) {
+                double[] corner = this.path.get(this.pathIndex);
+                lastLeg = this.pathReachesGoal && this.pathIndex == this.path.size() - 1;
+                // a way that ends short of the goal (a stage of a long one): the next stretch is planned before she is there
+                if (!this.pathReachesGoal && this.pathIndex == this.path.size() - 1 && state.speed() > STILL && Math.hypot(corner[0] - state.x(), corner[1] - state.z())
+                        < this.profile.stoppingDistance(state.speed()) + 2.0D * this.profile.length) this.replan = true;
+                if (!lastLeg || !goal.stop()) { // sailing through: on along her lane
+                    aimX = corner[0];
+                    aimZ = corner[1];
+                }
+            } else if (!this.pathReachesGoal) { // past the end of such a way and no new one yet: wait for it
+                this.replan = true;
+                this.stop(state);
+                return;
+            }
+        }
+        float course = yawTo(aimX - state.x(), aimZ - state.z());
+        this.routeYaw = course;
+        this.watchShips(vehicle, state, aimX, aimZ);
+
+        float wanted = this.profile.maxSpeedNow();
+        boolean coast = false;
+        if (lastLeg && goal.stop()) {
+            float remaining = (float) distance - goal.deadZone() * (follows ? 1.0F : 0.5F);
+            float limit = goal.speed() + this.profile.coastSpeedFor(Math.max(0.0F, remaining));
+            if (follows) {
+                // keeping up with it: its speed and a little for every block she is behind - never faster than she can still stop
+                wanted = Math.min(wanted, remaining > 0.0F ? goal.speed() + 0.01F * remaining : goal.speed() * 0.8F);
+                coast = state.speed() > limit + STILL;
+            } else {
+                if (this.profile.stoppingDistance(state.speed()) + Math.abs(state.speed()) >= remaining) this.braking = true;
+                else if (remaining > this.profile.stoppingDistance(this.profile.maxSpeedNow()) * 2.0F + this.profile.length) this.braking = false;
+                coast = this.braking;
+            }
+            wanted = Math.min(wanted, limit);
+        } else {
+            this.braking = false;
+            if (!lastLeg) wanted *= this.cornerFactor(state);
+        }
+        if (this.dodgeUntil != 0) {
+            if (now < this.dodgeUntil) { // a few seconds off her course at half her way, see dodge
+                course = this.dodgeYaw;
+                wanted = Math.min(wanted, this.profile.maxSpeedNow() * 0.5F);
+            } else {
+                this.dodgeUntil = 0;
+                this.replan = true;
+            }
+        }
+        this.helm(vehicle, state, course, wanted, coast);
     }
 
-    private Keys halt(State state) {
-        this.clearWay();
-        this.wantedYaw = Float.NaN;
-        return this.helmStop(state);
+    /**
+     * Course and speed into keys. Abeam or astern of her bow: she turns on
+     * the spot first. What the lookout saw decides how fast she may go: not
+     * at all before a hull or close before land, slowly with land in reach.
+     *
+     * @param coast no canvas - she is running out to a stop
+     */
+    private void helm(Entity vehicle, State state, float course, float wanted, boolean coast) {
+        this.wantedYaw = course;
+        float error = wrap(course - state.yaw()), off = Math.abs(error);
+        if (this.turning) this.turning = off > TURN_DONE;
+        else this.turning = off > (Math.abs(state.speed()) < AT_REST ? TURN_FIRST_AT_REST : TURN_FIRST);
+        if (this.turning) {
+            this.turnTo(state, course);
+            return;
+        }
+        boolean capped = false;
+        if (this.shipAhead != null || this.captain.tickCount < this.brakeUntil || this.landCap < this.profile.manoeuvreSpeed) {
+            wanted = 0.0F;
+            if (off < 15.0F) this.held(vehicle, state); // and her course leads right into it
+        } else {
+            this.heldTicks = 0;
+            float cap = this.captain.tickCount < this.closeUntil ? Math.min(this.landCap, SAFE_SPEED) : this.landCap;
+            if (cap < wanted) {
+                capped = true;
+                coast |= state.speed() > cap + BRAKE_MARGIN; // came in fast: canvas in at once
+                wanted = cap;
+            }
+        }
+        this.steerBy(state, error);
+        this.drive(state, wanted, off <= PULL_ANGLE, coast, capped);
+        this.effort |= wanted > 0.0F;
+    }
+
+    /** Turns her on the spot to the yaw: canvas in, way off, rudder - the long way round once the short one jammed, see getClear. */
+    private void turnTo(State state, float yaw) {
+        this.wantedYaw = yaw;
+        this.turnedAt = this.captain.tickCount;
+        float error = wrap(yaw - state.yaw());
+        if (Math.abs(error) < TURN_DONE) this.turnDir = 0;
+        else if (this.turnDir > 0 && error < 0.0F) error += 360.0F;
+        else if (this.turnDir < 0 && error > 0.0F) error -= 360.0F;
+        this.furl(state);
+        if (state.sailState() == 0 && state.speed() > BRAKE_MARGIN) this.keys.backward = true;
+        this.steerBy(state, error);
+    }
+
+    /** Canvas in, way off, the swing stopped. */
+    private void stop(State state) {
+        this.furl(state);
+        if (state.sailState() == 0 && state.speed() > BRAKE_MARGIN) this.keys.backward = true;
+        this.killSwing(state);
+    }
+
+    /* ======================= keys, as a helmsman would ======================== */
+    /*
+     * Three things a ship needs that a horse does not: turning is inertial -
+     * without counter rudder a hull swings far past its heading; she stops by
+     * coasting, S only helps with the canvas furled; and canvas changes one
+     * step per cooldown - so it is furled at once to stop, and set again only
+     * after SAIL_HOLD (she creeps or rows meanwhile).
+     */
+
+    /**
+     * The rudder of a helmsman who knows his ship: none while she is nearly on
+     * her course, against the turn as soon as the bow would swing past it
+     * otherwise. D = starboard, A = port.
+     *
+     * @param error degrees still to turn, + = to starboard - may be more than 180
+     */
+    private void steerBy(State state, float error) {
+        float swing = state.rotSpeed(), off = Math.abs(error);
+        if (off < (this.rudder ? RUDDER_OFF : RUDDER_ON)) {
+            this.rudder = false;
+            this.killSwing(state);
+            return;
+        }
+        this.rudder = true;
+        if (swing != 0.0F && Math.signum(swing) == Math.signum(error) && off <= this.profile.brakeAngle(swing) + Math.abs(swing)) {
+            // she would overshoot: counter rudder - unless a single tick of it would turn the swing round
+            if (Math.abs(swing) > this.profile.rotBrake) {
+                if (swing > 0.0F) this.keys.left = true;
+                else this.keys.right = true;
+            }
+            return;
+        }
+        if (error > 0.0F) this.keys.right = true;
+        else this.keys.left = true;
+        this.effort = true; // a rudder laid that does not bring her round is being stuck too
+    }
+
+    private void killSwing(State state) {
+        float swing = state.rotSpeed();
+        if (Math.abs(swing) <= this.profile.rotBrake) return;
+        if (swing > 0.0F) this.keys.left = true;
+        else this.keys.right = true;
+    }
+
+    /**
+     * Makes the wanted speed. Under canvas where that serves: furled sails go
+     * up once SAIL_HOLD is over, set ones a step up or down with W/S (Small
+     * Ships paces the steps, ShipProfile#sailStateFor keeps them calm). Else
+     * - too slow for canvas, oars serve better, or coasting - furled: W rows
+     * or creeps while she is slower than wanted, S brakes while she is
+     * clearly faster.
+     *
+     * @param onCourse the bow points about where she wants to go - only then W
+     * @param limit    wanted is a limit for safety: rather slower than any faster
+     */
+    private void drive(State state, float wanted, boolean onCourse, boolean coast, boolean limit) {
+        int sails = state.sailState();
+        float speed = state.speed();
+        boolean canvas = !coast && !this.profile.rowFor(wanted) && wanted >= this.profile.sailSpeed(1) * (sails > 0 && !limit ? 0.8F : 1.0F);
+        if (!canvas) {
+            if (sails > 0) this.furl(state);
+            else if (speed > wanted + BRAKE_MARGIN) this.keys.backward = true;
+            else if (onCourse && speed < wanted - 0.002F) this.keys.forward = true;
+        } else if (sails == 0) {
+            if (this.captain.tickCount >= this.sailHold) this.pressSailKey();
+            else if (onCourse && speed < wanted) this.keys.forward = true;
+        } else {
+            int target = this.profile.sailStateFor(wanted, sails);
+            while (limit && target > 1 && this.profile.sailSpeed(target) > wanted + 0.01F) target--;
+            if (target > sails) this.keys.forward = true;
+            else if (target < sails) this.keys.backward = true;
+        }
+    }
+
+    private void furl(State state) {
+        if (state.sailState() > 0 && this.pressSailKey()) this.sailHold = this.captain.tickCount + SAIL_HOLD;
+    }
+
+    private boolean pressSailKey() {
+        if (this.sailKeyLock > 0) return false;
+        this.keys.sail = true;
+        this.sailKeyLock = SAIL_KEY_LOCK;
+        return true;
     }
 
     /* ================================ the way ================================= */
 
-    /** Sails to the goal: straight where the water allows it, along planned corners where not; stops for what the lookout sees. */
-    private Keys navigate(Entity vehicle, State state, Goal goal) {
-        this.updateWay(vehicle, state, goal);
-        float cap = this.lookoutCap == Float.MAX_VALUE ? 1.0F : Mth.clamp(this.lookoutCap / Math.max(0.01F, this.profile.maxSpeedNow()), 0.05F, 1.0F);
-        double aimX = goal.x(), aimZ = goal.z();
-        boolean finalLeg = true, waitAtEnd = false;
-        if (this.noWay) {
-            aimX = this.noWayX;
-            aimZ = this.noWayZ;
-            waitAtEnd = true;
-        } else if (this.path != null) {
-            this.advance(state);
-            finalLeg = false;
-            if (this.pathIndex >= this.path.size() - 1 && this.pathReachesGoal) {
-                finalLeg = true;
-                if (!goal.stop()) { // sailing through: on along her lane
-                    double[] end = this.path.get(this.path.size() - 1);
-                    aimX = end[0];
-                    aimZ = end[1];
-                }
-            } else if (this.pathIndex >= this.path.size()) {
-                double[] end = this.path.get(this.path.size() - 1); // end of a partial way: wait there for the next plan
-                aimX = end[0];
-                aimZ = end[1];
-                waitAtEnd = true;
-            } else {
-                aimX = this.path.get(this.pathIndex)[0];
-                aimZ = this.path.get(this.pathIndex)[1];
-            }
-        }
-        // other ships: planned round; one right before the bow she turns away from: slow, touching does no harm then
-        boolean moving = Math.hypot(aimX - state.x(), aimZ - state.z()) > goal.deadZone() && !this.arrived;
-        this.wantsWay = moving;
-        this.watchShips(vehicle, state, aimX, aimZ, goal, moving);
-        if (this.shipAhead) cap = Math.min(cap, Mth.clamp(SAFE_SPEED / Math.max(0.01F, this.profile.maxSpeedNow()), 0.05F, 1.0F));
-        if (this.trafficCap != Float.MAX_VALUE) cap = Math.min(cap, Mth.clamp(this.trafficCap / Math.max(0.01F, this.profile.maxSpeedNow()), 0.05F, 1.0F));
-        if (this.blocker != null) return this.waitForShip(vehicle, state);
-
-        float aimYaw = yawTo(aimX - state.x(), aimZ - state.z()), turn = Math.abs(wrap(aimYaw - state.yaw()));
-        this.wantedYaw = aimYaw;
-        this.pathYaw = aimYaw;
-        if (Math.hypot(aimX - state.x(), aimZ - state.z()) > goal.deadZone() && !this.arrived && Math.abs(state.speed()) < SWING_SPEED
-                && turn > (this.lookStop ? STOPPED_TURN : TURN_FIRST)) {
-            return this.turnOnSpot(vehicle, state, aimYaw);
-        }
-        if (this.lookStop) {
-            // no way on: turn towards where she has to go; something right at the bow: a little astern, if there is water behind
-            Keys keys = this.helmFace(state, aimYaw);
-            if (this.lookReverse && state.sailState() == 0 && room(vehicle, state.yaw(), -1, 1.5D) >= 1.0D) {
-                keys.forward = false;
-                keys.backward = true;
-            }
-            return keys;
-        }
-        if (waitAtEnd) return this.helmStation(state, aimX, aimZ, 0.0F, goal.deadZone(), cap);
-        if (finalLeg) return goal.stop() ? this.helmStation(state, aimX, aimZ, goal.speed(), goal.deadZone(), cap) : this.helmThrough(state, aimX, aimZ, cap);
-        return this.helmThrough(state, aimX, aimZ, cap * this.cornerFactor(state));
-    }
-
-    /** Plans the way anew when it is due - rate limited, the goal jumping excepted. */
+    /**
+     * Plans the way when there is a reason: the goal moved, something asked
+     * for it (replan), she is off it, or it did not reach the goal and time
+     * has passed. No way at all is tried again now and then - sooner while
+     * ships are what closes it. Rate limited, a goal that jumped excepted.
+     */
     private void updateWay(Entity vehicle, State state, Goal goal) {
+        int now = this.captain.tickCount, age = now - this.plannedAt;
         double moved = Double.isNaN(this.plannedX) ? Double.MAX_VALUE : Math.hypot(goal.x() - this.plannedX, goal.z() - this.plannedZ);
         boolean goalMoved = moved > Math.max(4.0D, Math.hypot(goal.x() - state.x(), goal.z() - state.z()) * 0.15D);
-        if (goal.stop() && !goalMoved && this.arrived) return; // keeping station at an unchanged goal
-        int now = this.captain.tickCount;
-        boolean wayDone = this.path != null && this.pathIndex >= this.path.size() && !this.pathReachesGoal;
-        boolean stale = now - this.plannedAt >= REFRESH_PLAN && (this.noWay || (this.path != null && !this.pathReachesGoal));
-        boolean retry = this.blocker != null && now - this.plannedAt >= WAIT_RETRY;
-        if (!goalMoved && !this.replan && !wayDone && !this.isOffWay(state) && !stale && !retry) return;
-        if (moved <= GOAL_JUMP && now - this.plannedAt < MIN_REPLAN) return;
+        if (moved > GOAL_JUMP) this.givenUp = 0; // a new goal, a new try
+        boolean due;
+        if (this.noWay) {
+            due = age >= (this.blockedByShips ? WAIT_RETRY : REFRESH_PLAN);
+        } else {
+            boolean partial = this.path != null && !this.pathReachesGoal;
+            due = this.replan || this.isOffWay(state) || (partial && age >= REFRESH_PLAN);
+        }
+        if (!goalMoved && !due) return;
+        if (moved <= GOAL_JUMP && age < MIN_REPLAN) return;
         if (!takePlanBudget(vehicle.level().getGameTime())) return;
-        boolean wasBlocked = this.blockedByPlan;
         this.plan(vehicle, state, goal);
-        if (wasBlocked && !this.blockedByPlan) this.blocker = null; // a way again: no more waiting
     }
 
+    /**
+     * One plan: straight if the water is wide all the way, else corners from
+     * the pathfinder, round the ships that lie still - on the right lane of
+     * either. A way that ends short of the goal is sailed as far as it gets
+     * - unless ships are what cuts it short: then she waits where she is.
+     * None at all: the goal itself is out of reach for her hull.
+     */
     private void plan(Entity vehicle, State state, Goal goal) {
         double targetX = goal.x(), targetZ = goal.z();
         // keep to the right: not in a fight, not after a ship she follows, not for a few lengths; a stop stays where it is
@@ -1872,163 +2063,66 @@ public final class CaptainShipController {
         this.plannedAt = this.captain.tickCount;
         this.plannedX = targetX;
         this.plannedZ = targetZ;
-        this.replan = false;
-        this.blockedByPlan = false;
-        this.goalUnreachable = false;
+        this.replan = this.noWay = this.blockedByShips = this.goalUnreachable = false;
         this.path = null;
         this.pathIndex = 0;
-        this.noWay = false;
         this.pathFromX = state.x();
         this.pathFromZ = state.z();
-        ShipPathfinder.Obstacles ships = ShipPathfinder.ships(vehicle);
-        {
-            ShipPathfinder finder = ShipPathfinder.of(vehicle, this.profile, ships);
-            if (finder.isWide(state.x(), state.z(), targetX, targetZ)) { // straight: well off any coast - on the right lane of it
-                if (lanes) {
-                    List<double[]> lane1 = finder.keepRight(state.x(), state.z(), List.of(new double[]{targetX, targetZ}), lane, !goal.stop());
-                    if (lane1.size() > 1 || lane1.get(0)[0] != targetX || lane1.get(0)[1] != targetZ) {
-                        this.path = lane1;
-                        this.pathReachesGoal = true;
-                    }
+        // a ship under way is the traffic's business, not the way's
+        ShipPathfinder.Obstacles ships = ShipPathfinder.ships(vehicle).lyingStill();
+        ShipPathfinder finder = ShipPathfinder.of(vehicle, this.profile, ships);
+        if (finder.isWide(state.x(), state.z(), targetX, targetZ)) {
+            if (lanes) {
+                List<double[]> onLane = finder.keepRight(state.x(), state.z(), List.of(new double[]{targetX, targetZ}), lane, !goal.stop());
+                if (onLane.size() > 1 || onLane.get(0)[0] != targetX || onLane.get(0)[1] != targetZ) {
+                    this.path = onLane;
+                    this.pathReachesGoal = true;
                 }
-                return;
             }
-
-            ShipPathfinder.Result result = finder.plan(state.x(), state.z(), targetX, targetZ);
-            double progress = 0.0D;
-            if (!result.waypoints().isEmpty()) {
-                double[] end = result.waypoints().get(result.waypoints().size() - 1);
-                progress = Math.hypot(targetX - state.x(), targetZ - state.z()) - Math.hypot(targetX - end[0], targetZ - end[1]);
-            }
-            if (!result.waypoints().isEmpty() && (result.reachedGoal() || progress > 4.0D)) {
-                this.path = lanes ? finder.keepRight(state.x(), state.z(), result.waypoints(), lane, !goal.stop() && result.reachedGoal())
-                        : result.waypoints();
-                this.pathReachesGoal = result.reachedGoal();
-                this.debug("way: " + this.path.size() + " corners" + (ships.ships().isEmpty() ? "" : ", round " + ships.ships().size() + " ships")
-                        + (result.reachedGoal() ? "" : ", partial"));
-                return;
-            }
-        }
-        // no way from here: keep station. The ships only block it if there is a way without them -
-        // else the goal itself is out of reach for her hull (too shallow, too narrow) and she lies as close as she gets
-        this.noWay = true;
-        this.noWayX = state.x();
-        this.noWayZ = state.z();
-        if (!ships.ships().isEmpty() && this.reachableWithoutShips(vehicle, state, targetX, targetZ)) {
-            this.blockedByPlan = true;
-            this.block(nearest(ships.ships(), state));
-            this.debug("way blocked by ships - waiting");
-        } else {
-            this.goalUnreachable = true;
-            this.unreachableX = targetX;
-            this.unreachableZ = targetZ;
-            this.debug("goal " + Math.round(targetX) + " " + Math.round(targetZ) + " out of reach for her hull - holding as close as she gets");
-        }
-    }
-
-    /** @return true if, with no ship about, she would reach the goal - or at least get on towards it from here */
-    private boolean reachableWithoutShips(Entity vehicle, State state, double targetX, double targetZ) {
-        ShipPathfinder free = ShipPathfinder.of(vehicle, this.profile, ShipPathfinder.Obstacles.NONE);
-        if (free.isWide(state.x(), state.z(), targetX, targetZ)) return true;
-        ShipPathfinder.Result result = free.plan(state.x(), state.z(), targetX, targetZ);
-        if (result.reachedGoal()) return true;
-        if (result.waypoints().isEmpty()) return false;
-        double[] end = result.waypoints().get(result.waypoints().size() - 1);
-        return Math.hypot(targetX - state.x(), targetZ - state.z()) - Math.hypot(targetX - end[0], targetZ - end[1]) > 4.0D;
-    }
-
-    /**
-     * Every SHIP_LOOK ticks: another ship on the next stretch - plan anew round
-     * it. A real hull right before the bow: if the way she wants to go leads
-     * into it too, she waits for it; if she turns away from it, she only slows down.
-     */
-    private void watchShips(Entity vehicle, State state, double aimX, double aimZ, Goal goal, boolean moving) {
-        if (this.captain.tickCount % SHIP_LOOK != Math.floorMod(this.captain.getId(), SHIP_LOOK)) return;
-        this.shipAhead = false;
-        if (!moving) {
-            if (!this.blockedByPlan) this.block(null);
             return;
         }
-        if (this.blocker == null && !this.replan) {
-            ShipPathfinder.Obstacles ships = ShipPathfinder.ships(vehicle);
-            double halfBeam = Math.max(0.0D, this.profile.beam / 2.0D - 1.0D);
-            boolean crossing = !ships.ships().isEmpty() && (ships.crosses(state.x(), state.z(), aimX, aimZ, halfBeam)
-                    || (this.path != null && this.pathIndex + 1 < this.path.size()
-                    && ships.crosses(this.path.get(this.pathIndex)[0], this.path.get(this.pathIndex)[1],
-                    this.path.get(this.pathIndex + 1)[0], this.path.get(this.pathIndex + 1)[1], halfBeam)));
-            if (crossing) this.replan = true;
+        ShipPathfinder.Result result = finder.plan(state.x(), state.z(), targetX, targetZ);
+        double made = progress(result, state, targetX, targetZ);
+        // ships lie in it and she would get clearly further without them: they close her way - she waits
+        // where she is, out of theirs, instead of creeping up to them
+        if (!result.reachedGoal() && !ships.ships().isEmpty() && this.progressWithoutShips(vehicle, state, targetX, targetZ) > made + SHIPS_TO_BLAME) {
+            this.noWay = this.blockedByShips = true;
+            this.debug("way closed by ships - waiting");
+            return;
         }
-        if (this.blockedByPlan) return;
-        // the real hulls, as Small Ships would collide them - one that keeps ahead of her excepted
-        double look = this.profile.stoppingDistance(Math.max(0.0F, state.speed())) + 1.5D;
-        Entity onTheWay = null;
-        if (shipAlong(vehicle, state, forward(state.yaw()), look) != null) {
-            double distance = Math.max(1.0E-3D, Math.hypot(aimX - state.x(), aimZ - state.z()));
-            onTheWay = shipAlong(vehicle, state, new Vec3((aimX - state.x()) / distance, 0.0D, (aimZ - state.z()) / distance), look);
-            this.shipAhead = onTheWay == null;
-            if (onTheWay != null) this.replan = true;
+        if (result.reachedGoal() || made > 4.0D) {
+            this.path = lanes ? finder.keepRight(state.x(), state.z(), result.waypoints(), lane, !goal.stop() && result.reachedGoal())
+                    : result.waypoints();
+            this.pathReachesGoal = result.reachedGoal();
+            this.debug("way: " + this.path.size() + " corners" + (ships.ships().isEmpty() ? "" : ", round " + ships.ships().size() + " ships")
+                    + (result.reachedGoal() ? "" : ", not all the way"));
+            return;
         }
-        this.block(onTheWay);
+        this.noWay = true;
+        this.markUnreachable(targetX, targetZ);
     }
 
-    /** @return the ship her hull would run into going this way - not one that makes at least her way in that direction: it keeps ahead */
-    @Nullable
-    private static Entity shipAlong(Entity vehicle, State state, Vec3 direction, double look) {
-        for (double share : new double[]{0.5D, 1.0D}) {
-            Entity hit = SmallShipsBridge.findShipAhead(vehicle, direction.scale(look * share));
-            if (hit == null) continue;
-            Vec3 its = forward(hit.getYRot());
-            double away = SmallShipsBridge.getSpeed(hit) * (its.x * direction.x + its.z * direction.z);
-            if (away < Math.max(0.0F, state.speed()) - 0.02D) return hit;
-        }
-        return null;
+    private void markUnreachable(double x, double z) {
+        this.goalUnreachable = true;
+        this.unreachableX = x;
+        this.unreachableZ = z;
+        this.debug("goal " + Math.round(x) + " " + Math.round(z) + " out of reach - lying as close as she gets");
     }
 
-    /** She holds still until the blocker is gone. Two captains waiting for each other: the one with the higher id backs off now and then. */
-    private Keys waitForShip(Entity vehicle, State state) {
-        int now = this.captain.tickCount;
-        if (!this.blocker.isAlive()) {
-            this.block(null);
-            this.blockedByPlan = false;
-            this.replan = true;
-        } else if (now - this.blockedSince > GIVE_WAY) {
-            // a hull right before her that does not go away: she backs off and plans round it - two
-            // captains in each other's way: the one with the higher id does, the other keeps waiting
-            Entity helmsman = SmallShipsBridge.getHelmsman(this.blocker);
-            boolean mutual = helmsman instanceof CaptainEntity other && other.shipController.isWaitingFor(vehicle);
-            // ships that close her way and go nowhere: after BLOCKED_WAIT she does not wait any longer either
-            boolean gives = mutual ? this.captain.getId() > helmsman.getId() : !this.blockedByPlan || now - this.blockedSince > BLOCKED_WAIT;
-            if (gives) {
-                this.blockedSince = now;
-                if (this.startBackUp(vehicle, state, -1)) {
-                    this.replan = true;
-                    this.debug("giving way to " + this.blocker.getName().getString());
-                }
-            }
-        }
-        this.wantedYaw = Float.NaN;
-        Keys keys = this.helmStop(state);
-        if (state.sailState() == 0 && state.speed() > 0.03F) keys.backward = true; // stop, not coast
-        return keys;
+    /** @return blocks the way brings her nearer to the goal, 0 without a way */
+    private static double progress(ShipPathfinder.Result result, State state, double targetX, double targetZ) {
+        if (result.waypoints().isEmpty()) return 0.0D;
+        double[] end = result.waypoints().get(result.waypoints().size() - 1);
+        return Math.hypot(targetX - state.x(), targetZ - state.z()) - Math.hypot(targetX - end[0], targetZ - end[1]);
     }
 
-    private void block(@Nullable Entity ship) {
-        if (ship != null && ship != this.blocker) this.blockedSince = this.captain.tickCount;
-        this.blocker = ship;
-    }
-
-    @Nullable
-    private static Entity nearest(List<Entity> ships, State state) {
-        Entity best = null;
-        double bestDistance = Double.MAX_VALUE;
-        for (Entity ship : ships) {
-            double distance = Math.hypot(ship.getX() - state.x(), ship.getZ() - state.z());
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                best = ship;
-            }
-        }
-        return best;
+    /** @return blocks a way with no ship about would bring her nearer to the goal - all of them if it gets there */
+    private double progressWithoutShips(Entity vehicle, State state, double targetX, double targetZ) {
+        ShipPathfinder free = ShipPathfinder.of(vehicle, this.profile, ShipPathfinder.Obstacles.NONE);
+        double all = Math.hypot(targetX - state.x(), targetZ - state.z());
+        if (free.isWide(state.x(), state.z(), targetX, targetZ)) return all;
+        ShipPathfinder.Result result = free.plan(state.x(), state.z(), targetX, targetZ);
+        return result.reachedGoal() ? all : progress(result, state, targetX, targetZ);
     }
 
     /** @return true if one more way may be planned this tick - all captains share PLANS_PER_TICK */
@@ -2082,506 +2176,267 @@ public final class CaptainShipController {
     private void clearWay() {
         this.path = null;
         this.pathIndex = 0;
-        this.noWay = this.pathReachesGoal = this.replan = false;
+        this.noWay = this.blockedByShips = this.pathReachesGoal = this.replan = false;
         this.plannedX = this.plannedZ = Double.NaN;
     }
 
-    /* ======================= lookout and backing up =========================== */
+    /* ========================= lookout and traffic ============================ */
 
     /**
-     * Every LOOKOUT_INTERVAL ticks the water ahead, the way Small Ships itself
-     * would move her: land or shallows - slow to a speed at which grounding
-     * costs no hull, plan anew, stop if close. Every STUCK_CHECK ticks: no
-     * progress although she pressed ahead (STUCK), or the bow does not come
-     * round although the rudder is laid (JAMMED). Cheap: the column cache
-     * first, the hull swept against the blocks only where land is.
+     * Every LOOKOUT_INTERVAL ticks, what lies before the bow within her
+     * stopping distance - the way Small Ships itself would move her.
+     * Land (or a hull): landCap, the speed from which she still stops a
+     * block short of it, never more than a grounding costs no hull at. A
+     * hull she would run into (one that keeps ahead of her excepted):
+     * shipAhead - she stops (see helm) and a way round it is planned.
+     * Cheap: the column cache first, the hull swept only where land is or
+     * ships are about.
      */
-    private void lookout(Entity ship, State state) {
-        if (this.rudderHeld) this.rudderTicks++;
-        if (this.pressing && !this.lookStop) this.pressTicks++; // waiting where she was told to stop is not being stuck
-        int now = this.captain.tickCount, phase = Math.floorMod(this.captain.getId(), STUCK_CHECK);
-        if (now % STUCK_CHECK == phase) this.checkStuck(state);
-        if (now % LOOKOUT_INTERVAL != phase % LOOKOUT_INTERVAL) return;
-
-        this.lookoutCap = Float.MAX_VALUE;
-        this.lookStop = this.lookReverse = false;
-        if (state.speed() <= 0.03F) return; // not under way, or astern: nothing ahead to watch
-        Vec3 heading = forward(state.yaw());
-        double look = this.profile.stoppingDistance(state.speed()) + this.profile.length * 0.5D + 1.0D;
-        if (ShipPathfinder.isWaterAhead(ship, this.profile, heading, look)) return;
-        Vec3 wanted = heading.scale(look), allowed = SmallShipsBridge.sweep(ship, wanted);
-        if (wanted.subtract(allowed).horizontalDistance() <= 0.25D) return;
-
-        // already turning towards open water - a river bend: let her come round slowly
-        double free = allowed.horizontalDistance();
-        boolean turningAway = !Float.isNaN(this.wantedYaw) && Math.abs(wrap(this.wantedYaw - state.yaw())) > 10.0F
-                && ShipPathfinder.isWaterAhead(ship, this.profile, forward(this.wantedYaw), look);
-        this.lookoutCap = Math.min(SAFE_SPEED, this.profile.coastSpeedFor((float) Math.max(0.0D, free - 1.0D)));
-        if (!turningAway) this.replan = true;
-        if (free < (turningAway ? 1.0D : Math.max(2.0D, this.profile.length * 0.25D))) {
-            this.lookStop = true;
-            this.lookReverse = free < 1.0D;
-        }
-    }
-
-    /**
-     * Every TRAFFIC_LOOK ticks, while she makes way: the ships about with her
-     * way and theirs, DODGE_LOOK ticks ahead. One that would come within half
-     * a block of her hull: she dodges - DODGE_ANGLE to starboard for
-     * DODGE_TICKS (overtaking, or land to starboard: to port), at half her
-     * way - and goes back onto her way. Every ship does the same, nobody
-     * waits: with the lane on the right they pass port to port. Should the
-     * touch already lie within her stopping distance, she also brakes (see
-     * keepClear). Ships lying still are the way's business, not this one's.
-     * A hull touching her bow (or her stern while she goes astern) while she
-     * presses into it: she moves off it and plans anew.
-     */
-    private void watchTraffic(Entity vehicle, State state) {
+    private void lookout(Entity vehicle, State state) {
+        if (this.captain.tickCount % LOOKOUT_INTERVAL != Math.floorMod(this.captain.getId(), LOOKOUT_INTERVAL)) return;
+        Entity before = this.shipAhead;
+        this.landCap = Float.MAX_VALUE;
+        this.shipAhead = null;
+        if (this.backTicks > 0 || state.speed() < -0.01F) return; // going astern: backOff looks for itself
         int now = this.captain.tickCount;
-        if (now % TRAFFIC_LOOK != Math.floorMod(this.captain.getId() + TRAFFIC_LOOK / 2, TRAFFIC_LOOK)) return;
-        // a dodge ends once the other is past: back on the course of her way she would not touch it any more
-        if (this.evadeFrom != null && now - this.evadeSince >= DODGE_TICKS) {
-            float course = Float.isNaN(this.pathYaw) ? state.yaw() : this.pathYaw;
-            double[] still = this.evadeFrom.isAlive() ? this.contactWith(state, course, Math.max(0.1F, state.speed()), this.evadeFrom, DODGE_LOOK) : null;
-            if (still == null || still[1] <= 0.01D || now - this.evadeSince >= DODGE_MAX) {
-                this.debug("dodged " + this.evadeFrom.getName().getString() + " - back on the way");
-                this.evadeFrom = null;
-                this.replan = true;
-            }
+        if (now - this.shipsLooked >= SHIPS_NEAR_INTERVAL) {
+            this.shipsLooked = now;
+            this.shipsNear = !vehicle.level().getEntitiesOfClass(Boat.class, vehicle.getBoundingBox().inflate(TRAFFIC_RANGE, 8.0D, TRAFFIC_RANGE),
+                    other -> other != vehicle && other.isAlive() && SmallShipsBridge.isShip(other)).isEmpty();
         }
-        float cap = Float.MAX_VALUE;
-        Entity closest = null;
-        double[] first = null;
-        if (state.speed() > 0.03F) {
-            for (Boat other : vehicle.level().getEntitiesOfClass(Boat.class, vehicle.getBoundingBox().inflate(TRAFFIC_RANGE, 8.0D, TRAFFIC_RANGE),
-                    other -> other != vehicle && other.isAlive() && SmallShipsBridge.isShip(other))) {
-                double[] contact = this.contactWith(state, state.yaw(), state.speed(), other, DODGE_LOOK);
-                if (contact == null || contact[1] <= 0.01D) continue; // none, or it comes at her while she makes no way towards it
-                // a brake only where she could not stop in time any more: her share of the water between them
-                float away = (float) Math.max(0.0D, contact[2]);
-                float room = (float) Math.max(0.0D, (contact[1] - away) * contact[0] - 1.0D - state.speed() * (TRAFFIC_LOOK + 2));
-                cap = Math.min(cap, away + this.profile.coastSpeedFor(room));
-                if (first == null || contact[0] < first[0]) {
-                    first = contact;
-                    closest = other;
-                }
-            }
+        Vec3 heading = forward(state.yaw());
+        double look = this.profile.stoppingDistance(Math.max(state.speed(), this.profile.manoeuvreSpeed)) + 2.0D;
+        // coming round a little: her wake is a curve, so also where she is turning to (a big turn she makes on the spot)
+        float off = Float.isNaN(this.wantedYaw) ? 0.0F : Math.abs(wrap(this.wantedYaw - state.yaw()));
+        boolean comingRound = off > 5.0F && off <= 30.0F;
+        boolean water = ShipPathfinder.isWaterAhead(vehicle, this.profile, heading, look);
+        if (!water) this.landCap = SAFE_SPEED; // land within half a block of where her hull passes: no faster than a touch may cost
+        if (!water || this.shipsNear) {
+            this.landCap = Math.min(this.landCap, this.capBefore(vehicle, heading, look));
+            if (comingRound) this.landCap = Math.min(this.landCap, this.capBefore(vehicle, forward(this.wantedYaw), look));
         }
-        if (closest != null && cap < state.speed()) {
-            if (this.trafficShip != closest) this.debug("about to touch " + closest.getName().getString() + " - braking");
-            this.trafficCap = cap;
-            this.trafficShip = closest;
-            this.trafficSeen = now;
-        } else if (this.trafficShip != null && now - this.trafficSeen >= TRAFFIC_HOLD) {
-            this.trafficCap = Float.MAX_VALUE;
-            this.trafficShip = null;
-        }
-        // a ship lying still is the way's business - only one under way is dodged
-        if (closest != null && Math.abs(SmallShipsBridge.getSpeed(closest)) > 0.05F
-                && this.evadeFrom == null && this.wantsWay && this.backTicks <= 0 && this.faceTicks <= 0) {
-            this.dodge(vehicle, state, closest);
-        }
-
-        // touching and pressing into it: off it, then a way round
-        if (this.backTicks > 0 || now < this.restUntil) return;
-        Vec3 fwd = forward(state.yaw());
-        Entity ahead = SmallShipsBridge.findShipAhead(vehicle, fwd.scale(TOUCH));
-        if (ahead != null && (this.pressing || state.speed() > 0.02F)) {
-            this.debug("touching " + ahead.getName().getString() + " at the bow - backing off");
-            this.evadeFrom = null;
-            if (this.startBackUp(vehicle, state, -1)) this.replan = true;
-        } else if (ahead == null && state.speed() < -0.02F) {
-            Entity astern = SmallShipsBridge.findShipAhead(vehicle, fwd.scale(-TOUCH));
-            if (astern != null) {
-                this.debug("touching " + astern.getName().getString() + " at the stern - moving off ahead");
-                if (this.startBackUp(vehicle, state, 1)) this.replan = true;
-            }
+        if (!this.shipsNear) return;
+        // a hull: twice as far, it may be coming
+        this.shipAhead = shipAlong(vehicle, state, heading, look * 2.0D);
+        if (this.shipAhead == null && comingRound) this.shipAhead = shipAlong(vehicle, state, forward(this.wantedYaw), look);
+        if (this.shipAhead != null && this.shipAhead != before) {
+            this.replan = true;
+            this.debug(this.shipAhead.getName().getString() + " before the bow - stopping, planning round it");
         }
     }
 
+    /** @return the speed from which she still stops a block short of what her hull would meet going that way - SAFE_SPEED at most, MAX_VALUE: nothing there */
+    private float capBefore(Entity vehicle, Vec3 direction, double look) {
+        double free = SmallShipsBridge.sweep(vehicle, direction.scale(look)).horizontalDistance();
+        return look - free > 0.25D ? Math.min(SAFE_SPEED, this.profile.coastSpeedFor((float) (free - 1.0D))) : Float.MAX_VALUE;
+    }
+
+    /** @return the ship her hull would run into going this way - not one that makes at least her way in that direction: it keeps ahead */
     @Nullable
-    private double[] contactWith(State state, float yaw, float speed, Entity other, int horizon) {
-        CompoundTag its = SmallShipsBridge.getProfile(other);
-        return ShipPathfinder.contact(state.x(), state.z(), yaw, speed, this.profile.length, this.profile.beam,
-                other.getX(), other.getZ(), other.getYRot(), SmallShipsBridge.getSpeed(other),
-                Math.max(2.0F, its.getFloat("Length")), Math.max(1.0F, its.getFloat("Beam")), horizon);
+    private static Entity shipAlong(Entity vehicle, State state, Vec3 direction, double look) {
+        for (double share : new double[]{0.25D, 0.5D, 0.75D, 1.0D}) {
+            Entity hit = SmallShipsBridge.findShipAhead(vehicle, direction.scale(look * share));
+            if (hit == null) continue;
+            Vec3 its = forward(hit.getYRot());
+            double away = SmallShipsBridge.getSpeed(hit) * (its.x * direction.x + its.z * direction.z);
+            if (away < Math.max(0.0F, state.speed()) - 0.02D) return hit;
+        }
+        return null;
     }
 
     /**
-     * DODGE_ANGLE off the course of her way: to starboard - to port when she
-     * overtakes it (comes up from abaft its beam, faster), so the slower one
-     * keeps its lane - and the other side where there is no water or another
-     * ship in the way. Neither side: no dodge, the brake alone.
+     * Every SHIP_LOOK ticks while she sails for somewhere, the other ships
+     * about. One lying still across her next stretch: the way has to lead
+     * round it - a new plan. One under way that would come within half a
+     * block of her hull in the next DODGE_LOOK ticks: she dodges it.
      */
-    private void dodge(Entity vehicle, State state, Entity other) {
-        float course = Float.isNaN(this.pathYaw) ? state.yaw() : this.pathYaw;
-        boolean overtaking = Math.abs(wrap(yawTo(state.x() - other.getX(), state.z() - other.getZ()) - other.getYRot())) > 112.5F
-                && state.speed() > SmallShipsBridge.getSpeed(other);
-        double look = this.profile.length + 4.0D;
-        for (int side : overtaking ? new int[]{-1, 1} : new int[]{1, -1}) {
-            float yaw = wrap(course + side * DODGE_ANGLE);
-            if (!ShipPathfinder.isWaterAhead(vehicle, this.profile, forward(yaw), look)) continue;
-            boolean free = true;
-            for (Boat ship : vehicle.level().getEntitiesOfClass(Boat.class, vehicle.getBoundingBox().inflate(TRAFFIC_RANGE, 8.0D, TRAFFIC_RANGE),
-                    o -> o != vehicle && o.isAlive() && SmallShipsBridge.isShip(o))) {
-                double[] contact = this.contactWith(state, yaw, state.speed(), ship, DODGE_LOOK);
-                if (contact != null && contact[1] > 0.01D) {
-                    free = false;
-                    break;
-                }
-            }
-            if (!free) continue;
-            this.evadeFrom = other;
-            this.evadeYaw = yaw;
-            this.evadeSince = this.captain.tickCount;
-            this.debug((overtaking ? "overtaking " : "dodging ") + other.getName().getString() + " - " + (side > 0 ? "starboard" : "port"));
+    private void watchShips(Entity vehicle, State state, double aimX, double aimZ) {
+        int now = this.captain.tickCount;
+        if (now % SHIP_LOOK != Math.floorMod(this.captain.getId(), SHIP_LOOK)) return;
+        ShipPathfinder.Obstacles ships = ShipPathfinder.ships(vehicle);
+        if (ships.ships().isEmpty()) return;
+        if (!this.replan && ships.lyingStill().crosses(state.x(), state.z(), aimX, aimZ, Math.max(0.0D, this.profile.beam / 2.0D - 1.0D))) {
+            this.replan = true;
+        }
+        // close quarters: a hull within a block of where hers passes in her stopping distance - one that keeps ahead excepted
+        Vec3 heading = forward(state.yaw());
+        double look = this.profile.stoppingDistance(Math.max(0.0F, state.speed())) + this.profile.length;
+        if (ships.notAheadOf(heading, state.speed()).crosses(state.x(), state.z(), state.x() + heading.x * look, state.z() + heading.z * look,
+                this.profile.beam / 2.0D + 0.5D)) this.closeUntil = now + SHIP_LOOK + 1;
+        if (now < this.dodgeUntil || state.speed() <= STILL) return;
+        for (Entity other : ships.ships()) {
+            if (Math.abs(SmallShipsBridge.getSpeed(other)) <= ShipPathfinder.LYING_STILL || Math.hypot(other.getX() - state.x(), other.getZ() - state.z()) > TRAFFIC_RANGE) continue;
+            double[] contact = this.contactWith(state, state.yaw(), other);
+            if (contact == null || contact[1] <= 0.01D) continue; // none, or it comes at her while she makes no way towards it
+            this.dodge(vehicle, state, other);
             return;
         }
     }
 
-    /** Holds the dodging course at half her way at most - no faster than she goes. */
-    private Keys helmEvade(State state) {
-        this.beginKeys(state);
-        this.wantedYaw = this.evadeYaw;
-        float error = wrap(this.evadeYaw - state.yaw());
-        this.steerBy(state, error);
-        this.drive(state, Math.max(0.05F, Math.min(state.speed(), this.profile.maxSpeedNow() * 0.5F)), Math.abs(error));
-        return this.keys;
+    @Nullable
+    private double[] contactWith(State state, float yaw, Entity other) {
+        CompoundTag its = SmallShipsBridge.getProfile(other);
+        return ShipPathfinder.contact(state.x(), state.z(), yaw, state.speed(), this.profile.length, this.profile.beam,
+                other.getX(), other.getZ(), other.getYRot(), SmallShipsBridge.getSpeed(other),
+                Math.max(2.0F, its.getFloat("Length")), Math.max(1.0F, its.getFloat("Beam")), DODGE_LOOK);
     }
 
     /**
-     * Traffic ahead: no W and no canvas beyond what she may make - set canvas
-     * comes in at once, furled canvas stays furled while even the first sail
-     * state would be too much, and S while she still makes more way than she may.
+     * The small evasive manoeuvre: DODGE_ANGLE off the course of her way for
+     * DODGE_TICKS at half her way, then back onto a new way. To starboard -
+     * to port when she overtakes (comes up from abaft its beam, faster), so
+     * the slower one keeps its lane - and the other side where there is no
+     * water or she would still touch. Every ship does the same, nobody
+     * waits: with the lane on the right they pass port to port. Neither
+     * side: she brakes until the next look.
      */
-    private void keepClear(State state, Keys keys) {
-        if (this.trafficCap == Float.MAX_VALUE) return;
-        if (state.speed() >= this.trafficCap) keys.forward = false;
-        if (state.sailState() > 0) {
-            if (state.speed() > this.trafficCap) this.pressSailKey();
-        } else {
-            if (this.trafficCap < this.profile.sailSpeed(1)) keys.sail = false;
-            if (state.speed() > this.trafficCap + 0.02F) keys.backward = true;
-        }
-    }
-
-    private void checkStuck(State state) {
-        boolean measured = !Double.isNaN(this.stuckX);
-        boolean stuck = measured && this.pressing && this.pressTicks >= STUCK_CHECK * 3 / 4
-                && Math.hypot(state.x() - this.stuckX, state.z() - this.stuckZ) < STUCK_PROGRESS;
-        boolean jammed = measured && this.rudderTicks >= STUCK_CHECK / 2 && Math.abs(wrap(state.yaw() - this.stuckYaw)) < JAMMED_TURN
-                && Math.abs(state.speed()) < 0.05F;
-        this.stuckX = state.x();
-        this.stuckZ = state.z();
-        this.stuckYaw = state.yaw();
-        this.rudderTicks = this.pressTicks = 0;
-        this.trouble = jammed ? Trouble.JAMMED : stuck ? Trouble.STUCK : null;
-    }
-
-    private void resetStuck() {
-        this.stuckX = Double.NaN;
-        this.rudderTicks = this.pressTicks = 0;
-        this.trouble = null;
-    }
-
-    /** Stuck: back off and plan anew. Jammed in a turn: the other way round, and if that jams too, back off first. */
-    private void handleTrouble(Entity vehicle, State state) {
-        Trouble trouble = this.trouble;
-        this.trouble = null;
-        if (trouble == null || this.backTicks > 0 || this.captain.tickCount < this.restUntil) return;
-        this.replan = true;
-        if (trouble == Trouble.STUCK) {
-            this.debug("stuck - backing off");
-            this.startBackUp(vehicle, state);
-        } else if (!Float.isNaN(this.wantedYaw)) {
-            int shortWay = wrap(this.wantedYaw - state.yaw()) >= 0.0F ? 1 : -1;
-            if (this.turnDir == 0) {
-                this.turnDir = -shortWay;
-                this.debug("turn jammed - the other way round");
-            } else if (!this.startBackUp(vehicle, state)) {
-                this.turnDir = -this.turnDir;
+    private void dodge(Entity vehicle, State state, Entity other) {
+        int now = this.captain.tickCount;
+        float course = Float.isNaN(this.routeYaw) ? state.yaw() : this.routeYaw;
+        boolean overtaking = Math.abs(wrap(yawTo(state.x() - other.getX(), state.z() - other.getZ()) - other.getYRot())) > 112.5F
+                && state.speed() > SmallShipsBridge.getSpeed(other);
+        for (float angle : new float[]{DODGE_ANGLE, DODGE_ANGLE / 2.0F}) { // half of it where the water is narrow
+            for (int side : overtaking ? new int[]{-1, 1} : new int[]{1, -1}) {
+                float yaw = wrap(course + side * angle);
+                if (!ShipPathfinder.isWaterAhead(vehicle, this.profile, forward(yaw), this.profile.length + 4.0D)) continue;
+                double[] contact = this.contactWith(state, yaw, other);
+                if (contact != null && contact[1] > 0.01D) continue;
+                this.dodgeYaw = yaw;
+                this.dodgeUntil = now + DODGE_TICKS;
+                this.debug((overtaking ? "overtaking " : "dodging ") + other.getName().getString() + " - " + (side > 0 ? "starboard" : "port"));
+                return;
             }
         }
+        this.brakeUntil = now + SHIP_LOOK + 2;
     }
 
-    /** Turns on the spot to the yaw. A big turn needs a block before the bow first - else she backs off. */
-    private Keys turnOnSpot(Entity vehicle, State state, float yaw) {
-        float error = Math.abs(wrap(yaw - state.yaw()));
-        if (error < TURN_DONE) {
-            this.turnDir = 0;
-            this.bowChecked = false;
-        } else if (!this.bowChecked && error > STOPPED_TURN && Math.abs(state.speed()) < SWING_SPEED) {
-            this.bowChecked = true;
-            if (room(vehicle, state.yaw(), 1, BOW_ROOM + 0.25D) < BOW_ROOM && this.startBackUp(vehicle, state)) return this.backUpTick(vehicle, state);
-        }
-        return this.turnDir == 0 ? this.helmFace(state, yaw) : this.helmTurn(state, yaw, this.turnDir);
+    /* ============================ getting clear =============================== */
+
+    /**
+     * Every STUCK_CHECK ticks: she pressed on nearly all of them - made way
+     * or turned - and neither moved nor came round: stuck, whatever the
+     * reason (aground, a hull, a bow jammed in a turn). See getClear.
+     */
+    private void watchdog(Entity vehicle, State state) {
+        int now = this.captain.tickCount;
+        if (now % STUCK_CHECK != Math.floorMod(this.captain.getId(), STUCK_CHECK)) return;
+        double moved = Double.isNaN(this.watchX) ? Double.MAX_VALUE : Math.hypot(state.x() - this.watchX, state.z() - this.watchZ);
+        boolean stuck = this.effortTicks >= STUCK_CHECK * 3 / 4 && moved < STUCK_PROGRESS && Math.abs(wrap(state.yaw() - this.watchYaw)) < STUCK_TURN;
+        if (moved >= 4.0D && this.backTicks <= 0) this.givenUp = this.heldTimes = 0; // sailing again
+        this.watchX = state.x();
+        this.watchZ = state.z();
+        this.watchYaw = state.yaw();
+        this.effortTicks = 0;
+        if (stuck && this.backTicks <= 0 && now >= this.restUntil) this.getClear(vehicle, state, "stuck");
     }
 
     /**
-     * Backs her off straight astern - as far as there is water behind the
-     * stern, most of her length, further when it happens again soon. Three
-     * times within BACK_OFF_REPEAT: she gives up for REST_TICKS and plans anew.
-     *
-     * @return false if there is no room astern, or she gives up
+     * Held up although she wants to get on: a new way after HELD_REPLAN
+     * ticks, off and round after HELD_CLEAR - not every captain at the same
+     * tick, and longer each time it did not help: what will not move is
+     * waited for, not fidgeted at.
      */
-    private boolean startBackUp(Entity vehicle, State state) {
-        return this.startBackUp(vehicle, state, -1);
+    private void held(Entity vehicle, State state) {
+        this.heldTicks++;
+        if (this.heldTicks == HELD_REPLAN) {
+            this.replan = true;
+        } else if (this.heldTicks >= HELD_CLEAR * (1 + this.heldTimes) + Math.floorMod(this.captain.getId(), 4) * 20) {
+            this.heldTimes = Math.min(HELD_MAX, this.heldTimes + 1);
+            this.getClear(vehicle, state, "held up");
+        }
     }
 
-    /** @param sign -1 astern, +1 ahead - off a ship that touches her stern */
-    private boolean startBackUp(Entity vehicle, State state, int sign) {
+    /**
+     * The one answer to being stuck or held up, always followed by a new way:
+     * <pre>
+     * only a turn on the spot jams, a block free before the bow   the other way round
+     * else                                                        off astern - ahead if there is no water astern
+     * the third time within BACK_OFF_REPEAT                       she rests REST_TICKS
+     * GIVE_UP rests for the same goal, no ship about              the goal counts as out of reach
+     * </pre>
+     */
+    private void getClear(Entity vehicle, State state, String why) {
         int now = this.captain.tickCount;
+        this.replan = true;
+        this.heldTicks = 0;
+        if (now - this.turnedAt <= 2 && this.turnDir == 0 && !Float.isNaN(this.wantedYaw)
+                && room(vehicle, state.yaw(), 1, BOW_ROOM + 0.25D) >= BOW_ROOM) {
+            this.turnDir = wrap(this.wantedYaw - state.yaw()) >= 0.0F ? -1 : 1;
+            this.debug(why + " in a turn - the other way round");
+            return;
+        }
+        this.turnDir = 0;
         int streak = now - this.backedAt < BACK_OFF_REPEAT ? this.backStreak + 1 : 0;
+        this.backedAt = now;
+        this.backStreak = streak;
         if (streak >= 3) {
             this.backStreak = 0;
             this.restUntil = now + REST_TICKS;
-            this.replan = true;
-            this.debug("cannot get clear here - holding still, planning anew");
-            return false;
+            this.debug(why + " - cannot get clear here, resting");
+            // hemmed in by ships is a matter of time, not of the goal
+            if (!this.shipsNear && ++this.givenUp >= GIVE_UP) this.giveUp();
+        } else if (this.startBackOff(vehicle, state, -1, streak) || this.startBackOff(vehicle, state, 1, streak)) {
+            this.debug(why + " - " + (this.backSign < 0 ? "backing off " : "moving off ahead ") + Math.round(this.backDistance) + " blocks");
         }
+    }
+
+    /** She failed at this goal again and again: it counts as out of reach - a patrol goes on, see waypointReach. Circling: she lies to instead. */
+    private void giveUp() {
+        this.givenUp = 0;
+        if (Double.isNaN(this.plannedX)) {
+            this.lieToUntil = this.captain.tickCount + LIE_TO;
+            return;
+        }
+        this.path = null;
+        this.pathIndex = 0;
+        this.replan = this.blockedByShips = false;
+        this.noWay = true;
+        this.plannedAt = this.captain.tickCount;
+        this.markUnreachable(this.plannedX, this.plannedZ);
+    }
+
+    /**
+     * Straight astern (sign -1) or ahead (+1) as far as the hull has room -
+     * most of her length, further when it happens again soon.
+     *
+     * @return false if there is no room that way
+     */
+    private boolean startBackOff(Entity vehicle, State state, int sign, int streak) {
         double wanted = Math.max(4.0D, this.profile.length * 0.75D) * (1.0D + 0.5D * streak);
-        double astern = room(vehicle, state.yaw(), sign, wanted + SAFETY) - SAFETY;
-        if (astern < MIN_MOVE) return false;
+        double free = room(vehicle, state.yaw(), sign, wanted + SAFETY) - SAFETY;
+        if (free < MIN_MOVE) return false;
         Vec3 along = forward(state.yaw());
         this.backSign = sign;
-        this.backStreak = streak;
-        this.backedAt = now;
         this.backFromX = state.x();
         this.backFromZ = state.z();
         this.backAlongX = along.x;
         this.backAlongZ = along.z;
-        this.backDistance = Math.min(astern, wanted);
+        this.backDistance = Math.min(free, wanted);
         this.backTicks = (int) (this.backDistance / Math.max(0.01F, this.profile.manoeuvreSpeed) * 1.5D) + 40;
-        this.resetStuck();
-        this.debug((sign < 0 ? "backing off " : "moving off ahead ") + Math.round(this.backDistance) + " blocks");
+        this.watchX = Double.NaN;
+        this.effortTicks = 0;
         return true;
     }
 
-    private Keys backUpTick(Entity vehicle, State state) {
+    private void backOff(Entity vehicle, State state) {
         double made = this.backSign * ((state.x() - this.backFromX) * this.backAlongX + (state.z() - this.backFromZ) * this.backAlongZ);
         boolean done = made >= this.backDistance || --this.backTicks <= 0;
         // the stern (or bow) close to something: this is as far as she gets
         if (!done && this.captain.tickCount % LOOKOUT_INTERVAL == 0) done = room(vehicle, state.yaw(), this.backSign, SAFETY + 0.5D) < SAFETY;
-        Keys keys = this.helmStop(state);
+        this.furl(state);
+        this.killSwing(state);
         if (done) {
             this.backTicks = 0;
             this.replan = true;
-            return keys;
+        } else if (state.sailState() == 0) {
+            if (this.backSign < 0) this.keys.backward = true;
+            else this.keys.forward = true;
         }
-        if (this.backSign < 0) keys.backward = state.sailState() == 0;
-        else keys.forward = state.sailState() == 0;
-        return keys;
     }
 
     /** @return blocks the hull could move straight ahead (sign +1) or astern (-1), up to distance */
     private static double room(Entity ship, float yaw, int sign, double distance) {
         return SmallShipsBridge.sweep(ship, forward(yaw).scale(sign * distance)).horizontalDistance();
-    }
-
-    /* ======================= keys, as a helmsman would ======================== */
-    /*
-     * Three things a ship needs that a horse does not: turning is inertial -
-     * without counter rudder a hull swings 110-150 degrees past its heading;
-     * she stops by coasting - the approach brakes exactly at her stopping
-     * distance; and sails change one step per cooldown - so the canvas is
-     * worked like a calm helmsman does it: in at once to stop or turn, set
-     * again only after a few seconds (she creeps or rows meanwhile), never up
-     * and down in quick turns.
-     */
-
-    private Keys helmStop(State state) {
-        this.beginKeys(state);
-        this.furl(state);
-        this.killSwing(state);
-        return this.keys;
-    }
-
-    private Keys helmFace(State state, float yaw) {
-        this.beginKeys(state);
-        this.furl(state);
-        this.steerBy(state, wrap(yaw - state.yaw()));
-        return this.keys;
-    }
-
-    /** Turns on the spot the given way round, even the long way: +1 starboard (D), -1 port (A). */
-    private Keys helmTurn(State state, float yaw, int direction) {
-        this.beginKeys(state);
-        this.furl(state);
-        float error = wrap(yaw - state.yaw());
-        if (direction > 0 && error < 0.0F) error += 360.0F;
-        else if (direction < 0 && error > 0.0F) error -= 360.0F;
-        this.steerBy(state, error);
-        return this.keys;
-    }
-
-    /**
-     * Sails to the goal and keeps station there: stops within deadZone and
-     * stays until the goal moves or she drifts out. A goal that moves
-     * (goalSpeed, a followed entity) is kept up with instead: its speed plus a
-     * little for every block she is behind.
-     */
-    private Keys helmStation(State state, double goalX, double goalZ, float goalSpeed, float deadZone, float speedCap) {
-        this.beginKeys(state);
-        double distance = Math.hypot(goalX - state.x(), goalZ - state.z());
-        boolean moving = goalSpeed >= 0.02F;
-        // a goal that jumped is a new approach - one that creeps along is not, or every step would set the sails again
-        double newGoal = Math.max(2.0D, deadZone);
-        if (Double.isNaN(this.helmGoalX) || sqr(goalX - this.helmGoalX) + sqr(goalZ - this.helmGoalZ) > newGoal * newGoal) {
-            this.helmGoalX = goalX;
-            this.helmGoalZ = goalZ;
-            this.braking = false;
-            if (distance > deadZone) this.arrived = false;
-        }
-        if (this.arrived && (moving || distance > deadZone + Math.max(2.0F, this.profile.length * 0.5F))) {
-            this.arrived = this.braking = false;
-        }
-        if (!moving && !this.arrived && distance <= deadZone && Math.abs(state.speed()) < 0.05F) this.arrived = true;
-        if (this.arrived) {
-            this.furl(state);
-            this.killSwing(state);
-            return this.keys;
-        }
-        float bearing = yawTo(goalX - state.x(), goalZ - state.z()), error = Math.abs(wrap(bearing - state.yaw()));
-        this.steerBy(state, wrap(bearing - state.yaw()));
-        float remaining = (float) distance - deadZone;
-        if (this.turnFirst(state, error)) {
-            this.furl(state);
-            return this.keys;
-        }
-        if (moving) {
-            // closing in on it no faster than she can still stop behind it: else canvas in, and S
-            float limit = goalSpeed + this.profile.coastSpeedFor(Math.max(0.0F, remaining));
-            if (state.speed() > limit + 0.03F) {
-                this.furl(state);
-                if (state.sailState() == 0 && state.speed() > goalSpeed + 0.03F) this.keys.backward = true;
-                return this.keys;
-            }
-            float wanted = remaining > 0.0F ? goalSpeed + 0.01F * remaining : goalSpeed * 0.8F;
-            this.drive(state, Math.min(this.cruise(speedCap, error), Math.min(wanted, limit)), error);
-            return this.keys;
-        }
-        if (remaining <= 0.0F) { // inside the zone and still carrying way: let her run out
-            this.furl(state);
-            return this.keys;
-        }
-        // from the moment she could not stop in time she only coasts: furled once, the rest under oars or creeping
-        if (!this.braking && this.profile.stoppingDistance(state.speed()) + Math.abs(state.speed()) >= remaining) this.braking = true;
-        if (this.braking && remaining > this.profile.stoppingDistance(this.profile.maxSpeedNow()) * 2.0F + this.profile.length) this.braking = false;
-        if (this.braking) this.pull(state, Math.min(this.profile.coastSpeedFor(remaining), this.profile.maxSpeedNow() * speedCap), error);
-        else this.drive(state, this.cruise(speedCap, error), error);
-        return this.keys;
-    }
-
-    /** Sails at a point without stopping there - a corner on the way. */
-    private Keys helmThrough(State state, double goalX, double goalZ, float speedCap) {
-        this.beginKeys(state);
-        this.arrived = this.braking = false;
-        this.helmGoalX = this.helmGoalZ = Double.NaN;
-        float bearing = yawTo(goalX - state.x(), goalZ - state.z()), error = Math.abs(wrap(bearing - state.yaw()));
-        this.steerBy(state, wrap(bearing - state.yaw()));
-        if (this.turnFirst(state, error)) this.furl(state);
-        else this.drive(state, this.cruise(speedCap, error), error);
-        return this.keys;
-    }
-
-    /** @return true while she should turn before making way: the goal abeam or astern - with hysteresis, no back and forth */
-    private boolean turnFirst(State state, float error) {
-        if (this.turningFirst) {
-            if (error < TURN_FIRST - TURN_FIRST_HYSTERESIS) this.turningFirst = false;
-        } else if (error > (state.sailState() > 0 ? TURN_FIRST + TURN_FIRST_HYSTERESIS : TURN_FIRST)) {
-            this.turningFirst = true;
-        }
-        return this.turningFirst;
-    }
-
-    /** @return the speed worth making on this heading error: less while the bow still points away */
-    private float cruise(float speedCap, float error) {
-        return this.profile.maxSpeedNow() * speedCap * (float) Math.max(0.35D, Math.cos(Math.toRadians(error)));
-    }
-
-    /**
-     * The rudder of a helmsman who knows his ship: against the turn as soon as
-     * the bow would swing past the heading otherwise. D = starboard, A = port.
-     *
-     * @param error degrees still to turn, + = to starboard - may be more than 180
-     */
-    private void steerBy(State state, float error) {
-        float swing = state.rotSpeed();
-        if (Math.abs(error) < HEADING_DEADBAND && Math.abs(swing) < ROT_SETTLED) return;
-        if (swing != 0.0F && Math.signum(swing) == Math.signum(error) && Math.abs(error) <= this.profile.brakeAngle(swing) + Math.abs(swing)) {
-            // she would overshoot: counter rudder - unless a single tick of it would turn the swing round
-            if (Math.abs(swing) > this.profile.rotBrake) {
-                if (swing > 0.0F) this.keys.left = true;
-                else this.keys.right = true;
-            }
-            return;
-        }
-        if (error > 0.0F) this.keys.right = true;
-        else this.keys.left = true;
-    }
-
-    private void killSwing(State state) {
-        float swing = state.rotSpeed();
-        if (Math.abs(swing) <= this.profile.rotBrake) return;
-        if (swing > 0.0F) this.keys.left = true;
-        else this.keys.right = true;
-    }
-
-    /** Sails 0; W while slower than wanted - oars on a galley, creeping on everything else. */
-    private void pull(State state, float wanted, float error) {
-        if (state.sailState() > 0) this.pressSailKey();
-        else if (error <= PULL_ANGLE && state.speed() < wanted - 0.002F) this.keys.forward = true;
-    }
-
-    private void furl(State state) {
-        if (state.sailState() > 0) this.pressSailKey();
-    }
-
-    /**
-     * Makes the wanted speed under oars or canvas. Canvas calmly: furled sails
-     * go up only after SAIL_REST and once she has wanted them for SAIL_INTENT
-     * (she creeps or rows meanwhile), a set state is worked the other way than
-     * last time only after SAIL_REVERSE_HOLD - W/S one step per cooldown.
-     */
-    private void drive(State state, float wanted, float error) {
-        if (this.profile.rowFor(wanted)) {
-            this.pull(state, wanted, error);
-            return;
-        }
-        int current = state.sailState(), target = this.profile.sailStateFor(wanted, current);
-        if (current == 0) {
-            this.wishing = true;
-            if (++this.sailWish >= SAIL_INTENT && (this.lastSailDir >= 0 || this.sailAge >= SAIL_REST)) this.pressSailKey();
-            else this.pull(state, wanted, error);
-            return;
-        }
-        if (target == current) return;
-        int direction = target > current ? 1 : -1;
-        if (direction != this.lastSailDir && this.sailAge < SAIL_REVERSE_HOLD) return;
-        if (direction > 0) this.keys.forward = true;
-        else this.keys.backward = true;
-    }
-
-    private void pressSailKey() {
-        if (this.sailKeyLock > 0) return;
-        this.keys.sail = true;
-        this.sailKeyLock = SAIL_KEY_LOCK;
-    }
-
-    /** Every helm command starts here, once per tick: fresh keys, and what the canvas did since last tick. */
-    private void beginKeys(State state) {
-        this.keys.forward = this.keys.backward = this.keys.left = this.keys.right = this.keys.sail = false;
-        if (this.sailKeyLock > 0) this.sailKeyLock--;
-        int sails = state.sailState();
-        if (this.lastSail >= 0 && sails != this.lastSail) {
-            this.lastSailDir = sails > this.lastSail ? 1 : -1;
-            this.sailAge = 0;
-        } else if (this.sailAge < 100000) {
-            this.sailAge++;
-        }
-        this.lastSail = sails;
-        if (!this.wishing) this.sailWish = 0; // the wish to set canvas only counts while it is unbroken
-        this.wishing = false;
     }
 
     /* ================================ small =================================== */

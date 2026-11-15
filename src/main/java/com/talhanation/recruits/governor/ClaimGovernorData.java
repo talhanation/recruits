@@ -47,6 +47,11 @@ public class ClaimGovernorData {
     private long lastModuleDay = -1;
     /** Data of the addon modules (workers ...), by module id. Saved with the claim. */
     private final Map<String, CompoundTag> moduleData = new HashMap<>();
+    /**
+     * Unit types a module needs but can not hire in the claim (no free unit, no noble offers them), by module id.
+     * A noble elected in a village of the claim prefers a trader type that offers them.
+     */
+    private final Map<String, List<String>> wantedUnits = new HashMap<>();
     /** Daily report that could not be delivered (owner offline), as component JSON. Sent at the next login. */
     private final List<String> pendingReport = new ArrayList<>();
 
@@ -61,6 +66,8 @@ public class ClaimGovernorData {
     public transient int lastKnownTreasury = -1;
     public transient boolean treasuryMissing;
     public transient boolean upkeepMissing;
+    /** Game time of the last planning of the modules ({@code IGovernorModule.onUpdate}), not saved. */
+    public transient long lastModuleUpdate = Long.MIN_VALUE / 2;
     /** Why the Governor does (not) recruit right now, shown in the Info tab. Key below gui.recruits.governor.recruit_status. */
     public transient String recruitStatus = "idle";
     public transient String recruitStatusArg = "";
@@ -137,6 +144,11 @@ public class ClaimGovernorData {
     }
 
     public GovernorPost addPost(GovernorPost.Type type, BlockPos pos) {
+        return addPost(type, pos, null);
+    }
+
+    /** Adds a post; entity is the upkeep entity of an Upkeep post (a storage area), null for blocks. */
+    public GovernorPost addPost(GovernorPost.Type type, BlockPos pos, @Nullable UUID entity) {
         if (type == GovernorPost.Type.TREASURY) {
             posts.removeIf(p -> p.getType() == GovernorPost.Type.TREASURY);
             treasuryMissingNotified = false;
@@ -145,7 +157,7 @@ public class ClaimGovernorData {
         for (GovernorPost post : posts) {
             if (post.getType() == type) number = Math.max(number, post.getNumber() + 1);
         }
-        GovernorPost post = new GovernorPost(type, pos, number);
+        GovernorPost post = new GovernorPost(type, pos, number, type == GovernorPost.Type.UPKEEP ? entity : null);
         posts.add(post);
         return post;
     }
@@ -314,6 +326,21 @@ public class ClaimGovernorData {
         return moduleData.computeIfAbsent(module.toString(), key -> new CompoundTag());
     }
 
+    /** Replaces the unit types the module needs but can not hire (entity type ids). */
+    public void setWantedUnits(net.minecraft.resources.ResourceLocation module, Collection<net.minecraft.resources.ResourceLocation> units) {
+        List<String> list = new ArrayList<>();
+        for (net.minecraft.resources.ResourceLocation unit : units) list.add(unit.toString());
+        if (list.isEmpty()) wantedUnits.remove(module.toString());
+        else wantedUnits.put(module.toString(), list);
+    }
+
+    /** Unit types all modules need but can not hire (entity type ids). */
+    public Set<String> getWantedUnits() {
+        Set<String> set = new LinkedHashSet<>();
+        for (List<String> list : wantedUnits.values()) set.addAll(list);
+        return set;
+    }
+
     public List<String> getPendingReport() {
         return pendingReport;
     }
@@ -373,6 +400,15 @@ public class ClaimGovernorData {
             }
             tag.put("modules", modules);
         }
+        if (!wantedUnits.isEmpty()) {
+            CompoundTag wanted = new CompoundTag();
+            for (Map.Entry<String, List<String>> entry : wantedUnits.entrySet()) {
+                ListTag units = new ListTag();
+                for (String unit : entry.getValue()) units.add(net.minecraft.nbt.StringTag.valueOf(unit));
+                wanted.put(entry.getKey(), units);
+            }
+            tag.put("wantedUnits", wanted);
+        }
         if (!pendingReport.isEmpty()) {
             ListTag report = new ListTag();
             for (String line : pendingReport) report.add(net.minecraft.nbt.StringTag.valueOf(line));
@@ -420,6 +456,13 @@ public class ClaimGovernorData {
         data.lastModuleDay = tag.contains("lastModuleDay") ? tag.getLong("lastModuleDay") : -1;
         CompoundTag modules = tag.getCompound("modules");
         for (String key : modules.getAllKeys()) data.moduleData.put(key, modules.getCompound(key));
+        CompoundTag wanted = tag.getCompound("wantedUnits");
+        for (String key : wanted.getAllKeys()) {
+            ListTag units = wanted.getList(key, Tag.TAG_STRING);
+            List<String> list = new ArrayList<>();
+            for (int i = 0; i < units.size(); i++) list.add(units.getString(i));
+            if (!list.isEmpty()) data.wantedUnits.put(key, list);
+        }
         ListTag report = tag.getList("pendingReport", Tag.TAG_STRING);
         for (int i = 0; i < report.size(); i++) data.pendingReport.add(report.getString(i));
         return data;
