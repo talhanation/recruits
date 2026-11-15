@@ -23,13 +23,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.DiodeBlock;
 import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.neoforge.common.NeoForge;
@@ -422,8 +422,7 @@ public class ClaimEvents {
     public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
         if(event.getLevel().isClientSide()) return;
 
-        ChunkAccess access = server.overworld().getChunk(event.getPos());
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = recruitsClaimManager.getClaim(new ChunkPos(event.getPos()));
         Player player = event.getPlayer();
 
         if(player.isCreative() && player.hasPermissions(2)){
@@ -447,8 +446,7 @@ public class ClaimEvents {
     public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
         if(event.getLevel().isClientSide()) return;
 
-        ChunkAccess access = server.overworld().getChunk(event.getPos());
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = recruitsClaimManager.getClaim(new ChunkPos(event.getPos()));
         Entity entity = event.getEntity();
 
         if(entity instanceof Player player && player.isCreative() && player.hasPermissions(2)){
@@ -471,8 +469,7 @@ public class ClaimEvents {
         if(event.getLevel().isClientSide()) return;
         Vec3 vec = event.getExplosion().center();
         BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
-        ChunkAccess access = server.overworld().getChunk(pos);
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = recruitsClaimManager.getClaim(new ChunkPos(pos));
 
         Entity entity = event.getExplosion().getDirectSourceEntity();
         if(entity instanceof Player player && player.isCreative() && player.hasPermissions(2)){
@@ -498,8 +495,7 @@ public class ClaimEvents {
         Vec3 vec = target.getLocation();
         BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
 
-        ChunkAccess access = server.overworld().getChunk(pos);
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = recruitsClaimManager.getClaim(new ChunkPos(pos));
         if(claim == null) return;
 
         if(player.isCreative() && player.hasPermissions(2)){
@@ -516,8 +512,7 @@ public class ClaimEvents {
     @SubscribeEvent
     public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         if(event.getLevel().isClientSide()) return;
-        ChunkAccess access = server.overworld().getChunk(event.getPos());
-        RecruitsClaim claim = recruitsClaimManager.getClaim(access.getPos());
+        RecruitsClaim claim = recruitsClaimManager.getClaim(new ChunkPos(event.getPos()));
         if(claim == null) return;
 
         BlockPos pos = event.getHitVec().getBlockPos();
